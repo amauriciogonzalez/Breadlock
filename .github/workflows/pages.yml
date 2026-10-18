@@ -25,16 +25,17 @@ jobs:
         uses: actions/checkout@v4
       - name: Validate JavaScript
         run: |
-          node --check statlocker_placement_core.js
-          node --check data_coordinator.js
-          node --test data_coordinator.test.cjs
+          node --check backend/statlocker_placement_core.js
+          node --check backend/data_coordinator.js
+          node --test tests/*.test.cjs
           node -e "const fs=require('node:fs'),vm=require('node:vm'); const html=fs.readFileSync('index.html','utf8'); const script=html.match(/<script>([\s\S]*?)<\/script>/); if(!script)throw Error('Inline script missing'); new vm.Script(script[1]);"
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Prepare static site
         run: |
           mkdir dist
-          cp index.html statlocker_placement_core.js data_coordinator.js dist/
+          cp index.html dist/
+          cp -R backend dist/
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
