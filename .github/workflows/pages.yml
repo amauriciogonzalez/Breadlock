@@ -1,0 +1,42 @@
+name: Deploy Breadlock to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v4
+      - name: Validate JavaScript
+        run: |
+          node --check statlocker_placement_core.js
+          node -e "const fs=require('node:fs'),vm=require('node:vm'); const html=fs.readFileSync('index.html','utf8'); const script=html.match(/<script>([\s\S]*?)<\/script>/); if(!script)throw Error('Inline script missing'); new vm.Script(script[1]);"
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Prepare static site
+        run: |
+          mkdir dist
+          cp index.html statlocker_placement_core.js dist/
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

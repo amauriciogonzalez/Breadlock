@@ -1,0 +1,2182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Breadlock Stats: compare Deadlock players, matches, heroes, and team performance.">
+<title>Breadlock Stats</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0d10;--bg2:#13161c;--bg3:#1a1e27;--bg4:#22263100;
+  --acc:#f0b429;--acc2:#c8891a;--acc3:#ffd060;
+  --teal:#34d9c3;--red:#ff7070;--blue:#74b3ff;--grn:#5aee8a;--pur:#c084fc;
+  --bdr:#2a2f3d;--bdr2:#363c50;
+  --txt:#f0f2fa;--txt2:#bdc3d8;--txt3:#8892aa;--sub:#4a5168;
+  --ff:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --fm:'Courier New',monospace;
+  --r:5px;--r2:8px;
+}
+body{background:var(--bg);color:var(--txt);font-family:var(--ff);font-size:15px;min-height:100vh;line-height:1.4}
+h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+/* Header */
+.hdr{background:var(--bg2);border-bottom:2px solid var(--bdr);padding:13px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-size:20px;font-weight:800;letter-spacing:3px;color:var(--acc);text-transform:uppercase}
+.logo em{color:var(--txt3);font-style:normal}
+.hsub{font-size:11px;color:var(--txt3);font-family:var(--fm);margin-left:auto}
+/* Player bar */
+.pbar{background:var(--bg2);border-bottom:1px solid var(--bdr);padding:10px 18px;display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.row{display:flex;align-items:center;gap:6px}
+.lbl{font-size:11px;color:var(--txt3);white-space:nowrap;letter-spacing:.5px;text-transform:uppercase;font-weight:600}
+input[type=text]{background:var(--bg3);border:1px solid var(--bdr);color:var(--txt);padding:6px 10px;border-radius:var(--r);font-family:var(--fm);font-size:12px;outline:none;transition:border .15s}
+input[type=text]:focus{border-color:var(--acc)}
+input[type=text]::placeholder{color:var(--sub)}
+.btn{background:var(--bg3);border:1px solid var(--bdr2);color:var(--txt2);padding:6px 13px;border-radius:var(--r);cursor:pointer;font-size:12px;font-weight:700;letter-spacing:.5px;transition:all .15s;text-transform:uppercase;white-space:nowrap}
+.btn:hover{border-color:var(--acc);color:var(--acc)}
+.btna{background:rgba(240,180,41,.2);border-color:var(--acc);color:var(--acc3)}
+.btna:hover{background:rgba(240,180,41,.35);color:#fff}
+.btnsm{padding:4px 9px;font-size:10px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;flex:1;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:4px 8px;font-size:11px;font-family:var(--fm);max-width:200px}
+.chip.cerr{border-color:rgba(255,112,112,.4)}
+.chip .cname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;color:var(--txt2)}
+.chip .crm{color:var(--sub);cursor:pointer;font-size:15px;line-height:1;margin-left:2px;flex-shrink:0}
+.chip .crm:hover{color:var(--red)}
+.chip .cld{color:var(--txt3);font-size:11px;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+/* Tabs */
+.tabs{background:var(--bg2);border-bottom:1px solid var(--bdr);display:flex;padding:0 18px;overflow-x:auto}
+.tab{padding:10px 15px;font-size:12px;letter-spacing:.7px;font-weight:700;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;text-transform:uppercase}
+.tab:hover{color:var(--txt2)}
+.tab.on{color:var(--acc);border-bottom-color:var(--acc)}
+/* Main */
+.main{padding:16px;display:flex;flex-direction:column;gap:14px;min-height:200px}
+.empty{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:60px 20px;color:var(--txt3)}
+.eico{font-size:40px;opacity:.18}
+.etxt{font-size:17px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--txt2)}
+.esub{font-size:13px;font-family:var(--fm);color:var(--sub)}
+/* Grids */
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(minmax(0,280px),1fr));gap:12px}
+.performance-tables{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.performance-tables>.card{min-width:0}
+.performance-mvp-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.performance-mvp-cards>.card{min-width:0}
+@media(max-width:900px){.performance-tables{grid-template-columns:1fr}}
+@media(max-width:500px){.performance-mvp-cards{grid-template-columns:1fr}}
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r2);padding:14px}
+.ct{font-size:10px;letter-spacing:2px;color:var(--txt3);text-transform:uppercase;margin-bottom:11px;display:flex;align-items:center;gap:6px;font-weight:700}
+.ct::before{content:'';width:10px;height:2px;background:var(--acc);flex-shrink:0}
+/* Player metric rows */
+.pmr{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--bg3)}
+.pmr:last-child{border-bottom:none}
+.pdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pn{flex:1;font-size:13px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.bw{width:80px;background:var(--bg3);border-radius:2px;height:4px;overflow:hidden;flex-shrink:0}
+.bf{height:4px;border-radius:2px}
+.pv{font-family:var(--fm);font-size:13px;font-weight:700;min-width:56px;text-align:right;color:var(--txt);flex-shrink:0}
+/* Charts */
+.cw{position:relative;width:100%;height:220px}
+.cwl{position:relative;width:100%;height:300px}
+/* Tables */
+.st{width:100%;border-collapse:collapse;font-size:13px}
+.st th{color:var(--txt3);padding:6px 9px;font-size:10px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--bdr2);white-space:nowrap;font-weight:700}
+.st th.r{text-align:right}
+.st th.l{text-align:left}
+.st td{padding:6px 9px;border-bottom:1px solid var(--bg3);color:var(--txt2);vertical-align:middle}
+.st td.r{font-family:var(--fm);text-align:right;color:var(--txt);font-size:13px}
+.st td.award-place{white-space:nowrap;font-variant-numeric:tabular-nums}
+.award-pair{display:grid;grid-template-columns:minmax(2ch,auto) 6ch;gap:6px;justify-content:end;align-items:baseline}
+.award-pair .award-rate{color:var(--acc3);font-size:13px;font-weight:700}
+.st tr:last-child td{border-bottom:none}
+.st tr:hover td{background:var(--bg3)}
+.bwin{color:var(--grn);font-size:11px;font-family:var(--fm);background:rgba(90,238,138,.1);border:1px solid rgba(90,238,138,.3);padding:2px 6px;border-radius:3px;white-space:nowrap}
+.bloss{color:var(--red);font-size:11px;font-family:var(--fm);background:rgba(255,112,112,.1);border:1px solid rgba(255,112,112,.25);padding:2px 6px;border-radius:3px}
+.nd{color:var(--sub);font-size:13px;font-family:var(--fm);text-align:center;padding:18px}
+.errbx{color:var(--red);font-size:13px;font-family:var(--fm);background:rgba(255,112,112,.07);border:1px solid rgba(255,112,112,.2);border-radius:var(--r);padding:9px 12px}
+.ldbx{color:var(--txt3);font-size:13px;font-family:var(--fm);padding:4px 0}
+.load-status{background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--r2);padding:14px;display:grid;gap:10px}
+.load-summary{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--txt2);font-family:var(--fm)}
+.load-summary strong{color:var(--acc3)}
+.load-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:9px}
+.load-item{min-width:0;font:11px var(--fm);color:var(--txt3)}
+.load-item-head{display:flex;justify-content:space-between;gap:8px;margin-bottom:5px}
+.load-item-head span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt2)}
+.load-track{height:7px;background:var(--bg3);border-radius:6px;overflow:hidden}
+.load-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--acc),var(--teal));transition:width .25s ease}
+.load-fill.indeterminate{width:35%;animation:load-slide 1.4s ease-in-out infinite}
+@keyframes load-slide{0%{transform:translateX(-100%)}100%{transform:translateX(290%)}}
+@media(prefers-reduced-motion:reduce){.load-fill.indeterminate{animation:none;width:100%;opacity:.5}.load-fill{transition:none}}
+/* Hero rows */
+.hrow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bg3)}
+.hrow:last-child{border-bottom:none}
+.hico{width:28px;height:28px;border-radius:4px;background:var(--bg3);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--txt3);overflow:hidden;flex-shrink:0}
+.hico img{width:100%;height:100%;object-fit:cover}
+.tico{width:26px;height:26px;margin:auto;border-radius:4px}
+.tico img{display:block;width:100%;height:100%;object-fit:cover}
+.hnm{flex:1;font-size:13px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hwr{font-family:var(--fm);font-size:13px;font-weight:700;min-width:38px;text-align:right;flex-shrink:0}
+.hgm{font-family:var(--fm);font-size:11px;color:var(--txt3);min-width:28px;text-align:right;flex-shrink:0}
+.wrbar{width:52px;background:var(--bg3);border-radius:2px;height:3px;flex-shrink:0}
+.wrfl{height:3px;border-radius:2px;background:var(--teal)}
+.hsorts{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.hsorts .btn{padding:7px 14px;font-size:11px}
+.hcell{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;min-width:170px}
+.hcell .tico{margin:0}
+.hrowx{align-items:center;padding:10px 0;gap:10px}
+.hrowx .hico{width:34px;height:34px}
+.hmain{flex:1;min-width:0}
+.hmain .hnm{font-size:14px;color:var(--txt);font-weight:700;margin-bottom:5px}
+.hsubstats{display:flex;flex-wrap:wrap;gap:5px;font-family:var(--fm);font-size:11px;color:var(--txt2);line-height:1.2}
+.hmet{background:rgba(255,255,255,.035);border:1px solid var(--bdr);border-radius:3px;padding:2px 5px;white-space:nowrap}
+.hmet strong{color:var(--txt);font-weight:700}
+.hst td{padding:7px 8px}
+.hst .hcell{min-width:140px}
+.hero-leaderboard{margin-bottom:8px}
+.hero-split{margin:26px 0 10px;padding-top:18px;border-top:1px solid var(--bdr2);color:var(--acc)}
+.hero-player-grid{margin-top:0}
+.hrowx .wrbar{width:64px;height:5px;margin-top:15px}
+.hrowx .wrfl{height:5px}
+.hrowx .hwr{font-size:14px;min-width:44px;margin-top:10px}
+.hrowx .hgm{font-size:12px;line-height:1.35;min-width:42px}
+/* Rankings */
+.rank-scroll{overflow-x:auto}
+.rank-mode{display:inline-flex;gap:6px;margin-left:auto;letter-spacing:normal;text-transform:none}
+.rank-mode .btn{padding:5px 11px;font-size:11px}
+.rank-table .rank-hero{white-space:nowrap;color:var(--txt3);font-size:11px}
+.rank-table .rank-hero .hcell{display:inline-flex;align-items:center}
+.rank-table{min-width:1250px}
+.rank-table td{padding:11px 9px}
+.rank-table .rank-player{font-weight:700;color:var(--txt);white-space:nowrap}
+.rank-place{font-family:var(--fm);font-weight:700;color:var(--acc3)!important}
+.rank-tier{display:inline-block;min-width:27px;text-align:center;padding:2px 6px;border-radius:4px;font-weight:800;border:1px solid currentColor}
+.rank-S{color:var(--acc3)}.rank-A{color:var(--grn)}.rank-B{color:var(--blue)}.rank-C{color:var(--teal)}
+.rank-D{color:var(--pur)}.rank-F{color:var(--red)}
+.rank-table .rank-boundary td{border-top:2px solid var(--bdr2)}
+.rank-score{display:flex;align-items:center;justify-content:flex-end;gap:8px;font-family:var(--fm);font-weight:700;color:var(--txt)}
+.rank-track{width:75px;height:6px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.rank-fill{height:100%;border-radius:4px}
+.rank-tier-cell{white-space:nowrap}
+.rank-expand{width:26px;height:26px;margin-left:7px;vertical-align:middle;border:0;border-radius:4px;background:transparent;color:var(--acc3);cursor:pointer}
+.rank-expand::before{content:'';display:inline-block;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .15s}
+.rank-expand[aria-expanded="true"]::before{transform:translateY(2px) rotate(225deg)}
+.rank-expand:hover{background:var(--bdr)}
+.rank-expand:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.rank-table .rank-detail>td{padding:0;background:var(--bg3)}
+.rank-explain{padding:18px 20px;background:var(--bg3);white-space:normal;line-height:1.4;color:var(--txt2)}
+.rank-explain-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+.rank-explain-head strong{font-size:16px;color:var(--txt)}
+.rank-explain-head span{font:700 20px var(--fm);color:var(--acc3)}
+.rank-explain h4{font-size:11px;letter-spacing:1px;color:var(--txt3);text-transform:uppercase;margin-bottom:8px}
+.rank-components{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.rank-component,.rank-cat,.rank-trend{padding:12px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:6px}
+.rank-component-head,.rank-cat-head,.rank-trend-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12px}
+.rank-component-head strong,.rank-cat-head strong{color:var(--txt);font:700 15px var(--fm)}
+.rank-bar{height:9px;background:var(--bdr);border-radius:6px;overflow:hidden;margin:8px 0 5px}
+.rank-bar-fill{height:100%;background:var(--acc);border-radius:inherit}
+.rank-bar-fill.win{background:var(--teal)}
+.rank-explain .note{margin-top:6px}
+.rank-cat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;align-items:start}
+.rank-cat-drill{padding:14px;background:var(--bg2);border:1px solid var(--acc2);border-radius:6px;margin-bottom:14px}
+.rank-metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.rank-cat-track{height:12px;position:relative;border-radius:5px;background:linear-gradient(90deg,rgba(255,112,112,.12) 0 50%,rgba(90,238,138,.12) 50%);margin:10px 0 5px}
+.rank-cat-track::after{content:'';position:absolute;left:50%;height:16px;top:-2px;border-left:2px solid var(--txt3)}
+.rank-cat-fill{position:absolute;height:100%;border-radius:4px;background:var(--grn)}
+.rank-cat-fill.below{background:var(--red)}
+.rank-cat-foot{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:var(--txt3)}
+.rank-cat .note{overflow-wrap:anywhere}
+.rank-sway{font:700 12px var(--fm);color:var(--txt2);margin-top:6px}
+.rank-sway.positive{color:var(--grn)}.rank-sway.negative{color:var(--red)}
+.rank-cat-toggle{display:block;width:100%;background:none;border:0;border-top:1px solid var(--bdr2);margin-top:10px;padding:9px 0 0;text-align:left;cursor:pointer;color:var(--acc3);font-size:11px;font-weight:700}
+.rank-cat-toggle::before{content:'▸';display:inline-block;margin-right:6px}
+.rank-cat-toggle[aria-expanded="true"]::before{transform:rotate(90deg)}
+.rank-cat-toggle:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.rank-metric{padding:10px;background:var(--bg3);border:1px solid var(--bdr);border-radius:5px}
+.rank-metric-head{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--txt)}
+.rank-metric-head strong{font:700 12px var(--fm)}
+.rank-metric .rank-cat-track{height:8px;margin:7px 0 5px}
+.rank-metric .rank-cat-track::after{height:12px}
+.rank-edges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0 16px}
+.rank-edge-list{padding:10px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:6px}
+.rank-edge{border-top:1px solid var(--bdr);padding:8px 0;font-size:11px}
+.rank-edge:first-of-type{border-top:0}
+.rank-edge strong{color:var(--txt)}
+.rank-edge small{display:block;color:var(--txt3)}
+.rank-trend{margin-bottom:10px}
+.rank-trend-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.rank-trend .note{overflow-wrap:anywhere}
+.rank-trend-row{display:grid;grid-template-columns:120px minmax(0,1fr) 55px;align-items:center;gap:9px;font:12px var(--fm);margin-top:8px}
+.rank-trend-row .rank-bar{margin:0}
+@media(max-width:750px){.rank-components,.rank-cat-grid,.rank-metric-grid,.rank-edges,.rank-trend-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.rank-components,.rank-cat-grid,.rank-metric-grid,.rank-edges,.rank-trend-grid{grid-template-columns:1fr}}
+/* Debug */
+.dbgbox{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r2);overflow:hidden}
+.dbgh{padding:8px 14px;background:var(--bg3);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);font-weight:700}
+.dbgb{max-height:320px;overflow-y:auto;padding:10px 14px;font-family:var(--fm);font-size:11px;line-height:1.8;color:var(--txt3)}
+.dbok{color:var(--grn)}.dber{color:var(--red)}.dbwn{color:var(--acc)}.dbin{color:var(--blue)}
+/* Section label */
+.slbl{font-size:11px;letter-spacing:2px;color:var(--txt3);text-transform:uppercase;font-weight:700;margin-bottom:-2px;padding-left:2px}
+.filters{background:var(--bg2);border-bottom:1px solid var(--bdr);padding:9px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.filters select{background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:5px 9px;color:var(--txt);font-size:12px}
+.note{font-size:11px;color:var(--txt3);line-height:1.6}
+.subhead{font-size:12px;color:var(--acc3);font-weight:700;margin:9px 0}
+/* Individual population comparisons */
+.ind-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ind-view{display:flex;flex-direction:column;gap:14px;min-width:0}
+.ind-picker{position:relative;min-width:170px;max-width:min(270px,100%);font-size:13px}
+.ind-picker summary{display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer;background:var(--bg3);border:1px solid var(--bdr2);border-radius:5px;padding:6px 9px;color:var(--txt);min-height:38px}
+.ind-picker summary::-webkit-details-marker{display:none}
+.ind-picker summary::after{content:'▾';margin-left:auto;color:var(--txt3)}
+.ind-picker[open] summary,.ind-picker summary:focus-visible{border-color:var(--ind-player);outline:none}
+.ind-picker .ind-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ind-menu{position:absolute;z-index:10;top:calc(100% + 4px);left:0;width:max(100%,210px);max-width:min(300px,calc(100vw - 48px));max-height:290px;overflow-y:auto;background:var(--bg2);border:1px solid var(--bdr2);border-radius:6px;padding:4px;box-shadow:0 12px 24px #0009}
+.ind-menu button{display:flex;align-items:center;gap:9px;width:100%;border:0;border-radius:4px;background:transparent;color:var(--txt2);font:inherit;text-align:left;padding:6px;cursor:pointer}
+.ind-menu button:hover,.ind-menu button:focus-visible,.ind-menu button[aria-current=true]{background:var(--bg3);color:var(--ind-player);outline:none}
+.ind-picker .hico{width:25px;height:25px}.ind-picker .pdot{width:10px;height:10px}
+.ind-rank-icon{color:var(--ind-player);font-size:18px;line-height:1;width:25px;text-align:center}
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:10px;margin-top:12px}
+.ind-category{margin:0}.ind-category .chem-category-head{align-items:center}
+.ind-view .ind-category h4{color:var(--ind-player)}
+.ind-card{display:flex;flex-direction:column;min-width:0}
+.ind-card .chem-metric-title{margin-bottom:12px;border-left-color:var(--ind-player);background:color-mix(in srgb,var(--ind-player) 9%,transparent)}
+.ind-result{display:flex;align-items:baseline;gap:8px}
+.ind-value{font:700 23px var(--fm);color:var(--ind-player)}
+.ind-plot{position:relative;padding-top:25px;margin-top:6px}
+.ind-percent{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;background:var(--bg2);border:1px solid var(--bdr2);border-radius:4px;padding:2px 5px;font:700 12px var(--fm);z-index:1}
+.ind-chart{width:100%;height:105px;display:block;overflow:visible}
+.ind-axis{display:flex;justify-content:space-between;color:var(--txt3);font:11px var(--fm)}
+.ind-meta{font:11px var(--fm);color:var(--txt2);margin-top:9px}
+/* Chemistry */
+.chem-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:13px}
+.chem-controls label{display:flex;align-items:center;gap:7px;color:var(--txt2);font-size:12px;font-weight:700}
+.chem-controls select{background:var(--bg3);color:var(--txt);border:1px solid var(--bdr2);border-radius:5px;padding:8px;max-width:100%;font-size:12px}
+.chem-toggle{display:flex;gap:4px;background:var(--bg3);padding:4px;border:1px solid var(--bdr2);border-radius:7px}
+.chem-toggle button{background:transparent;border:0;border-radius:4px;padding:8px 13px;color:var(--txt2);font-weight:700;cursor:pointer;font-size:12px}
+.chem-toggle button[aria-pressed=true]{background:var(--acc);color:var(--bg)}
+.chem-assembly{margin-bottom:14px}
+.chem-assembly .ct{margin-bottom:8px}
+.chem-roster{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.chem-person{display:flex;align-items:center;gap:9px;text-align:left;background:var(--bg3);color:var(--txt);border:1px solid var(--bdr2);border-radius:8px;padding:9px 12px;cursor:pointer;font:inherit;min-width:170px}
+.chem-person:hover,.chem-person:focus-visible{border-color:var(--acc3);outline:none}
+.chem-person[aria-pressed=true]{border-color:var(--acc);background:rgba(240,180,41,.09)}
+.chem-person:disabled{opacity:.5;cursor:not-allowed}
+.chem-person .pdot{width:11px;height:11px;flex-shrink:0}
+.chem-person-name{font-weight:700;font-size:12px;overflow-wrap:anywhere}
+.chem-person small{display:block;color:var(--txt2);font-size:11px;line-height:1.4}
+.chem-team-history{overflow-x:auto;margin-top:12px}
+.chem-team-history .st{min-width:550px}
+.chem-team-history td{vertical-align:top}
+.chem-team-history .hico{display:inline-flex;vertical-align:middle;margin-right:4px}
+.chem-team-members{display:flex;flex-wrap:wrap;gap:6px 14px}
+.chem-team-members span{white-space:nowrap}
+.chem-layout{display:grid;grid-template-columns:minmax(250px,340px) minmax(0,1fr);gap:14px;align-items:stretch}
+/* The right column sets the row height; only the pair list scrolls within that height. */
+.chem-pairs-card{display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
+.chem-list{display:flex;flex-direction:column;gap:7px;height:0;flex:1 1 0;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:4px}
+.chem-pair{flex:0 0 auto;width:100%;text-align:left;cursor:pointer;background:var(--bg3);color:var(--txt);border:1px solid var(--bdr);border-radius:7px;padding:12px;display:grid;gap:7px;font-family:var(--ff)}
+.chem-pair:hover,.chem-pair:focus-visible{border-color:var(--acc3);outline:none}
+.chem-pair[aria-pressed=true]{border-color:var(--acc);background:rgba(240,180,41,.09)}
+.chem-names{font-weight:700;font-size:14px;line-height:1.35;overflow-wrap:anywhere}
+.chem-meta{color:var(--txt2);font-size:12px;display:flex;justify-content:space-between;gap:6px;align-items:center}
+.chem-result{display:flex;align-items:center;gap:12px;white-space:nowrap}
+.chem-rate{font-family:var(--fm);font-weight:800;font-size:14px}
+.chem-pill{font-family:var(--fm);font-weight:700;color:var(--txt2)}
+.chem-score-gap{font-size:11px;color:var(--txt3)}
+.chem-empty{padding:18px;color:var(--txt2);font-size:13px;line-height:1.6;background:var(--bg3);border-radius:6px}
+.chem-detail{display:flex;flex-direction:column;gap:14px;min-width:0}
+.chem-detail h3{font-size:19px;overflow-wrap:anywhere}
+.chem-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:13px 0}
+.chem-stat{background:var(--bg3);border:1px solid var(--bdr);border-radius:6px;padding:12px;min-width:0}
+.chem-stat strong{display:block;color:var(--acc3);font-family:var(--fm);font-size:20px;line-height:1.3}
+.chem-stat span{display:block;color:var(--txt2);font-size:12px;margin-top:4px;line-height:1.4}
+.chem-compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:8px;margin-top:12px}
+.chem-compare .chem-stat strong{color:var(--txt);font-size:18px}
+.chem-compare .chem-stat span{overflow-wrap:anywhere}
+.chem-metric-title{display:flex;align-items:center;min-height:40px;margin:0 0 10px;padding:4px 8px;border-left:3px solid var(--acc);border-radius:2px;background:rgba(240,180,41,.06);color:var(--txt);font-size:13px;font-weight:750;line-height:1.3;overflow-wrap:anywhere}
+.chem-compare .chem-stat small{display:block;color:var(--txt3);margin-top:8px;font-size:11px;line-height:1.4}
+.chem-delta{display:flex;align-items:baseline;justify-content:space-between;gap:5px}
+.chem-delta em{font-family:var(--ff);font-size:11px;font-style:normal;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chem-bars{display:grid;gap:5px;margin:9px 0}
+.chem-bar-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;font:11px var(--fm);color:var(--txt2)}
+.chem-bar-name{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chem-bar-row .chem-bar-track{grid-column:1/-1}
+.chem-bar-track{background:var(--bg2);height:8px;border-radius:4px;overflow:hidden}
+.chem-bar-fill{height:100%;border-radius:4px;min-width:2px}
+.chem-bar-row span:nth-child(2){text-align:right}
+.chem-match-row{cursor:pointer}
+.chem-match-row:hover td{background:var(--bg3)}
+.chem-match-row:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
+.chem-match-row[aria-expanded=true] td{background:var(--bg3)}
+.chem-match-row td:first-child::before{content:'▸';color:var(--acc);margin-right:7px}
+.chem-match-row[aria-expanded=true] td:first-child::before{content:'▾'}
+.chem-extra[hidden]{display:none}
+.chem-extra td{padding:6px 12px 13px}
+.chem-extra .chem-foot{margin:4px 0 2px}
+.chem-head-pair{display:block;color:var(--txt2);font-size:10px;letter-spacing:0;text-transform:none;margin-top:4px}
+.chem-match-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:7px;padding:12px 0 8px}
+.chem-match-grid div{background:var(--bg3);border-radius:4px;padding:8px;white-space:normal;font-size:12px;color:var(--txt2)}
+.chem-match-grid strong{display:block;color:var(--txt);font-family:var(--fm);margin-top:4px}
+.chem-match-metric-title{font-weight:700;color:var(--txt);font-size:12px}
+.chem-comparison .ct::before{background:var(--chem-overall)}
+.chem-comparison .chem-score-card h4{color:var(--chem-overall)}
+.chem-comparison .chem-category h4{color:var(--chem-section)}
+.chem-comparison .chem-compare .chem-stat{border-color:color-mix(in srgb,var(--chem-metric) 35%,var(--bdr))}
+.chem-comparison .chem-metric-title{border-left-color:var(--chem-metric);background:color-mix(in srgb,var(--chem-metric) 9%,transparent)}
+.chem-score-card{background:var(--bg3);border:1px solid var(--bdr2);border-radius:8px;padding:16px;margin-top:14px}
+.chem-score-card h4{font-size:15px;color:var(--acc3);margin-bottom:5px}
+.chem-score-row{margin-top:16px}
+.chem-score-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;font-weight:700;overflow-wrap:anywhere}
+.chem-score-head strong{font:700 22px var(--fm);color:var(--txt)}
+.chem-score-track{height:22px;background:var(--bg2);border-radius:5px;display:flex;overflow:hidden;margin-top:6px}
+.chem-score-segment{height:100%;border-right:2px solid var(--bg2)}
+.chem-score-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:15px}
+.chem-score-legend span{font-size:11px;color:var(--txt2)}
+.chem-score-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.chem-category{background:rgba(255,255,255,.025);border:1px solid var(--bdr2);border-radius:8px;padding:14px;margin-top:14px}
+.chem-category-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.chem-category h4{font-size:14px;color:var(--acc3);letter-spacing:.4px}
+.chem-category-head p{font-size:12px;color:var(--txt3);line-height:1.4}
+.chem-category .chem-compare{margin-top:12px}
+.chem-match-section{margin-top:12px}
+.chem-match-section h4{color:var(--acc3);font-size:12px;margin-bottom:6px}
+.chem-history{overflow-x:auto;margin-top:10px}
+.chem-history .st{min-width:940px}
+.chem-history td{padding:10px 9px}
+.chem-history .st td:first-child{white-space:nowrap}
+.chem-foot{font-size:12px;color:var(--txt3);line-height:1.6}
+@media(max-width:800px){.chem-layout{grid-template-columns:1fr}.chem-list{height:auto;flex:none;max-height:300px}.chem-pairs-card{overflow:visible}.chem-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:500px){.chem-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.chem-compare{grid-template-columns:1fr}.chem-result{gap:8px}}
+@media(max-width:700px){.g3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h2 class="sr-only">Breadlock Stats — multi-player Deadlock comparison dashboard</h2>
+
+<div class="hdr">
+  <div class="logo">BREAD<em>LOCK</em> STATS</div>
+  <div class="hsub">deadlock-api.com</div>
+</div>
+
+<div class="pbar">
+  <div class="row">
+    <span class="lbl">ID:</span>
+    <input type="text" id="inp-id" placeholder="Steam account ID" style="width:145px">
+    <input type="text" id="inp-nm" placeholder="Label" style="width:110px">
+    <button class="btn btna" id="btn-add">+ ADD</button>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="row" style="gap:6px">
+    <button class="btn btnsm" id="btn-def">Load Example Players</button>
+    <button class="btn btnsm" id="btn-clr">Clear</button>
+    <button class="btn btnsm" id="btn-dbg">Console</button>
+  </div>
+</div>
+
+<div class="filters"><label class="row"><span class="lbl">Mode</span><select id="scope-mode"><option value="normal">All Normal</option><option value="standard">Standard</option><option value="ranked">Ranked</option></select></label><div class="row"><span class="lbl">Period: Last</span><select id="scope-count" aria-label="Period amount"><option value="0">All</option><option value="30">30</option><option value="90">90</option></select><select id="scope-unit" aria-label="Period unit"><option value="matches">Matches</option><option value="days">Days</option></select></div><span class="note">All comparisons use the same selected mode and period.</span></div>
+
+<div class="tabs" id="tabs">
+  <div class="tab on" data-t="overview">Overview</div>
+  <div class="tab" data-t="combat">Combat</div>
+  <div class="tab" data-t="economy">Economy</div>
+  <div class="tab" data-t="performance">Performance</div>
+  <div class="tab" data-t="stages">Match Stages</div>
+  <div class="tab" data-t="heroes">Heroes</div>
+  <div class="tab" data-t="chemistry">Chemistry</div>
+  <div class="tab" data-t="individual">Individual</div>
+  <div class="tab" data-t="matches">Matches</div>
+  <div class="tab" data-t="debug">Console</div>
+</div>
+
+<div class="main" id="main">
+  <div class="empty">
+    <div class="eico">🍞</div>
+    <div class="etxt">No Players Loaded</div>
+    <div class="esub">Click "Load Example Players" or add a Steam account ID above</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="./statlocker_placement_core.js"></script>
+<script>
+(function(){
+const API='https://api.deadlock-api.com/v1';
+const COLS=['#f0b429','#34d9c3','#74b3ff','#f472b6','#a78bfa','#5aee8a','#fb923c','#e879f9','#38bdf8','#f87171'];
+const DEFAULTS=[
+  {id:'181311490',label:'WoodRefrigerator'},
+  {id:'106307673',label:'Ten'},
+  {id:'890958554',label:'Yamson'},
+  {id:'43890963',label:'Def'},
+  {id:'889764276',label:'Horse Hormones'},
+  {id:'235976077',label:'Datkrazystoner'},
+  {id:'1008807965',label:'Master JahBlu'},
+  {id:'855208374',label:'Wiggly'},
+  {id:'890674989',label:'Como se dice arroz'},
+  {id:'76561198170676771',label:'TragicSensei'},
+];
+
+let players=[], heroMeta={}, heroMetaPromise=null, activeTab='overview', charts={}, logs=[], heroSort='played', leaderboardMode='overall';
+let chemistryView='team',chemistryPair=null,chemistrySort='shared',chemistryTeam=[];
+let scopeMode='normal',scopeCount=0,scopeUnit='matches',loadGeneration=0;
+let individualId=null,individualHero='all',individualRank='all';const populationCache=new Map(),populationCountCache=new Map();
+const DAMAGE_BATCH_SIZE=100,STAGE_MATCH_LIMIT=25,PLACEMENT_BATCH_SIZE=96;
+const PLACEMENT_CACHE_LIMIT=10000,PLACEMENT_MIN_START_GAP_MS=3000;
+const PLACEMENT_CACHE_KEY='breadlock-estimated-placements-v'+(window.BreadlockPlacement?.VERSION||0);
+const placementRanks=new Map(),placementFailures=new Set();
+let placementLoading=false,placementProgress={done:0,total:0},placementRun=0,placementAbort=null;
+let placementTargets=[],placementRetryTimer=null,placementNextTimer=null;
+let placementUnsaved=0,placementBackoffMs=15000,placementRetryDelay=0;
+const PLACEMENT_MAX_FAILURE_ATTEMPTS=3;
+let placementFailureAttempts=0,placementStoppedReason='';
+let placementLastRequestStart=0;
+function reserveMetadataRequest(){
+  const start=Math.max(Date.now(),placementLastRequestStart+PLACEMENT_MIN_START_GAP_MS);
+  placementLastRequestStart=start;
+  return Math.max(0,start-Date.now());
+}
+try{
+  const saved=JSON.parse(localStorage.getItem(PLACEMENT_CACHE_KEY)||'[]');
+  if(Array.isArray(saved))for(const [id,ranks] of saved){
+    if(/^\d+$/.test(String(id))&&ranks&&typeof ranks==='object'&&Object.keys(ranks).length===12&&
+       Object.values(ranks).every(r=>Number.isInteger(r)&&r>=1&&r<=12)&&
+       new Set(Object.values(ranks)).size===12)placementRanks.set(String(id),ranks);
+  }
+}catch(e){}
+const visibleMatches=p=>{
+  const filtered=(p.matches||[]).filter(m=>{
+    const mode=gn(m,'game_mode'),kind=gn(m,'match_mode');
+    if(mode!==1||(scopeMode==='standard'&&kind!==1)||(scopeMode==='ranked'&&kind!==4))return false;
+    return !scopeCount||scopeUnit!=='days'||gn(m,'start_time')>=Math.floor(Date.now()/1000)-scopeCount*86400;
+  });
+  return scopeCount&&scopeUnit==='matches'?filtered.sort((a,b)=>(gn(b,'start_time')||0)-(gn(a,'start_time')||0)).slice(0,scopeCount):filtered;
+};
+const scopeKey=()=>scopeMode+':'+scopeCount+':'+scopeUnit;
+function validAvg(values){const xs=values.filter(v=>v!=null&&Number.isFinite(v));return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;}
+function ratio(num,den){return num!=null&&den>0?num/den:null;}
+function finalOf(m){return m._detail?.final_stats||null;}
+function matchMetric(m,key){return gn(finalOf(m),key);}
+function metrics(m){
+  const f=finalOf(m),dur=gn(m,'match_duration_s'),minutes=dur>0?dur/60:null;
+  if(!f)return{};
+  const hit=gn(f,'shots_hit'),miss=gn(f,'shots_missed'),crit=gn(f,'hero_bullets_hit_crit'),heroHits=gn(f,'hero_bullets_hit');
+  return {dpm:ratio(gn(f,'player_damage'),minutes),accuracy:hit!=null&&miss!=null?ratio(hit,hit+miss)*100:null,
+    headshot:ratio(crit,heroHits)!=null?ratio(crit,heroHits)*100:null,
+    boss:gn(f,'boss_damage'),taken:gn(f,'player_damage_taken'),mitigated:gn(f,'damage_mitigated'),
+    allyHeal:gn(f,'teammate_healing'),allyBarrier:gn(f,'teammate_barriering'),selfHeal:gn(f,'self_healing'),
+    neutral:gn(f,'neutral_damage'),creep:gn(f,'creep_damage'),healPrevented:gn(f,'heal_prevented'),
+    teamShare:teamShare(m)};
+}
+function teamShare(m){
+  const roster=m._roster,me=m._detail;if(!roster||!me)return null;
+  const damage=p=>{
+    let stats=p.final_stats;
+    if(typeof stats==='string')try{stats=JSON.parse(stats);}catch(e){stats=null;}
+    return gn(stats,'player_damage')??gn(p,'final_stats_player_damage');
+  };
+  const team=roster.filter(x=>x.team===me.team),values=team.map(damage);
+  if(team.length!==6||values.some(v=>v==null))return null;
+  return ratio(damage(me),values.reduce((a,b)=>a+b,0))*100;
+}
+function scopeStats(p){return p.mvp?.[scopeKey()]||null;}
+async function loadMvp(p){
+  // Hero aggregates support a date cutoff, but cannot be restricted to the last N matches.
+  if(scopeCount&&scopeUnit==='matches')return;
+  const key=scopeKey();p.mvp=p.mvp||{};if(Object.hasOwn(p.mvp,key)||p.mvpPending===key)return;
+  p.mvpPending=key;renderLoadStatus();
+  try{
+    const q=new URLSearchParams({account_ids:p.id,game_mode:'normal'});
+    if(scopeMode!=='normal')q.set('match_mode',scopeMode==='standard'?'unranked':'ranked');
+    if(scopeCount)q.set('min_unix_timestamp',String(Math.floor(Date.now()/1000)-scopeCount*86400));
+    const data=await apiFetch('/players/hero-stats?'+q);
+    const rows=Array.isArray(data)?data:[];
+    const rated=rows.reduce((s,r)=>s+(gn(r,'mvp_rated_matches')||0),0);
+    const counts=[0,1,2].map(i=>rows.reduce((s,r)=>s+(gn({v:r.mvp_rank_counts?.[i]},'v')||0),0));
+    const objectiveRows=rows.filter(r=>gn(r,'obj_damage_per_min')!=null&&gn(r,'time_played')>0);
+    const objectiveTime=objectiveRows.reduce((s,r)=>s+r.time_played,0);
+    const objDpm=objectiveTime?objectiveRows.reduce((s,r)=>s+r.obj_damage_per_min*r.time_played,0)/objectiveTime:null;
+    p.mvp[key]={rated,counts,objDpm};
+  }catch(e){p.mvp[key]=null;dbg(p.label+' MVP stats unavailable: '+e,'wn');}
+  if(p.mvpPending===key)p.mvpPending=null;
+  renderMain();
+}
+function refreshMvp(){players.filter(p=>!p.loading&&!p.error).forEach(loadMvp);}
+
+// Per-match 1–12 estimates, distinct from Valve's official MVP top-three awards.
+// A complete match is ~1 MB. Process selected games in paced background batches
+// after histories are ready; cache only derived ranks, not metadata.
+function placementForMatch(m){
+  return placementRanks.get(String(m.match_id))?.[String(m.hero_id)]??null;
+}
+function placementForMatches(selected){
+  const ranks=selected.map(placementForMatch).filter(r=>r!=null);
+  const summary=window.BreadlockPlacement?BreadlockPlacement.placementSummary(ranks):{average:null,modes:[],count:0};
+  return {...summary,selected:selected.length};
+}
+function placementForPlayer(p){return placementForMatches(visibleMatches(p));}
+function placementModes(summary){return summary.modes.length?summary.modes.map(placementOrdinal).join(', '):'—';}
+function placementOrdinal(n){return n+(n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th');}
+function savePlacementRanks(){
+  let entries=[...placementRanks].slice(-PLACEMENT_CACHE_LIMIT);
+  while(entries.length){
+    try{
+      localStorage.setItem(PLACEMENT_CACHE_KEY,JSON.stringify(entries));
+      placementUnsaved=0;return;
+    }catch(e){
+      // Private browsing/quota limits vary; keep as much recent data as fits.
+      if(entries.length===1){dbg('Estimated placement cache unavailable: '+e,'wn');break;}
+      entries=entries.slice(Math.floor(entries.length/2));
+    }
+  }
+}
+function flushPlacementRanks(){if(placementUnsaved)savePlacementRanks();}
+function placementStatusHtml(){
+  const good=players.filter(p=>!p.loading&&!p.error);
+  const total=good.reduce((sum,p)=>sum+visibleMatches(p).length,0);
+  if(!total)return '';
+  const covered=good.reduce((sum,p)=>sum+placementForPlayer(p).count,0);
+  if(covered===total&&!placementLoading)return '';
+  const active=placementLoading||placementRetryTimer||placementNextTimer||players.some(p=>p.loading);
+  if(!active){
+    if(activeTab!=='performance')return '';
+    const reason=placementStoppedReason?'Match metadata requests kept failing; automatic retries stopped for this session.':
+      placementFailures.size?'Some matches had missing or unusable metadata; they are excluded from averages.':
+      'Some selected games do not have calculable match metadata.';
+    return `<div id="placement-status" class="note" role="status">Estimated placements: ${covered}/${total} selected player-games calculated. ${reason} Placement averages and most-common places use only calculated games; change the selection or reload to try again.</div>`;
+  }
+  const pct=Math.min(covered===total?100:99,Math.floor(100*covered/total));
+  const remaining=placementTargets.filter(id=>!placementRanks.has(id)&&!placementFailures.has(id)).length;
+  const unavailable=placementTargets.filter(id=>placementFailures.has(id)).length;
+  const state=placementLoading?'Calculating in background':placementRetryTimer?'Metadata request failed — retry scheduled':
+    placementNextTimer?'Continuing next batch':players.some(p=>p.loading)?'Waiting for player histories':
+    unavailable?'Some match data unavailable':'Coverage incomplete';
+  const detail=placementLoading?`${placementProgress.done}/${placementProgress.total} matches processed in this batch; ${remaining} distinct games still queued.`:
+    placementRetryTimer?`Retrying queued games automatically in about ${Math.ceil(placementRetryDelay/1000)} second(s).`:
+    placementNextTimer?`${remaining} distinct games remain queued; the next batch starts shortly.`:
+    unavailable?`${unavailable} distinct games could not be calculated; they are excluded from averages.`:
+    'Some selected games do not have calculable match metadata.';
+  return `<div id="placement-status" class="load-status" role="status" aria-live="polite">
+    <div class="load-summary"><strong>Estimated placements: ${state}</strong><span>${covered}/${total} selected player-games calculated (${pct}%)</span></div>
+    <div class="load-track" role="progressbar" aria-label="Estimated placement selected-history coverage" aria-valuenow="${covered}" aria-valuemin="0" aria-valuemax="${total}"><div class="load-fill" style="width:${pct}%"></div></div>
+    <div class="note">Placement averages and most-common places are provisional while coverage is incomplete; damage/support rankings may also update. ${detail}</div>
+  </div>`;
+}
+function renderPlacementStatus(){
+  const main=document.getElementById('main');if(!main)return;
+  const current=main.querySelector('#placement-status'),html=placementStatusHtml();
+  if(current){if(html)current.outerHTML=html;else current.remove();}
+  else if(html){
+    const loading=main.querySelector('#load-status');
+    if(loading)loading.insertAdjacentHTML('afterend',html);
+    else main.insertAdjacentHTML('afterbegin',html);
+  }
+}
+function cancelPlacements(){
+  placementRun++;placementAbort?.abort();placementAbort=null;
+  if(placementRetryTimer)clearTimeout(placementRetryTimer);
+  if(placementNextTimer)clearTimeout(placementNextTimer);
+  placementRetryTimer=null;placementNextTimer=null;placementTargets=[];
+  placementFailureAttempts=0;placementStoppedReason='';placementBackoffMs=15000;
+  flushPlacementRanks();
+  placementLoading=false;placementProgress={done:0,total:0};
+}
+function schedulePlacements(){
+  // Wait for all requested histories so each batch can alternate across players.
+  if(players.some(p=>p.loading))return;
+  cancelPlacements();
+  if(!window.BreadlockPlacement)return;
+  const lists=players.filter(p=>!p.error).map(p=>[...visibleMatches(p)]
+    .sort((a,b)=>(gn(b,'start_time')||0)-(gn(a,'start_time')||0)));
+  const seen=new Set();
+  for(let i=0;lists.some(ms=>ms.length>i);i++)for(const ms of lists){
+    const id=String(ms[i]?.match_id||'');
+    if(!/^\d+$/.test(id)||seen.has(id))continue;
+    seen.add(id);placementTargets.push(id);
+  }
+  return calculatePlacements();
+}
+function applyBulkMatchDetails(row){
+  // Reuse the full-player bulk response for the ordinary damage/support views.
+  const roster=(row.players||[]).map(raw=>typeof raw==='string'?JSON.parse(raw):raw)
+    .map(p=>({hero_id:p.hero_id,team:p.team,account_id:p.account_id,
+      final_stats:p.final_stats||p.stats?.[p.stats.length-1]}));
+  for(const p of players){
+    const m=p.matches?.find(m=>String(m.match_id)===String(row.match_id));
+    if(!m)continue;
+    const detail=roster.find(other=>Number(other.hero_id)===Number(m.hero_id));
+    if(!detail)continue;
+    m._roster=roster;m._detail=detail;
+    const damage=gn(detail.final_stats,'player_damage');
+    if(damage!=null)m.player_damage=damage;
+  }
+}
+async function calculatePlacements(){
+  if(placementLoading||!window.BreadlockPlacement)return;
+  const ids=placementTargets.filter(id=>!placementRanks.has(id)&&!placementFailures.has(id)).slice(0,PLACEMENT_BATCH_SIZE);
+  if(!ids.length)return;
+  const run=++placementRun,controller=new AbortController();placementAbort=controller;
+  placementLoading=true;placementProgress={done:0,total:ids.length};
+  renderPlacementStatus();
+  if(activeTab==='performance'||activeTab==='matches')renderMain();
+  let rateLimited=false,retryAfterMs=0;
+  try{
+    // Bulk endpoint: 30 requests/minute per IP. Pace starts, not completions;
+    // a slow response already counts toward the interval.
+    const wait=reserveMetadataRequest();
+    if(wait)await new Promise(resolve=>setTimeout(resolve,wait));
+    if(run!==placementRun)return;
+    const q=new URLSearchParams({match_ids:ids.join(','),limit:String(ids.length),
+      only_filtered_players:'false',include_info:'true',include_objectives:'true',
+      include_player_kda:'true',include_player_stats:'true',
+      include_player_death_details:'true'});
+    const response=await fetch(API+'/matches/metadata?'+q,
+      {headers:{Accept:'application/json'},signal:controller.signal});
+    if(!response.ok){
+      if(response.status===429){
+        const retryAfter=response.headers?.get('Retry-After');
+        const seconds=Number(retryAfter);
+        retryAfterMs=retryAfter&&Number.isFinite(seconds)?Math.max(0,seconds*1000):
+          retryAfter?Math.max(0,Date.parse(retryAfter)-Date.now())||0:0;
+      }
+      throw Error('HTTP '+response.status);
+    }
+    const rows=await response.json();
+    if(run!==placementRun)return;
+    if(!Array.isArray(rows))throw Error('Invalid bulk match response');
+    const byId=new Map(rows.map(row=>[String(row.match_id),row]));
+    for(const id of ids){
+      if(run!==placementRun)return;
+      try{
+        const row=byId.get(id);
+        if(!row)throw Error('Match unavailable in bulk metadata');
+        const match=BreadlockPlacement.fromBulkMetadata(row,heroMeta);
+        const result=BreadlockPlacement.scoreMatch(match);
+        const ranks=Object.fromEntries(result.map(player=>[String(player.heroId),player.rank]));
+        if(Object.keys(ranks).length!==12)throw Error('Incomplete ranking');
+        placementRanks.delete(id);placementRanks.set(id,ranks);
+        applyBulkMatchDetails(row);
+        if(++placementUnsaved>=24)flushPlacementRanks();
+      }catch(e){
+        placementFailures.add(id);dbg('Estimated placement '+id+' unavailable: '+e,'wn');
+      }
+      placementProgress.done++;
+      if(placementProgress.done%4===0)renderPlacementStatus();
+    }
+  }catch(e){
+    if(run!==placementRun)return;
+    dbg('Bulk estimated placements unavailable: '+e,'wn');
+    // Leave all matches queued on rate limiting/server errors; retry with backoff.
+    if(/HTTP (429|5\d\d)/.test(String(e))||e.name==='TypeError')rateLimited=true;
+    else for(const id of ids)placementFailures.add(id);
+  }
+  if(run===placementRun){
+    placementAbort=null;placementLoading=false;flushPlacementRanks();
+    if(rateLimited){
+      placementFailureAttempts++;
+      if(placementFailureAttempts>=PLACEMENT_MAX_FAILURE_ATTEMPTS){
+        placementStoppedReason='Repeated match metadata request failures';
+        dbg(placementStoppedReason+'; automatic placement retries stopped for this selection','wn');
+      }else{
+        placementRetryDelay=Math.max(placementBackoffMs,retryAfterMs);
+        placementBackoffMs=Math.min(600000,placementBackoffMs*2);
+        placementRetryTimer=setTimeout(()=>{
+          placementRetryTimer=null;
+          if(run===placementRun)calculatePlacements();
+        },placementRetryDelay);
+      }
+    }else{
+      placementFailureAttempts=0;placementBackoffMs=15000;
+      const more=placementTargets.some(id=>!placementRanks.has(id)&&!placementFailures.has(id));
+      if(more)placementNextTimer=setTimeout(()=>{
+        placementNextTimer=null;
+        if(run===placementRun)calculatePlacements();
+      },0);
+    }
+    renderMain();
+  }
+}
+
+function dbg(m,t='in'){logs.push({t:new Date().toLocaleTimeString(),m:String(m).slice(0,400),c:t});if(logs.length>400)logs.shift();if(activeTab==='debug')renderMain();}
+
+async function apiFetch(path){
+  const response=await fetch(API+path,{headers:{Accept:'application/json'}});
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  return response.json();
+}
+
+async function loadHeroMeta(){
+  if(Object.keys(heroMeta).length)return;
+  if(heroMetaPromise)return heroMetaPromise;
+  heroMetaPromise=(async()=>{
+    try{
+      const response=await apiFetch('/assets/heroes');
+      const heroes=Array.isArray(response)?response:(response?.data||[]);
+      if(!heroes.length)throw new Error('API returned no heroes');
+      heroes.forEach(h=>{heroMeta[h.id]=h;});
+      dbg('Hero meta: '+heroes.length+' heroes','ok');
+      if(players.length)renderMain();
+    }catch(e){dbg('Hero meta failed: '+e,'er');}
+  })();
+  try{await heroMetaPromise;}finally{heroMetaPromise=null;}
+}
+
+async function addPlayer(id,label){
+  if(!id||players.find(p=>p.id===id))return;
+  cancelPlacements();
+  const color=COLS[players.length%COLS.length];
+  const p={id,label:label||id,color,loading:true,detailsLoading:false,error:null,matches:null,mvp:{},phase:'Fetching match history',progressDone:0,progressTotal:null};
+  const generation=loadGeneration;
+  players.push(p);
+  renderChips();renderMain();
+  dbg('Loading '+p.label+' ('+id+')…');
+  try{
+    const mh=await apiFetch('/players/'+id+'/match-history?only_stored_history=true');
+    p.matches=Array.isArray(mh)?mh:(mh?.data||[]);
+    if(generation!==loadGeneration||!players.includes(p))return;
+    p.loading=false;
+    p.detailsLoading=!!p.matches.length;
+    p.phase='Fetching optional match details';
+    p.progressTotal=new Set(p.matches.map(m=>String(m.match_id)).filter(id=>id&&id!=='undefined'&&id!=='null')).size;
+    p.progressDone=0;
+    if(!p.matches.length)p.error='No match data. Player may be private or not tracked.';
+    dbg(p.label+': '+p.matches.length+' matches','ok');
+    if(p.matches.length)dbg('Fields: '+Object.keys(p.matches[0]).join(', '),'in');
+    renderChips();renderMain();
+    schedulePlacements();
+    if(p.error)return;
+    // History powers the first render; slower per-match enrichment must not block it.
+    loadMatchDetails(p).catch(e=>dbg(p.label+' optional match details failed: '+e,'wn')).finally(()=>{
+      if(generation!==loadGeneration||!players.includes(p))return;
+      p.detailsLoading=false;renderChips();renderMain();
+    });
+    loadMvp(p);
+    if(activeTab==='stages')refreshStages();if(activeTab==='performance')refreshTeamShare();if(activeTab==='individual')refreshIndividual();
+  }catch(e){
+    if(generation!==loadGeneration||!players.includes(p))return;
+    dbg(p.label+' match-history failed: '+e,'er');
+    p.matches=[];p.loading=false;p.error='No match data. Player may be private or not tracked.';
+    renderChips();renderMain();schedulePlacements();
+  }
+}
+
+async function loadMatchDetails(p){
+  const byMatch=new Map((p.matches||[]).map(m=>[String(m.match_id),m]));
+  // The full-player placement batches enrich uncached games. Only fetch
+  // already-cached games here, using the cheaper player-only aggregate request.
+  const ids=[...byMatch.keys()].filter(id=>id&&id!=='undefined'&&id!=='null'&&
+    (!window.BreadlockPlacement||placementRanks.has(id)));
+  p.progressTotal=ids.length;
+  if(!ids.length)return;
+  renderLoadStatus();
+  // Match history accepts Steam64 IDs; metadata's account_ids filter requires account32.
+  const accountId=String(p.matches?.find(m=>m.account_id!=null)?.account_id??p.id);
+  let found=0;
+  try{
+    for(let i=0;i<ids.length&&players.includes(p);i+=DAMAGE_BATCH_SIZE){
+      const batch=ids.slice(i,i+DAMAGE_BATCH_SIZE).filter(id=>!byMatch.get(id)?._detail);
+      if(!batch.length){p.progressDone=Math.min(ids.length,i+DAMAGE_BATCH_SIZE);renderLoadStatus();continue;}
+      const q=new URLSearchParams({
+        match_ids:batch.join(','),
+        account_ids:accountId,
+        only_filtered_players:'true',
+        include_info:'false',
+        include_player_final_stats:'true',
+        limit:String(batch.length)
+      });
+      const response=await apiFetch('/matches/metadata?'+q);
+      const rows=Array.isArray(response)?response:(response?.data||[]);
+      rows.forEach(row=>{
+        const match=byMatch.get(String(row.match_id));if(!match)return;
+        const rawPlayers=Array.isArray(row.players)?row.players:[];
+        const player=rawPlayers.map(x=>{
+          if(typeof x!=='string')return x;
+          try{return JSON.parse(x);}catch(e){return null;}
+        }).find(x=>x&&String(x.account_id)===accountId);
+        if(!player)return;
+        if(rawPlayers.length===12)match._roster=rawPlayers.map(x=>{if(typeof x!=='string')return x;try{return JSON.parse(x);}catch(e){return null;}}).filter(Boolean);
+        match._detail=player;
+        let finalStats=player.final_stats;
+        if(typeof finalStats==='string')try{finalStats=JSON.parse(finalStats);}catch(e){finalStats=null;}
+        let damage=gn(finalStats,'player_damage');
+        if(damage==null)damage=gn(player,'final_stats_player_damage');
+        if(damage==null){
+          const series=player.stats_player_damage??player.stats?.player_damage;
+          if(Array.isArray(series)&&series.length)damage=gn({v:series[series.length-1]},'v');
+        }
+        if(damage!=null){match.player_damage=damage;found++;}
+      });
+      p.progressDone=Math.min(ids.length,i+Math.min(DAMAGE_BATCH_SIZE,ids.length-i));
+      renderLoadStatus();renderChips();
+    }
+    dbg(p.label+': final stats found for '+found+'/'+ids.length+' matches',found?'ok':'wn');
+  }catch(e){dbg(p.label+' damage metadata unavailable ('+found+'/'+ids.length+' found): '+e,'wn');}
+}
+
+// Accessors — gf is for schema fields where zero is a valid fallback; gn preserves missing data.
+function gf(obj,...keys){for(const k of keys){if(obj&&obj[k]!=null)return+obj[k]||0;}return 0;}
+function gn(obj,...keys){for(const k of keys){if(obj&&obj[k]!=null&&obj[k]!==''){const n=+obj[k];if(Number.isFinite(n))return n;}}return null;}
+
+function isWin(m){
+  // match_result = winning team index, player_team = this player's team
+  return gf(m,'match_result')===gf(m,'player_team');
+}
+
+function derive(p,ms=visibleMatches(p)){
+  if(!ms.length)return null;
+  const n=ms.length;
+  const wins=ms.filter(isWin).length;
+  const kills=ms.reduce((s,m)=>s+gf(m,'player_kills'),0);
+  const deaths=ms.reduce((s,m)=>s+gf(m,'player_deaths'),0);
+  const assists=ms.reduce((s,m)=>s+gf(m,'player_assists'),0);
+  const nw=ms.reduce((s,m)=>s+gf(m,'net_worth'),0);
+  const lh=ms.reduce((s,m)=>s+gf(m,'last_hits'),0);
+  const dn=ms.reduce((s,m)=>s+gf(m,'denies'),0);
+  const dur=ms.reduce((s,m)=>s+gf(m,'match_duration_s'),0);
+  const damageValues=ms.map(m=>gn(m,'player_damage')).filter(v=>v!=null);
+  const extra={};for(const key of ['dpm','accuracy','headshot','boss','taken','mitigated','allyHeal','allyBarrier','selfHeal','neutral','creep','healPrevented','teamShare'])extra[key]=validAvg(ms.map(m=>metrics(m)[key]));
+  const soulsValues=ms.map(m=>ratio(gn(m,'net_worth'),ratio(gn(m,'match_duration_s'),60))).filter(v=>v!=null);
+  const lvl=ms.reduce((s,m)=>s+gf(m,'hero_level'),0);
+  const aband=ms.filter(m=>gn(m,'abandoned_time_s')>0||m.team_abandoned===true||String(m.team_abandoned).toLowerCase()==='true'||gf(m,'player_match_outcome')===3).length;
+  const avgDur=dur/n||0;
+  const kd=deaths?kills/deaths:kills;
+  return{
+    ...extra,n,wins,losses:n-wins,
+    winRate:+(wins/n*100).toFixed(1),
+    kda:+(deaths?(kills+assists)/deaths:(kills+assists)).toFixed(2),
+    kd:+kd.toFixed(2),
+    kills:+(kills/n).toFixed(2),
+    deaths:+(deaths/n).toFixed(2),
+    assists:+(assists/n).toFixed(2),
+    avgNw:Math.round(nw/n),
+    damageGame:damageValues.length?Math.round(damageValues.reduce((s,v)=>s+v,0)/damageValues.length):null,
+    soulsMin:soulsValues.length?+validAvg(soulsValues).toFixed(1):null,
+    avgLh:+(lh/n).toFixed(1),
+    avgDen:+(dn/n).toFixed(1),
+    avgLvl:+(lvl/n).toFixed(1),
+    avgDur:avgDur,
+    durMin:Math.floor(avgDur/60),
+    durSec:Math.floor(avgDur%60),
+    abandons:aband,
+    abandRate:+(aband/n*100).toFixed(1),
+  };
+}
+
+function fk(n){if(n==null||isNaN(n))return'—';n=+n;return n>=1000?(n/1000).toFixed(1)+'K':n%1===0?String(n):n.toFixed(1);}
+function fp(n){return n==null?'—':n+'%';}
+function f1(n){return n==null||isNaN(n)?'—':(+n).toFixed(1);}
+function f2(n){return n==null||isNaN(n)?'—':(+n).toFixed(2);}
+function pctColor(v){return v>=60?'var(--grn)':v>=50?'var(--acc)':'var(--red)';}
+
+function heroImage(hid,hero,alt){
+  const img=hero?.images||{};
+  const urls=[
+    img.icon_image_small_webp,img.icon_image_small,
+    img.minimap_image_webp,img.minimap_image,
+    img.icon_hero_card_webp,img.icon_hero_card
+  ].filter((url,i,a)=>typeof url==='string'&&/^https:\/\//i.test(url)&&!a.slice(0,i).includes(url));
+  return `<img src="${chemText(urls[0]||'')}" data-fallbacks="${chemText(urls.slice(1).join('|'))}" alt="${chemText(alt||'Hero')}" onerror="rotateHeroImage(this)" loading="lazy">`;
+}
+function rotateHeroImage(img){
+  const urls=(img.dataset.fallbacks||'').split('|').filter(Boolean);
+  if(urls.length){img.dataset.fallbacks=urls.slice(1).join('|');img.src=urls[0];}
+  else{
+    const label=img.alt||'Hero';
+    img.parentElement.textContent=label.slice(0,2).toUpperCase();
+  }
+}
+
+function matchDate(m){
+  const raw=m?.start_time??m?.match_start_time??m?.timestamp??m?.match_time??m?.date;
+  if(raw==null||raw==='')return'—';
+  const value=typeof raw==='number'||/^\\d+(\\.\\d+)?$/.test(String(raw))
+    ? new Date(Number(raw)<1e12?Number(raw)*1000:Number(raw)) : new Date(raw);
+  if(isNaN(value.getTime()))return'—';
+  return value.toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
+}
+
+// Build sorted stat card. higher=best means sort desc, else asc
+function statCard(title, key, allArr, fmtFn, higher=true){
+  const rows=allArr.map(x=>({p:x.p,v:x.s[key]!=null&&Number.isFinite(+x.s[key])?+x.s[key]:null}));
+  if(!rows.length)return'';
+  const sorted=[...rows].sort((a,b)=>a.v==null&&b.v==null?0:a.v==null?1:b.v==null?-1:higher?(b.v-a.v):(a.v-b.v));
+  const valid=sorted.filter(x=>x.v!=null);
+  const max=Math.max(0,...valid.map(x=>Math.abs(x.v)))||1;
+  return`<div class="card"><div class="ct">${title}</div>${sorted.map(x=>`<div class="pmr">
+    <span class="pdot" style="background:${x.p.color}"></span>
+    <span class="pn">${chemText(x.p.label)}</span>
+    <div class="bw"><div class="bf" style="width:${x.v==null?0:Math.max(2,(Math.abs(x.v)/max*100)).toFixed(1)}%;background:${x.p.color}"></div></div>
+    <span class="pv">${x.v==null?'—':fmtFn?fmtFn(x.v):x.v}</span>
+  </div>`).join('')}</div>`;
+}
+
+function loadStatusHtml(){
+  const pending=players.filter(p=>p.loading),details=players.filter(p=>p.detailsLoading&&!p.loading),mvp=players.filter(p=>p.mvpPending===scopeKey());
+  if(!pending.length&&!details.length&&!mvp.length)return '';
+  const completed=players.length-pending.length;
+  const item=(label,detail,done,total)=>{
+    const determinate=total!=null&&total>0;
+    const pct=determinate?Math.min(100,Math.round(done/total*100)):null;
+    return `<div class="load-item"><div class="load-item-head"><span>${chemText(label)}</span><span>${chemText(detail)}</span></div><div class="load-track" role="progressbar" aria-label="${chemText(label+' '+detail)}" ${determinate?`aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"`:''}><div class="load-fill${determinate?'':' indeterminate'}" style="${determinate?'width:'+pct+'%':''}"></div></div></div>`;
+  };
+  const rows=pending.map(p=>item(p.label,p.phase,0,null));
+  rows.push(...details.map(p=>item(p.label,`Optional match details ${p.progressDone}/${p.progressTotal}`,p.progressDone,p.progressTotal)));
+  rows.push(...mvp.map(p=>item(p.label,'Official MVP awards…',0,null)));
+  return `<div id="load-status" class="load-status" role="status" aria-live="polite"><div class="load-summary"><strong>${pending.length?'Loading player histories':'Loading additional stats in background'}</strong><span>${completed}/${players.length} player histories complete${details.length?' · '+details.length+' detail '+(details.length===1?'request':'requests')+' in progress':''}${mvp.length?' · '+mvp.length+' MVP '+(mvp.length===1?'request':'requests')+' in progress':''}</span></div>${pending.length?`<div class="load-track" role="progressbar" aria-label="Player histories complete" aria-valuenow="${completed}" aria-valuemin="0" aria-valuemax="${players.length}"><div class="load-fill" style="width:${players.length?completed/players.length*100:0}%"></div></div>`:''}<div class="load-list">${rows.join('')}</div></div>`;
+}
+function renderLoadStatus(){
+  const main=document.getElementById('main');if(!main)return;
+  const current=main.querySelector('#load-status'),html=loadStatusHtml();
+  if(current){if(html)current.outerHTML=html;else current.remove();}
+  else if(html)main.insertAdjacentHTML('afterbegin',html);
+}
+function renderChips(){
+  const el=document.getElementById('chips');if(!el)return;
+  el.innerHTML=players.map(p=>`<div class="chip${p.error?' cerr':''}">
+    <span style="width:8px;height:8px;border-radius:50%;background:${p.color};flex-shrink:0;display:inline-block"></span>
+    <span class="cname">${chemText(p.label)}</span>
+    ${p.loading||p.detailsLoading?`<span class="cld" title="${chemText(p.phase)}">${p.detailsLoading&&p.progressTotal>0?Math.min(100,Math.round(p.progressDone/p.progressTotal*100))+'%':'…'}</span>`:''}
+    ${p.error&&!p.loading?'<span style="color:var(--red);font-size:12px" title="'+p.error+'">!</span>':''}
+    <span class="crm" data-id="${chemText(p.id)}">×</span>
+  </div>`).join('');
+  el.querySelectorAll('.crm').forEach(x=>x.addEventListener('click',()=>{
+    cancelPlacements();players=players.filter(p=>p.id!==x.dataset.id);
+    renderChips();renderMain();schedulePlacements();
+  }));
+}
+
+function renderMain(){
+  const el=document.getElementById('main');if(!el)return;
+  const expandedRankIds=activeTab==='overview'?new Set([...el.querySelectorAll('.rank-expand[aria-expanded="true"]')].map(b=>b.dataset.rankPerson)):new Set();
+  const openRankCats=activeTab==='overview'?new Set([...el.querySelectorAll('.rank-cat-toggle[aria-expanded="true"]')].map(b=>b.dataset.rankCatToggle)):new Set();
+  const chemScroll=activeTab==='chemistry'?{page:window.scrollY,list:el.querySelector('.chem-list')?.scrollTop||0,
+    focus:document.activeElement?.dataset.chemPerson?document.activeElement.dataset.chemPerson:document.activeElement?.dataset.chemPair?'pair':document.activeElement?.id==='chem-sort'?'sort':null}:null;
+  Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});charts={};
+  if(!players.length){
+    el.innerHTML=`<div class="empty"><div class="eico">🍞</div><div class="etxt">No Players Loaded</div><div class="esub">Click "Load Example Players" or add a Steam account ID</div></div>`;
+    return;
+  }
+  const loading=players.filter(p=>p.loading);
+  const errored=players.filter(p=>!p.loading&&p.error);
+  const good=players.filter(p=>!p.loading&&!p.error);
+  let html='';
+  html+=loadStatusHtml();
+  html+=placementStatusHtml();
+  if(players.some(p=>p.detailsLoading&&!p.loading))html+='<div class="note">Match histories are ready. Detailed damage and support stats are loading in the background; rankings that use them may update.</div>';
+  errored.forEach(p=>html+=`<div class="errbx">✕ ${chemText(p.label)} (${chemText(p.id)}): ${chemText(p.error)}</div>`);
+  const arr=good.map(p=>({p,s:derive(p)})).filter(x=>x.s);
+  if(activeTab==='overview')html+=tabOverview(arr);
+  else if(activeTab==='combat')html+=tabCombat(arr);
+  else if(activeTab==='economy')html+=tabEcon(arr);
+  else if(activeTab==='heroes')html+=tabHeroes(good);
+  else if(activeTab==='performance')html+=tabPerformance(arr);
+  else if(activeTab==='individual')html+=tabIndividual(good);
+  else if(activeTab==='stages')html+=tabStages(arr);
+  else if(activeTab==='chemistry')html+=tabChemistry(good);
+  else if(activeTab==='matches')html+=tabMatches(good);
+  else if(activeTab==='debug')html+=tabDebug();
+  el.innerHTML=html;
+  const setCategoryOpen=(button,open)=>{
+    const panel=document.getElementById(button.getAttribute('aria-controls'));
+    if(!panel)return;
+    panel.hidden=!open;button.setAttribute('aria-expanded',String(open));
+    button.textContent=button.textContent.replace(open?'Show':'Hide',open?'Hide':'Show');
+  };
+  el.querySelectorAll('.rank-cat-toggle').forEach(button=>{
+    if(openRankCats.has(button.dataset.rankCatToggle))setCategoryOpen(button,true);
+    button.addEventListener('click',()=>{
+      const open=button.getAttribute('aria-expanded')!=='true';
+      button.closest('.rank-detail').querySelectorAll('.rank-cat-toggle[aria-expanded="true"]').forEach(other=>setCategoryOpen(other,false));
+      if(open)setCategoryOpen(button,true);
+    });
+  });
+  el.querySelectorAll('[data-rank-expand]').forEach(button=>{
+    const detail=document.getElementById('rank-detail-'+button.dataset.rankExpand);
+    if(detail&&expandedRankIds.has(button.dataset.rankPerson)){detail.hidden=false;button.setAttribute('aria-expanded','true');}
+    button.addEventListener('click',()=>{
+      if(detail){detail.hidden=!detail.hidden;button.setAttribute('aria-expanded',String(!detail.hidden));}
+    });
+  });
+  if(chemScroll){
+    const list=el.querySelector('.chem-list');if(list)list.scrollTop=chemScroll.list;
+    const target=chemScroll.focus==='pair'?el.querySelector('.chem-pair[aria-pressed="true"]'):chemScroll.focus==='sort'?el.querySelector('#chem-sort'):chemScroll.focus?Array.from(el.querySelectorAll('[data-chem-person]')).find(b=>b.dataset.chemPerson===chemScroll.focus):null;
+    target?.focus({preventScroll:true});
+    window.scrollTo(0,chemScroll.page);
+  }
+  if(activeTab==='debug'){
+    const b=document.getElementById('dbg-clr');if(b)b.addEventListener('click',()=>{logs=[];renderMain();});
+    const d=document.getElementById('dbg-bd');if(d)d.scrollTop=d.scrollHeight;
+  }
+  if(activeTab==='overview'){
+    el.querySelectorAll('[data-leaderboard-mode]').forEach(b=>b.addEventListener('click',()=>{leaderboardMode=b.dataset.leaderboardMode;renderMain();}));
+    el.querySelectorAll('.rank-hero img[data-fallbacks]').forEach(img=>img.addEventListener('error',()=>rotateHeroImage(img)));
+  }
+  if(activeTab==='heroes'){
+    document.querySelectorAll('[data-hero-sort]').forEach(b=>b.addEventListener('click',()=>{heroSort=b.dataset.heroSort;renderMain();}));
+  }
+  if(activeTab==='individual'){
+    el.querySelectorAll('[data-ind-player]').forEach(b=>b.addEventListener('click',()=>{individualId=b.dataset.indPlayer;renderMain();refreshIndividual();}));
+    el.querySelectorAll('[data-ind-hero]').forEach(b=>b.addEventListener('click',()=>{individualHero=b.dataset.indHero;renderMain();refreshIndividual();}));
+    el.querySelectorAll('[data-ind-rank]').forEach(b=>b.addEventListener('click',()=>{individualRank=b.dataset.indRank;renderMain();refreshIndividual();}));
+    el.querySelectorAll('.ind-picker img[data-fallbacks]').forEach(img=>img.addEventListener('error',()=>rotateHeroImage(img)));
+  }
+  if(activeTab==='chemistry'){
+    el.querySelectorAll('[data-chem-person]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.chemPerson;chemistryTeam=chemistryTeam.includes(id)?chemistryTeam.filter(x=>x!==id):chemistryTeam.length<6?[...chemistryTeam,id]:chemistryTeam;renderMain();}));
+    el.querySelectorAll('[data-chem-view]').forEach(b=>b.addEventListener('click',()=>{chemistryView=b.dataset.chemView;chemistryPair=null;renderMain();}));
+    el.querySelectorAll('[data-chem-pair]').forEach(b=>b.addEventListener('click',()=>{chemistryPair=b.dataset.chemPair;renderMain();}));
+    el.querySelector('#chem-sort')?.addEventListener('change',e=>{chemistrySort=e.target.value;renderMain();});
+    el.querySelectorAll('.chem-match-row').forEach(row=>{
+      const toggle=()=>{const detail=document.getElementById(row.getAttribute('aria-controls'));detail.hidden=!detail.hidden;row.setAttribute('aria-expanded',String(!detail.hidden));};
+      row.addEventListener('click',toggle);
+      row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}});
+    });
+  }
+  setTimeout(()=>mountCharts(arr),80);
+}
+
+function tabOverview(arr){
+  if(!arr.length)return'<div class="nd">No data yet — add players or load the default 10</div>';
+  let h='';
+  // One leaderboard combines overall rank and the existing overview summary stats.
+  const bestHeroes=leaderboardMode==='heroes';
+  const ranked=assignRankingTiers(bestHeroes?bestHeroRankings(arr.map(x=>x.p)):rankPlayers(arr.map(x=>x.p)));
+  const statsByPlayer=new Map(bestHeroes?ranked.map(r=>[r.p,derive(r.p,r.matches)]):arr.map(x=>[x.p,x.s]));
+  h+=`<div class="card"><div class="ct">Leaderboard <span class="rank-mode" role="group" aria-label="Leaderboard view"><button type="button" class="btn btnsm ${bestHeroes?'':'btna'}" data-leaderboard-mode="overall" aria-pressed="${!bestHeroes}">Overall</button><button type="button" class="btn btnsm ${bestHeroes?'btna':''}" data-leaderboard-mode="heroes" aria-pressed="${bestHeroes}">Best Heroes</button></span></div><div class="rank-scroll">
+  <table class="st rank-table"><thead><tr>
+    <th class="l">#</th><th class="l">Tier</th><th class="l">Player</th>${bestHeroes?'<th class="l">Hero</th>':''}<th class="r">Score</th>
+    <th class="r">Games</th><th class="r">W</th><th class="r">L</th><th class="r">Win% (10%)</th>
+    <th class="r">Performance (90%)</th><th class="r">KDA</th><th class="r">K/D</th><th class="r">K/G</th><th class="r">D/G</th><th class="r">A/G</th>
+    <th class="r">DMG/G</th><th class="r">Souls/min</th><th class="r" title="Estimated lobby placement contributes up to 20% of performance (up to 18% overall), scaled by calculated-game coverage; lower place is better. Unavailable placement is excluded.">Est. avg place (up to 20% of perf.)</th><th class="r">Most common</th><th class="r">Est. coverage</th>
+  </tr></thead><tbody>`;
+  ranked.forEach((r,i)=>{const s=statsByPlayer.get(r.p),placement=r.placement;
+    const place=r.score==null?'—':ranked.findIndex(other=>other.score===r.score)+1;
+    h+=`<tr${i&&r.tier&&r.tier!==ranked[i-1].tier?' class="rank-boundary"':''}>
+    <td class="rank-place">${place}</td>
+    <td class="rank-tier-cell">${r.tier==null?'—':`<span class="rank-tier rank-${r.tier}">${r.tier}</span>`}<button type="button" class="rank-expand" data-rank-expand="${i}" data-rank-person="${chemText(r.p.id)}" aria-expanded="false" aria-controls="rank-detail-${i}" aria-label="Show score breakdown for ${chemText(r.p.label)}" title="Show score breakdown"></button></td>
+    <td class="rank-player"><span class="pdot" style="display:inline-block;background:${r.p.color};margin-right:8px"></span>${chemText(r.p.label)}</td>
+    ${bestHeroes?`<td class="rank-hero">${r.heroId!=null?`<span class="hcell"><span class="hico tico">${heroImage(r.heroId,heroMeta[r.heroId]||{},chemText(heroName(r.heroId)))}</span>${chemText(heroName(r.heroId))}</span>`:'Hero unavailable'}</td>`:''}
+    <td class="r"><div class="rank-score"><div class="rank-track"><div class="rank-fill" style="width:${r.score==null?0:r.score.toFixed(1)}%;background:${r.p.color}"></div></div>${f1(r.score)}</div></td>
+    <td class="r">${s.n}</td>
+    <td class="r" style="color:var(--grn)">${r.wins??'—'}</td>
+    <td class="r" style="color:var(--red)">${r.losses??'—'}</td>
+    <td class="r" style="color:${r.winRate>=50?'var(--grn)':'var(--red)'};font-weight:700">${r.winRate==null?'—':f1(r.winRate)+'%'}</td>
+    <td class="r" style="color:var(--acc3)">${f1(r.performance)}</td>
+    <td class="r" style="color:var(--acc3)">${f2(r.kda)}</td>
+    <td class="r">${s.kd}</td>
+    <td class="r">${s.kills}</td>
+    <td class="r">${s.deaths}</td>
+    <td class="r">${s.assists}</td>
+    <td class="r">${fk(r.damageGame)}</td>
+    <td class="r">${fk(r.soulsMin)}</td>
+    <td class="r">${f1(placement.average)}</td><td class="r">${placementModes(placement)}</td><td class="r">${placement.count}/${placement.selected}</td>
+  </tr><tr id="rank-detail-${i}" class="rank-detail" hidden><td colspan="${bestHeroes?20:19}">${rankingExplanation(r)}</td></tr>`;});
+  h+=`</tbody></table></div></div>`;
+  // Keep the overview about results and match context; specialist comparisons live in their tabs.
+  h+=`<div class="slbl">Results and match context${bestHeroes?' · all heroes':''}</div><div class="g3">`;
+  h+=statCard('Win Rate','winRate',arr,v=>v+'%');
+  h+=statCard('Total Matches','n',arr);
+  h+=statCard('Avg Match Duration','avgDur',arr,v=>{const m=Math.floor(v/60);return m+':'+String(Math.floor(v%60)).padStart(2,'0');});
+  h+=statCard('Abandons','abandons',arr,null,false);
+  h+=statCard('Abandon Rate','abandRate',arr,v=>v+'%',false);
+  h+=`</div>`;
+  return h;
+}
+
+function rankingExplanation(r){
+  if(r.score==null)return '<div class="rank-explain">No comparable data in this period.</div>';
+  const c=r.performanceCoverage,trends=personalTrends(r.p,r.matches),leadingTrend=trends.find(t=>Math.abs(t.change)>=.15);
+  const sway=(value)=>`${value>=0?'+':'−'}${f2(Math.abs(value))}`;
+  const bar=score=>{const extent=Math.min(50,Math.abs(score-50)*2);
+    return `<div class="rank-cat-track" aria-hidden="true"><span class="rank-cat-fill${score<50?' below':''}" style="left:${score<50?50-extent:50}%;width:${extent}%"></span></div>`;
+  };
+  const categories=r.categoryDetails.map((category,index)=>{
+    const score=category.rawScore,best=[...category.metrics].sort((a,b)=>Math.abs(b.score-50)-Math.abs(a.score-50))[0];
+    const counts=category.metrics.map(m=>m.count),low=Math.min(...counts),high=Math.max(...counts);
+    const isSupport=category.name==='Support';
+    const contribution=isSupport?r.supportBonus:(score-50)*category.effectiveWeight/100;
+    const metrics=category.metrics.map(m=>{
+      const impact=(m.score-50)*category.effectiveWeight*m.effectiveWeight/10000;
+      return `<div class="rank-metric"><div class="rank-metric-head"><span>${chemText(m.label)} · ${f1(m.effectiveWeight)}% of category${m.direction<0?' · lower is better':''}</span><strong>${f1(m.score)}</strong></div>${bar(m.score)}
+        <p class="note">Your avg ${f1(m.mean)} · peer avg ${f1(m.peerMean)} (${m.peers} peers)</p>
+        <p class="note">${m.count}/${c.games} of your games · peer minimum ${m.peerCount} games</p>
+        <div class="rank-sway${impact>0?' positive':impact<0?' negative':''}">${isSupport?'Part of the capped support bonus':sway(impact)+' raw core pts'}</div></div>`;
+    }).join('');
+    const key=chemText(r.p.id+':'+index);
+    return {card:`<div class="rank-cat"><div class="rank-cat-head"><span>${chemText(category.name)} <small>· ${isSupport?'additive bonus (up to +5)':f1(category.effectiveWeight)+'% core weight'}</small></span><strong>${f1(score)}</strong></div>
+      ${bar(score)}<div class="rank-cat-foot"><span>Below peers</span><span>50 · even</span><span>Above peers</span></div>
+      <div class="rank-sway${contribution>0?' positive':contribution<0?' negative':''}">${isSupport?'+'+f2(contribution)+' bonus stat pts':sway(contribution)+' raw core pts'}</div>
+      <p class="note">${best?`${chemText(best.label)}: ${f1(best.mean)} vs ${f1(best.peerMean)} peer avg · ${best.count}/${c.games} games`:''}</p>
+      <p class="note">Coverage: ${low===high?low:low+'–'+high}/${c.games} games across ${category.metrics.length} ${category.metrics.length===1?'metric':'metrics'}</p>
+      <button type="button" class="rank-cat-toggle" data-rank-cat-toggle="${key}" aria-expanded="false" aria-controls="rank-cat-panel-${key}">Show ${category.metrics.length} scored ${category.metrics.length===1?'metric':'metrics'}</button></div>`,
+      panel:`<div class="rank-cat-drill" id="rank-cat-panel-${key}" data-rank-cat-panel="${key}" hidden><h4>${chemText(category.name)} · ${category.metrics.length} scored ${category.metrics.length===1?'metric':'metrics'}</h4><p class="note">Available metrics use the displayed within-category weights (renormalized when missing). Core raw-point swings add up to their category's sway; support instead supplies only a capped positive bonus.</p><div class="rank-metric-grid">${metrics}</div></div>`};
+  });
+  const allMetrics=r.categoryDetails.filter(category=>category.name!=='Support').flatMap(category=>category.metrics.map(m=>({...m,category:category.name,
+    impact:(m.score-50)*category.effectiveWeight*m.effectiveWeight/10000})));
+  const eligible=allMetrics.filter(m=>m.count>=Math.min(10,c.games));
+  const divergence=(items)=>items.length?items.map(m=>`<div class="rank-edge"><strong>${chemText(m.label)}</strong><small>${chemText(m.category)} · ${f1(m.score)} raw metric score · your avg ${f1(m.mean)} vs peer avg ${f1(m.peerMean)} · ${m.count}/${c.games} games</small><span class="rank-sway${m.impact>0?' positive':' negative'}">${sway(m.impact)} raw performance pts</span></div>`).join(''):'<p class="note">No qualifying divergences.</p>';
+  const strongest=[...eligible].filter(m=>m.impact>0).sort((a,b)=>b.impact-a.impact).slice(0,3);
+  const weakest=[...eligible].filter(m=>m.impact<0).sort((a,b)=>a.impact-b.impact).slice(0,3);
+  const component=(name,value,weight,kind,detail)=>value==null?'':`<div class="rank-component"><div class="rank-component-head"><span>${name} · ${f1(weight)}%</span><strong>${f1(value)}</strong></div><div class="rank-bar" aria-hidden="true"><div class="rank-bar-fill ${kind}" style="width:${Math.max(0,Math.min(100,value))}%"></div></div><p class="note">${detail}</p></div>`;
+  const metricWeight=r.metricPerformanceWeight;
+  const placeWeight=r.placementWeight;
+  const trendCards=trends.map(t=>{
+    const notable=Math.abs(t.change)>=.15,max=Math.max(t.prev,t.now,1);
+    return `<div class="rank-trend"><div class="rank-trend-head"><strong>Average ${chemText(t.name.toLowerCase())}</strong><span>${notable?(t.good?'Favorable':'Less favorable')+' change':'Small change'}${leadingTrend===t?' · largest shift':''}</span></div>
+      ${[['Older',t.prev,t.old],['Newer',t.now,t.recent]].map(([label,value,n],i)=>`<div class="rank-trend-row"><span>${label} ${n} games</span><div class="rank-bar" aria-hidden="true"><div class="rank-bar-fill" style="width:${Math.max(0,Math.min(100,value/max*100))}%;background:${!i?'var(--txt3)':!notable?'var(--blue)':t.good?'var(--grn)':'var(--red)'}"></div></div><span>${f1(value)}</span></div>`).join('')}</div>`;
+  }).join('');
+  return `<div class="rank-explain"><div class="rank-explain-head"><strong>${chemText(r.p.label)}</strong><span>${f1(r.score)} / 100</span><small>Relative to loaded players</small></div>
+    <h4>Overall score</h4><div class="rank-components">${component('Performance',r.performance,r.winStanding==null?100:90,'','Made up of the two components below when both are available.')}${component('Win-rate standing',r.winStanding,r.performance==null?100:10,'win','Peer percentile, shrunk toward 50 for fewer games.')}</div>
+    <h4>Inside performance · ${f1(metricWeight)}% metrics + ${f1(placeWeight)}% estimated place</h4><div class="rank-components">${component('Stat metrics',r.metricPerformance,metricWeight,'',`Core categories ${f1(r.metricCorePerformance)} + support bonus ${f1(r.supportBonus)} (capped at 100).`)}${component('Estimated avg place',r.placementScore,placeWeight,'',`Avg place ${f1(r.placement.average)} · ${r.placement.count}/${r.placement.selected} selected games calculated. Lower is better; compared with loaded peers. Small samples and incomplete coverage reduce its effect.`)}</div>
+    <p class="note">Estimated place is up to 20% of performance (up to 18% of the overall score with the usual 90% performance / 10% win-rate split). Incomplete placement coverage reduces its weight; if placement is unavailable, metrics count for 100% of performance instead. These are experimental lobby estimates, not official Valve awards. Scores and tiers may change as calculations finish.</p>
+    <h4>Core categories + additive support bonus · stat metrics only</h4><div class="rank-cat-grid">${categories.map(x=>x.card).join('')||'<p class="note">No comparable performance metrics.</p>'}</div>${categories.map(x=>x.panel).join('')}
+    <p class="note">Expand a category to see every scored metric. Core-category sway contributes to the raw core average relative to 50: available metrics are weighted within each category, then available core categories are weighted. Support never subtracts points; its above-neutral score adds up to 5 stat-performance points after the 2.5× stretch. Core swings are not direct changes to the final leaderboard score. Bars show metric/category scores versus 50 (even with peers), not raw stat values.</p>
+    <p class="note">Top three metrics in each direction with at least ${Math.min(10,c.games)} of your selected games; expand categories to see the rest.</p>
+    <div class="rank-edges"><div class="rank-edge-list"><h4>Biggest positive score sway</h4>${divergence(strongest)}</div><div class="rank-edge-list"><h4>Biggest negative score sway</h4>${divergence(weakest)}</div></div>
+    <h4>Your older vs newer games · not part of the score</h4>
+    <p class="note">Chronological halves of this player's games in the selected mode and period. Each card compares per-match averages, not early and late minutes within a match. At least 16 games and sufficient data in both halves are required; changes of at least 15% are highlighted. Heroes, matchups and patches may differ.</p>
+    <div class="rank-trend-grid">${trendCards||'<p class="note">Not enough games with usable values in both halves for a personal trend.</p>'}</div>
+    <p class="note">${c.details}/${c.games} selected games have detailed metadata; missing metrics are not scored as zero. Tiers are relative groups, not absolute skill grades or Valve MVP ranks.</p></div>`;
+}
+function personalTrends(p,matches=visibleMatches(p)){
+  const ms=[...matches].filter(m=>gn(m,'start_time')!=null)
+    .sort((a,b)=>gn(a,'start_time')-gn(b,'start_time'));
+  if(ms.length<16)return [];
+  const half=Math.floor(ms.length/2),old=ms.slice(0,half),recent=ms.slice(-half);
+  const candidates=[['Souls/min',m=>ratio(gn(m,'net_worth'),ratio(gn(m,'match_duration_s'),60)),true],
+    ['Deaths/game',m=>gn(m,'player_deaths'),false],['Kills/game',m=>gn(m,'player_kills'),true],
+    ['Hero damage/min',m=>metrics(m).dpm,true]];
+  return candidates.flatMap(([name,get,higher])=>{
+    const before=old.map(get).filter(Number.isFinite),after=recent.map(get).filter(Number.isFinite);
+    if(before.length<Math.max(8,Math.ceil(half*.75))||after.length<Math.max(8,Math.ceil(half*.75)))return[];
+    const prev=validAvg(before),now=validAvg(after),change=(now-prev)/Math.max(Math.abs(prev),1);
+    return [{name,prev,now,change,good:(change>0)===higher,old:before.length,recent:after.length}];
+  }).sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+}
+function personalTrend(p){return personalTrends(p).find(t=>Math.abs(t.change)>=.15)||null;}
+
+// Relative leaderboard, not an opponent-based Elo or an official match MVP rank.
+const RANK_WIN_WEIGHT=10,RANK_PERFORMANCE_WEIGHT=90;
+const RANK_METRIC_WEIGHT=80,RANK_PLACEMENT_WEIGHT=20;
+function scalePerformanceScore(score){return Math.max(0,Math.min(100,50+2.5*(score-50)));}
+// At most five stat-performance points; scores at/below the neutral 50 add nothing.
+function supportBonus(rawScore){return rawScore==null?0:Math.max(0,scalePerformanceScore(rawScore)-50)/10;}
+function rankingStats(p,ms=visibleMatches(p)){
+  const valid=(fn)=>ms.map(fn).filter(v=>v!=null&&Number.isFinite(v));
+  const results=valid(m=>{
+    const result=gn(m,'match_result'),team=gn(m,'player_team');
+    return result==null||team==null?null:Number(result===team);
+  });
+  const kda=valid(m=>{
+    const k=gn(m,'player_kills'),d=gn(m,'player_deaths'),a=gn(m,'player_assists');
+    return k==null||d==null||a==null?null:(k+a)/(d||1);
+  });
+  const damage=valid(m=>gn(m,'player_damage'));
+  const souls=valid(m=>{
+    const worth=gn(m,'net_worth'),duration=gn(m,'match_duration_s');
+    return worth==null||duration==null||duration<=0?null:worth*60/duration;
+  });
+  const avg=xs=>xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;
+  const observations=ms.map(m=>({m,ext:metrics(m)}));
+  const categories=CHEM_STATS.map(([name,,,items])=>({name,values:items.map(([,get,,direction])=>{
+    if(!direction)return null;
+    const xs=observations.map(get).filter(v=>v!=null&&Number.isFinite(v));
+    return xs.length?{mean:avg(xs),count:xs.length,direction}:null;
+  })}));
+  const wins=results.length?results.reduce((a,b)=>a+b,0):null;
+  return {p,matches:ms,n:ms.length,wins,losses:wins==null?null:results.length-wins,
+    winRate:results.length?avg(results)*100:null,kda:avg(kda),
+    damageGame:avg(damage),soulsMin:avg(souls),categories,
+    counts:{winRate:results.length}};
+}
+function rankPlayers(good){
+  const rows=good.map(item=>{
+    const scoped=item.p!=null;
+    const row=scoped?rankingStats(item.p,item.matches):rankingStats(item);
+    if(scoped)row.heroId=item.heroId;
+    row.placement=scoped?placementForMatches(item.matches):placementForPlayer(item);
+    return row;
+  });
+  rows.forEach(row=>{
+    let performanceTotal=0,performanceWeight=0;
+    row.categoryDetails=[];
+    CHEM_STATS.forEach(([name,,,items],categoryIndex)=>{
+      const metricDetails=items.flatMap(([label,,,direction,weight],metricIndex)=>{
+        if(!direction||!weight)return[];
+        const x=row.categories[categoryIndex].values[metricIndex];
+        if(!x)return[];
+        const comparisons=rows.flatMap(other=>{
+          if(other===row)return[];
+          const y=other.categories[categoryIndex].values[metricIndex];
+          if(!y)return[];
+          const confidence=Math.min(x.count,y.count)/(Math.min(x.count,y.count)+10);
+          return [{score:50+25*direction*(x.mean-y.mean)/Math.max(Math.abs(x.mean),Math.abs(y.mean),1)*confidence,
+            peerMean:y.mean,peerCount:y.count}];
+        });
+        return comparisons.length?[{label,direction,weight,mean:x.mean,count:x.count,peerMean:validAvg(comparisons.map(c=>c.peerMean)),
+          peerCount:Math.min(...comparisons.map(c=>c.peerCount)),peers:comparisons.length,
+          score:validAvg(comparisons.map(c=>c.score))}]:[];
+      });
+      if(!metricDetails.length)return;
+      const metricTotal=metricDetails.reduce((sum,m)=>sum+m.weight,0);
+      metricDetails.forEach(m=>{m.effectiveWeight=m.weight/metricTotal*100;});
+      const w=CHEM_WEIGHTS[name],categoryScore=weightedMetricScore(metricDetails);
+      row.categoryDetails.push({name,baseWeight:w,rawScore:categoryScore,metrics:metricDetails});
+      if(name!=='Support'){performanceTotal+=w*categoryScore;performanceWeight+=w;}
+    });
+    row.categoryDetails.forEach(c=>{c.effectiveWeight=performanceWeight?c.baseWeight/performanceWeight*100:0;});
+    row.performanceCoverage={games:row.n,details:row.matches.filter(m=>m._detail).length};
+    // The paired Chemistry formula and sample prior compress performance near 50,
+    // whereas win standing is a full percentile. Stretch performance before the
+    // 90/10 blend, or nominally 10% win rate can dominate close comparisons.
+    const rawPerformance=performanceWeight?performanceTotal/performanceWeight:null;
+    row.rawPerformance=rawPerformance;
+    row.metricCorePerformance=rawPerformance==null?null:scalePerformanceScore(rawPerformance);
+    row.supportScore=row.categoryDetails.find(c=>c.name==='Support')?.rawScore??null;
+    row.supportBonus=row.metricCorePerformance==null?0:supportBonus(row.supportScore);
+    row.metricPerformance=row.metricCorePerformance==null?null:Math.min(100,row.metricCorePerformance+row.supportBonus);
+    const x=row.placement;
+    const placementComparisons=rows.flatMap(other=>{
+      const y=other.placement;
+      if(other===row||!x.count||!y.count)return [];
+      const confidence=Math.min(x.count,y.count)/(Math.min(x.count,y.count)+10);
+      return [50+25*(y.average-x.average)/Math.max(Math.abs(x.average),Math.abs(y.average),1)*confidence];
+    });
+    const placementRaw=validAvg(placementComparisons);
+    // Uncalculated games must not be silently treated as poor placements, nor
+    // should a tiny calculated subset receive the same influence as full coverage.
+    row.placementScore=placementRaw==null?null:50+(scalePerformanceScore(placementRaw)-50)*x.count/x.selected;
+    // A neutralized, sparsely calculated place must not take the full 20% away
+    // from real metrics (which would artificially boost a below-50 hero).
+    const placeWeight=row.placementScore==null?0:row.metricPerformance==null?100:
+      RANK_PLACEMENT_WEIGHT*x.count/x.selected;
+    const metricWeight=row.metricPerformance==null?0:100-placeWeight;
+    row.metricPerformanceWeight=metricWeight;
+    row.placementWeight=placeWeight;
+    row.performance=metricWeight+placeWeight?
+      (metricWeight*(row.metricPerformance??0)+placeWeight*(row.placementScore??0))/(metricWeight+placeWeight):null;
+    let total=0,weight=0;
+    if(row.performance!=null){total+=RANK_PERFORMANCE_WEIGHT*row.performance;weight+=RANK_PERFORMANCE_WEIGHT;}
+    if(row.winRate!=null){
+      const peers=rows.filter(other=>other.winRate!=null);
+      const below=peers.filter(other=>other.winRate<row.winRate).length;
+      const tied=peers.filter(other=>other.winRate===row.winRate).length;
+      const percentile=peers.length===1?50:(below+(tied-1)/2)/(peers.length-1)*100;
+      const confidence=row.counts.winRate/(row.counts.winRate+10);
+      row.winStanding=50+(percentile-50)*confidence;
+      total+=RANK_WIN_WEIGHT*row.winStanding;weight+=RANK_WIN_WEIGHT;
+    }
+    row.score=weight?total/weight:null;
+  });
+  return rows.sort((a,b)=>(b.score??-1)-(a.score??-1)||b.n-a.n||a.p.label.localeCompare(b.p.label));
+}
+function bestHeroRankings(players){
+  const candidates=players.flatMap(p=>{
+    const byHero=new Map();
+    visibleMatches(p).forEach(m=>{
+      const id=gn(m,'hero_id');
+      if(id==null)return;
+      const key=String(id);
+      if(!byHero.has(key))byHero.set(key,[]);
+      byHero.get(key).push(m);
+    });
+    if(!byHero.size)return [{p,heroId:null,matches:visibleMatches(p)}];
+    const heroes=[...byHero].map(([heroId,matches])=>({p,heroId,matches}));
+    const minimum=Math.min(10,visibleMatches(p).length);
+    const eligible=heroes.filter(hero=>hero.matches.length>=minimum);
+    // If a short history is split across heroes, still show this player:
+    // compare their most-played heroes rather than allowing a one-game fluke.
+    const most=Math.max(...heroes.map(hero=>hero.matches.length));
+    return eligible.length?eligible:heroes.filter(hero=>hero.matches.length===most);
+  });
+  const scored=rankPlayers(candidates),best=new Map();
+  // One common peer pool gives every hero a comparable end score. Never choose
+  // by raw win rate or by re-scoring an already-selected (circular) shortlist.
+  scored.forEach(row=>{if(!best.has(row.p))best.set(row.p,row);});
+  return [...best.values()];
+}
+function assignRankingTiers(rows){
+  const graded=rows.filter(r=>r.score!=null);
+  const gaps=graded.slice(1).map((r,i)=>({index:i+1,size:graded[i].score-r.score}));
+  const positive=gaps.map(g=>g.size).filter(g=>g>0).sort((a,b)=>a-b);
+  const mid=Math.floor(positive.length/2);
+  const typical=positive.length?(positive.length%2?positive[mid]:(positive[mid-1]+positive[mid])/2):0;
+  // Scores cluster near 50 after sample shrinkage. Split at meaningful *relative*
+  // gaps rather than requiring an absolute 8-point jump (which left seven of nine in S).
+  // Never split ties, and bound the number of tiers for small leaderboards.
+  const minGap=Math.max(1.5,typical);
+  const maxCuts=Math.min(5,Math.floor(graded.length/2));
+  const cuts=new Set(gaps.filter(g=>g.size>=minGap)
+    .sort((a,b)=>b.size-a.size||a.index-b.index).slice(0,maxCuts).map(g=>g.index));
+  const letters='SABCDF';
+  let group=0;
+  rows.forEach((r,i)=>{
+    if(r.score==null){r.tier=null;return;}
+    if(cuts.has(i))group++;
+    r.tier=letters[group];
+  });
+  return rows;
+}
+function tabCombat(arr){
+  if(!arr.length)return'<div class="nd">No data yet</div>';
+  let h=`<div class="slbl">Combat Stats</div><div class="g3">`;
+  h+=statCard('Kills per Game','kills',arr);
+  h+=statCard('Deaths per Game','deaths',arr,null,false);
+  h+=statCard('Assists per Game','assists',arr);
+  h+=statCard('KDA Ratio','kda',arr);
+  h+=statCard('K/D Ratio','kd',arr);
+  h+=statCard('Damage per Game','damageGame',arr,fk);
+  h+=`</div>`;
+  h+=`<div class="g2">
+    <div class="card"><div class="ct">Combat Radar (normalized)</div><div class="cwl"><canvas id="ch-radar" role="img" aria-label="Radar">Radar</canvas></div></div>
+    <div class="card"><div class="ct">K / D / A Per Game (sorted by kills)</div><div class="cwl"><canvas id="ch-kda" role="img" aria-label="KDA">KDA</canvas></div></div>
+  </div>`;
+  return h;
+}
+
+function tabEcon(arr){
+  if(!arr.length)return'<div class="nd">No data yet</div>';
+  let h=`<div class="slbl">Economy Stats</div><div class="g3">`;
+  h+=statCard('Souls per Minute','soulsMin',arr,fk);
+  h+=statCard('Avg Net Worth','avgNw',arr,fk);
+  h+=statCard('Last Hits per Game','avgLh',arr);
+  h+=statCard('Denies per Game','avgDen',arr);
+  h+=statCard('Avg Hero Level','avgLvl',arr,f1);
+  h+=statCard('Jungle creep damage/game','neutral',arr,fk);
+  h+=statCard('Lane creep damage/game','creep',arr,fk);
+  h+=`</div>`;
+  h+=`<div class="card"><div class="ct">Economy Radar (normalized)</div><div class="cwl"><canvas id="ch-eco-radar" role="img" aria-label="Economy radar">Economy radar</canvas></div></div>`;
+  return h;
+}
+
+function heroStatsForPlayer(p){
+  const byHero={};
+  visibleMatches(p).forEach(m=>{
+    const hid=gf(m,'hero_id');if(!hid)return;
+    if(!byHero[hid])byHero[hid]={hid,player:p,m:0,w:0,k:0,d:0,a:0,nw:0,lh:0,dn:0,lvl:0,dmg:0,dmgGames:0,soulsValues:[],matches:[]};
+    const hr=byHero[hid];
+    hr.m++;hr.matches.push(m);
+    if(isWin(m))hr.w++;
+    hr.k+=gf(m,'player_kills');
+    hr.d+=gf(m,'player_deaths');
+    hr.a+=gf(m,'player_assists');
+    hr.nw+=gf(m,'net_worth');
+    const damage=gn(m,'player_damage');
+    if(damage!=null){hr.dmg+=damage;hr.dmgGames++;}
+    const duration=gn(m,'match_duration_s'),netWorth=gn(m,'net_worth');
+    if(duration>0&&netWorth!=null)hr.soulsValues.push(netWorth*60/duration);
+    hr.lh+=gf(m,'last_hits');
+    hr.dn+=gf(m,'denies');
+    hr.lvl+=gf(m,'hero_level');
+  });
+  return Object.values(byHero).map(hr=>{
+    hr.l=hr.m-hr.w;
+    hr.wr=hr.m?hr.w/hr.m*100:0;
+    hr.kda=hr.d?(hr.k+hr.a)/hr.d:(hr.k+hr.a);
+    hr.kg=hr.k/hr.m;hr.dg=hr.d/hr.m;hr.ag=hr.a/hr.m;
+    hr.dmgGame=hr.dmgGames?hr.dmg/hr.dmgGames:null;
+    hr.soulsMin=validAvg(hr.soulsValues);
+    hr.nwg=hr.nw/hr.m;hr.lhg=hr.lh/hr.m;hr.dng=hr.dn/hr.m;hr.lvlg=hr.lvl/hr.m;
+    hr.placement=placementForMatches(hr.matches);
+    delete hr.matches;
+    return hr;
+  });
+}
+
+function sortHeroStats(rows){
+  const minGames=3;
+  const val={
+    played:x=>x.m,
+    winrate:x=>x.m>=minGames?x.wr:-1,
+    kda:x=>x.m>=minGames?x.kda:-1,
+    damage:x=>x.m>=minGames?(x.dmgGame??-1):-1,
+    souls:x=>x.m>=minGames?(x.soulsMin??-1):-1,
+    economy:x=>x.nwg,
+    placement:x=>x.placement.count?-x.placement.average:-13
+  }[heroSort]||((x)=>x.m);
+  return [...rows].sort((a,b)=>val(b)-val(a)||
+    (heroSort==='placement'?b.placement.count-a.placement.count:0)||b.m-a.m||b.wr-a.wr);
+}
+
+function heroSortButton(key,label){
+  return `<button class="btn btnsm ${heroSort===key?'btna':''}" data-hero-sort="${key}">${label}</button>`;
+}
+
+function heroName(hid){return (heroMeta[hid]&&heroMeta[hid].name)||hid;}
+
+function tabHeroes(good){
+  if(!good.length)return'<div class="nd">No data yet</div>';
+  const all=[];
+  const byPlayer=good.map(p=>{const rows=heroStatsForPlayer(p);all.push(...rows);return{p,rows};});
+  let h=`<div class="hsorts">${heroSortButton('played','Most Played')}${heroSortButton('winrate','Best Win%')}${heroSortButton('kda','Best KDA')}${heroSortButton('damage','Best Damage')}${heroSortButton('souls','Best Souls/min')}${heroSortButton('economy','Best Economy')}${heroSortButton('placement','Best Est. Place')}</div>
+  <div class="card hero-leaderboard"><div class="ct">Hero Leaderboard</div><p class="note">Estimated lobby place is independent of hero sorting and Valve MVP awards. Coverage is calculated / selected games for this player and hero; missing games are excluded.</p>
+    <div style="overflow-x:auto"><table class="st"><thead><tr>
+      <th class="l">Player</th><th class="l">Hero</th><th class="r">Games</th><th class="r">W-L</th><th class="r">Win%</th><th class="r">KDA</th><th class="r">K/D/A</th><th class="r">DMG/G</th><th class="r">Souls/min</th><th class="r">NW/G</th><th class="r">LH/G</th><th class="r">Den/G</th><th class="r">Lvl</th><th class="r">Est. avg place</th><th class="r">Most common</th><th class="r">Est. coverage</th>
+    </tr></thead><tbody>`;
+  sortHeroStats(all).slice(0,20).forEach(hr=>{
+    const hero=heroMeta[hr.hid]||{};
+    h+=`<tr>
+      <td class="l"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${hr.player.color};margin-right:6px;vertical-align:middle"></span>${chemText(hr.player.label)}</td>
+      <td class="l"><div class="hcell"><div class="hico tico">${heroImage(hr.hid,hero,hero.name||String(hr.hid))}</div><span>${chemText(hero.name||hr.hid)}</span></div></td>
+      <td class="r">${hr.m}</td><td class="r"><span style="color:var(--grn)">${hr.w}</span>-<span style="color:var(--red)">${hr.l}</span></td>
+      <td class="r" style="color:${pctColor(hr.wr)};font-weight:700">${hr.wr.toFixed(0)}%</td>
+      <td class="r" style="color:var(--acc3)">${f2(hr.kda)}</td>
+      <td class="r">${f1(hr.kg)} / ${f1(hr.dg)} / ${f1(hr.ag)}</td>
+      <td class="r">${hr.dmgGame==null?'—':fk(hr.dmgGame)}</td><td class="r">${hr.soulsMin==null?'—':fk(hr.soulsMin)}</td>
+      <td class="r">${fk(hr.nwg)}</td><td class="r">${f1(hr.lhg)}</td><td class="r">${f1(hr.dng)}</td><td class="r">${f1(hr.lvlg)}</td>
+      <td class="r">${f1(hr.placement.average)}</td><td class="r">${placementModes(hr.placement)}</td><td class="r">${hr.placement.count}/${hr.placement.selected}</td>
+    </tr>`;
+  });
+  h+=`</tbody></table></div></div>`;
+
+  h+=`<div class="slbl hero-split">Individual Hero Stats</div><div class="g2 hero-player-grid">`;
+  byPlayer.forEach(({p,rows})=>{
+    const sorted=sortHeroStats(rows).slice(0,12);
+    const top=sortHeroStats(rows)[0];
+    h+=`<div class="card"><div class="ct" style="color:${p.color}">${chemText(p.label)}${top?` — ${rows.length} heroes, top: ${chemText(heroName(top.hid))}`:''}</div>`;
+    if(!sorted.length){h+=`<div class="nd">No hero data</div></div>`;return;}
+    h+=`<div style="overflow-x:auto"><table class="st hst"><thead><tr>
+      <th class="l">Hero</th><th class="r">G</th><th class="r">W-L</th><th class="r">Win%</th><th class="r">KDA</th><th class="r">K/D/A</th><th class="r">DMG/G</th><th class="r">Souls/min</th><th class="r">NW/G</th><th class="r">LH/G</th><th class="r">Est. avg place</th><th class="r">Most common</th><th class="r">Est. coverage</th>
+    </tr></thead><tbody>`;
+    sorted.forEach(hr=>{
+      const hero=heroMeta[hr.hid]||{};
+      h+=`<tr>
+        <td class="l"><div class="hcell"><div class="hico tico">${heroImage(hr.hid,hero,hero.name||String(hr.hid))}</div><span>${chemText(hero.name||hr.hid)}</span></div></td>
+        <td class="r">${hr.m}</td>
+        <td class="r"><span style="color:var(--grn)">${hr.w}</span>-<span style="color:var(--red)">${hr.l}</span></td>
+        <td class="r" style="color:${pctColor(hr.wr)};font-weight:700">${hr.wr.toFixed(0)}%</td>
+        <td class="r" style="color:var(--acc3)">${f2(hr.kda)}</td>
+        <td class="r">${f1(hr.kg)} / ${f1(hr.dg)} / ${f1(hr.ag)}</td>
+        <td class="r">${hr.dmgGame==null?'—':fk(hr.dmgGame)}</td>
+        <td class="r">${hr.soulsMin==null?'—':fk(hr.soulsMin)}</td>
+        <td class="r">${fk(hr.nwg)}</td>
+        <td class="r">${f1(hr.lhg)}</td>
+        <td class="r">${f1(hr.placement.average)}</td><td class="r">${placementModes(hr.placement)}</td><td class="r">${hr.placement.count}/${hr.placement.selected}</td>
+      </tr>`;
+    });
+    h+=`</tbody></table></div></div>`;
+  });
+  h+=`</div>`;
+  return h;
+}
+
+function tabMatches(good){
+  if(!good.length)return'<div class="nd">No data yet</div>';
+  return good.map(p=>{
+    const ms=visibleMatches(p);
+    if(!ms.length)return`<div class="card"><div class="ct" style="color:${p.color}">${chemText(p.label)}</div><div class="nd">No match history.</div></div>`;
+    return`<div class="card">
+      <div class="ct" style="color:${p.color}">${chemText(p.label)} — ${ms.length} matches loaded (most recent first)</div>
+      <div style="overflow-x:auto">
+      <table class="st"><thead><tr>
+        <th class="l">Hero</th><th class="l">Date / Time</th><th class="l">Mode</th><th class="r">Est. place</th><th class="r">K</th><th class="r">D</th><th class="r">A</th><th class="r">KDA</th><th class="r">Damage</th><th class="r">Souls/min</th><th class="r">Net Worth</th><th class="r">Last Hits</th><th class="r">Denies</th><th class="r">Lvl</th><th class="r">Result</th><th class="r">Duration</th>
+      </tr></thead><tbody>
+      ${ms.slice(0,15).map(m=>{
+        const hid=gf(m,'hero_id');const hero=heroMeta[hid]||{};
+        const k=gf(m,'player_kills');const d=gf(m,'player_deaths');const a=gf(m,'player_assists');
+        const kda=d?((k+a)/d).toFixed(1):(k+a);
+        const dur=gf(m,'match_duration_s');
+        const damage=gn(m,'player_damage'),netWorth=gn(m,'net_worth');
+        const soulsMin=dur>0&&netWorth!=null?netWorth*60/dur:null;
+        const won=isWin(m);
+        return`<tr>
+          <td class="l"><div class="hico tico" title="${chemText(hero.name||hid||'Unknown hero')}">${heroImage(hid,hero,hero.name||'Hero')}</div></td>
+          <td class="l" style="font-size:11px;color:var(--txt3);white-space:nowrap">${matchDate(m)}</td>
+          <td class="l" style="font-size:11px;color:var(--txt3)">${gf(m,'game_mode')===2?'Ranked':'Normal'}</td>
+          <td class="r" title="Experimental 1–12 lobby estimate, not a Valve award">${placementForMatch(m)==null?'—':placementOrdinal(placementForMatch(m))}</td>
+          <td class="r">${k}</td><td class="r">${d}</td><td class="r">${a}</td>
+          <td class="r" style="color:var(--acc3)">${kda}</td>
+          <td class="r">${damage==null?'—':fk(damage)}</td>
+          <td class="r">${soulsMin==null?'—':fk(soulsMin)}</td>
+          <td class="r">${fk(gf(m,'net_worth'))}</td>
+          <td class="r">${gf(m,'last_hits')||'—'}</td>
+          <td class="r">${gf(m,'denies')||'—'}</td>
+          <td class="r">${gf(m,'hero_level')||'—'}</td>
+          <td class="r"><span class="${won?'bwin':'bloss'}">${won?'WIN':'LOSS'}</span></td>
+          <td class="r">${dur?Math.floor(dur/60)+':'+String(dur%60).padStart(2,'0'):'—'}</td>
+        </tr>`;
+      }).join('')}
+      </tbody></table></div></div>`;
+  }).join('');
+}
+
+async function refreshTeamShare(){
+  const key=scopeKey();for(const p of players.filter(p=>!p.loading&&!p.error)){
+    p.rosterScope=p.rosterScope||new Set();if(p.rosterScope.has(key))continue;
+    p.rosterScope.add(key);
+    p.teamSharePending=key;
+    const ms=visibleMatches(p).slice(0,25).filter(m=>teamShare(m)==null);
+    if(ms.length&&activeTab==='performance')renderMain();
+    const accountId=String(p.matches?.find(m=>m.account_id!=null)?.account_id??p.id);
+    let missing=0;
+    try{
+      for(let i=0;i<ms.length;i+=25){
+        const slice=ms.slice(i,i+25),q=new URLSearchParams({match_ids:slice.map(m=>m.match_id).join(','),
+          only_filtered_players:'false',include_info:'false',include_player_final_stats:'true',limit:String(slice.length)});
+        const byId=new Map(slice.map(m=>[String(m.match_id),m]));
+        let data;
+        for(let attempt=0;attempt<3;attempt++){
+          const wait=reserveMetadataRequest();
+          if(wait)await new Promise(resolve=>setTimeout(resolve,wait));
+          if(!players.includes(p)||!p.rosterScope.has(key)){if(p.teamSharePending===key)p.teamSharePending=null;return;}
+          try{data=await apiFetch('/matches/metadata?'+q);break;}
+          catch(e){
+            if(attempt===2||!/HTTP (429|5\d\d)/.test(String(e))&&!String(e).includes('proxy:'))throw e;
+            dbg(p.label+' team-share metadata failed; retrying: '+e,'wn');
+            await new Promise(resolve=>setTimeout(resolve,15000*(attempt+1)));
+          }
+        }
+        if(!players.includes(p)||!p.rosterScope.has(key)){if(p.teamSharePending===key)p.teamSharePending=null;return;}
+        for(const row of Array.isArray(data)?data:[]){
+          const m=byId.get(String(row.match_id));if(!m||!Array.isArray(row.players)||row.players.length!==12)continue;
+          const roster=row.players.map(x=>{if(typeof x!=='string')return x;try{return JSON.parse(x);}catch(e){return null;}});
+          if(roster.some(x=>!x))continue;
+          m._roster=roster;
+          m._detail=roster.find(x=>String(x.account_id)===accountId)||
+            roster.find(x=>Number(x.hero_id)===Number(m.hero_id))||m._detail;
+        }
+        missing+=slice.filter(m=>teamShare(m)==null).length;
+      }
+      if(missing)dbg(p.label+': team share unavailable for '+missing+'/'+ms.length+' selected matches','wn');
+    }catch(e){dbg(p.label+' team shares unavailable: '+e,'wn');missing=ms.length;}
+    // Allow another attempt on a later Performance visit if the API omitted rows.
+    if(missing)p.rosterScope.delete(key);
+    if(p.teamSharePending===key)p.teamSharePending=null;
+    if(players.includes(p))renderMain();
+  }
+}
+function tabPerformance(arr){
+  if(!arr.length)return '<div class="nd">No matches in the selected mode and period.</div>';
+  const good=arr.map(x=>x.p),mvp=good.map(p=>{
+    const result=scopeStats(p),rated=result?.rated??null,c=result?.counts||[];
+    const top=rated?100*(c[0]+c[1]+c[2])/rated:null,first=rated?100*c[0]/rated:null;
+    const weighted=rated>0?100*(3*(c[0]||0)+2*(c[1]||0)+(c[2]||0))/(3*rated):null;
+    return {p,result,rated,top,first,weighted};
+  });
+  const placementRows=good.map(p=>({p,result:placementForPlayer(p)})).sort((a,b)=>{
+    const x=a.result,y=b.result;
+    if(x.average==null||y.average==null){if(x.average==null&&y.average!=null)return 1;if(y.average==null&&x.average!=null)return -1;}
+    else if(x.average!==y.average)return x.average-y.average;
+    for(let i=0;i<Math.max(x.modes.length,y.modes.length);i++){
+      const diff=(x.modes[i]??Infinity)-(y.modes[i]??Infinity);
+      if(diff)return diff;
+    }
+    return a.p.label.localeCompare(b.p.label);
+  });
+  mvp.sort((a,b)=>(b.weighted??-1)-(a.weighted??-1)||
+    (b.first??-1)-(a.first??-1)||a.p.label.localeCompare(b.p.label));
+  let h='<div class="slbl">Placement and awards</div><div class="performance-tables">';
+  h+=`<div class="card"><div class="ct">Estimated Lobby Placement</div><div class="note">Sorted by lowest average estimated place, then lowest most-common place. Most common place can tie; estimates may differ by about one place in individual matches. Coverage counts only calculated matches in the current mode/period; no place is assigned to missing games.</div><div style="overflow-x:auto"><table class="st"><thead><tr><th class="l">Player</th><th class="r">Average estimated place</th><th class="r">Most common estimated place</th><th class="r">Calculated / selected</th></tr></thead><tbody>${placementRows.map(({p,result})=>{
+    return `<tr><td class="l">${chemText(p.label)}</td><td class="r">${f1(result.average)}</td><td class="r">${result.modes.length?result.modes.map(placementOrdinal).join(', '):'—'}</td><td class="r">${result.count}/${result.selected}</td></tr>`;
+  }).join('')}</tbody></table></div></div>`;
+  h+=`<div class="card"><div class="ct">Award breakdown</div><div class="note">Sorted by weighted award rate: (3 × firsts + 2 × seconds + thirds) / (3 × eligible matches). Only places 1–3 are awarded; unranked players receive zero award weight. Rates use MVP-eligible matches, not all historical games.</div><div style="overflow-x:auto"><table class="st"><thead><tr><th class="l">Player</th><th class="r" title="(3 × firsts + 2 × seconds + thirds) / (3 × eligible matches)">Weighted %</th><th class="r">1st</th><th class="r">2nd</th><th class="r">3rd</th><th class="r">Eligible</th></tr></thead><tbody>${mvp.map(x=>`<tr><td class="l">${chemText(x.p.label)}</td><td class="r">${x.weighted==null?'—':f1(x.weighted)+'%'}</td>${[0,1,2].map(i=>`<td class="r award-place"><span class="award-pair"><span>${x.result?.counts[i]??'—'}</span><span class="award-rate">${x.rated>0?f1(100*(x.result?.counts[i]||0)/x.rated)+'%':'—'}</span></span></td>`).join('')}<td class="r">${x.rated??'—'}</td></tr>`).join('')}</tbody></table></div></div></div>`;
+  h+='<div class="slbl">Official Valve MVP awards</div>'; 
+  if(scopeCount&&scopeUnit==='matches')h+='<div class="note">MVP awards and objective damage/min are unavailable for match-count periods: the API only provides these aggregates by date.</div>';
+  h+='<div class="performance-mvp-cards">';
+  h+=statCard('MVP % (1st)','first',mvp.map(x=>({p:x.p,s:x})),v=>f1(v)+'%');
+  h+=statCard('Top 3 %','top',mvp.map(x=>({p:x.p,s:x})),v=>f1(v)+'%');
+  h+='</div>';
+  h+='<div class="slbl">Damage and contribution</div>';
+  if(good.some(p=>p.teamSharePending===scopeKey()))h+='<div class="note">Loading full-team match data for hero-damage share; values may appear as requests finish.</div>';
+  h+='<div class="g3">';
+  h+=statCard('Objective damage/min','objDpm',good.map(p=>({p,s:{objDpm:scopeStats(p)?.objDpm??null}})),fk);
+  for(const [title,key,fmt] of [['Hero damage/min','dpm',fk],['Share of team hero damage','teamShare',v=>f1(v)+'%'],['Boss damage/game','boss',fk],['Damage mitigated/game','mitigated',fk],['Damage taken/game','taken',fk],['Teammate healing/game','allyHeal',fk],['Teammate barriers/game','allyBarrier',fk],['Healing prevented/game','healPrevented',fk]])h+=statCard(title,key,arr,fmt);
+  h+='</div><div class="slbl">Aim and survivability</div><div class="g3">';
+  h+=statCard('Weapon accuracy','accuracy',arr,v=>f1(v)+'%');h+=statCard('Hero-bullet headshot share','headshot',arr,v=>f1(v)+'%');
+  h+=statCard('Self healing/game','selfHeal',arr,fk);
+  h+='</div><div class="note">Team hero-damage share uses up to the 25 most recent matches per player with complete six-player stats. When available, objective damage/min comes from the Deadlock API’s hero aggregates, weighted by hero playtime; boss damage is a separate match field. Accuracy = shots hit / (hit + missed), including non-hero targets. Headshot share = critical hero bullet hits / hero bullet hits; it is not headshot kills / kills. Comparisons across different heroes and roles need context. Team share requires complete six-player final stats.</div>';
+  return h;
+}
+// Population quantiles describe *matches*, not player-season averages. Keep the
+// reference distribution fixed across players for the same mode, period and hero.
+const IND_METRICS=[
+  ['Kills','kills',m=>gn(m,'player_kills'),f1],
+  ['Deaths (fewer is better)','deaths',m=>gn(m,'player_deaths'),f1,true],
+  ['Assists','assists',m=>gn(m,'player_assists'),f1],
+  ['K/D','kd',m=>ratio(gn(m,'player_kills'),gn(m,'player_deaths'))??(gn(m,'player_deaths')===0?gn(m,'player_kills'):null),f2],
+  ['KDA','kda',m=>ratio((gn(m,'player_kills')??0)+(gn(m,'player_assists')??0),gn(m,'player_deaths'))??(gn(m,'player_deaths')===0?(gn(m,'player_kills')??0)+(gn(m,'player_assists')??0):null),f2],
+  ['Hero damage/min','player_damage_per_min',m=>metrics(m).dpm,f1],
+  ['Hero damage/game','player_damage',m=>gn(m,'player_damage'),fk],
+  ['Souls/min','net_worth_per_min',m=>ratio(gn(m,'net_worth'),ratio(gn(m,'match_duration_s'),60)),f1],
+  ['Last hits','last_hits',m=>gn(m,'last_hits'),f1],
+  ['Denies','denies',m=>gn(m,'denies'),f1],
+  ['Boss damage/min','boss_damage_per_min',m=>ratio(metrics(m).boss,ratio(gn(m,'match_duration_s'),60)),f1],
+  ['Neutral damage/min','neutral_damage_per_min',m=>ratio(metrics(m).neutral,ratio(gn(m,'match_duration_s'),60)),f1],
+  ['Teammate healing','teammate_healing',m=>metrics(m).allyHeal,fk],
+  ['Teammate barriers','teammate_barriering',m=>metrics(m).allyBarrier,fk],
+  ['Healing prevented','heal_prevented',m=>metrics(m).healPrevented,fk],
+  ['Weapon accuracy','accuracy',m=>metrics(m).accuracy==null?null:metrics(m).accuracy/100,v=>f1(v*100)+'%']
+];
+const IND_QUANTILES=[1,5,10,25,50,75,90,95,99];
+function populationWindow(){
+  if(!scopeCount)return {from:0,label:'All available playerbase history'};
+  if(scopeUnit==='days'){
+    // Hourly cutoff keeps cache keys stable without drifting far from the global filter.
+    return {from:Math.floor(Date.now()/3600000)*3600-scopeCount*86400,label:`Last ${scopeCount} days of playerbase matches`};
+  }
+  // The API cannot select the last N games per population player. Use one shared
+  // date cutoff spanning the selected games of every loaded player instead.
+  const times=players.filter(p=>!p.loading&&!p.error).flatMap(p=>visibleMatches(p).map(m=>gn(m,'start_time')).filter(t=>t>0));
+  const from=times.length?Math.min(...times):0;
+  return {from,label:from?`Playerbase matches since ${new Date(from*1000).toLocaleDateString()} (last-${scopeCount}-matches proxy)`:'All available playerbase history (match dates unavailable)'};
+}
+function populationKey(hero,window){return [scopeMode,window.from,hero,individualRank].join(':');}
+function populationQuery(hero,window){
+  const q=new URLSearchParams({game_mode:'normal',min_unix_timestamp:String(window.from)});
+  if(hero!=='all')q.set('hero_ids',String(hero));
+  if(scopeMode!=='normal')q.set('match_mode',scopeMode==='standard'?'unranked':'ranked');
+  if(individualRank!=='all'){
+    const tier=Number(individualRank);
+    q.set('min_average_badge',String(tier?10*tier+1:0));
+    q.set('max_average_badge',String(tier?10*tier+6:9));
+  }
+  return q;
+}
+function populationFor(hero,window){
+  const key=populationKey(hero,window);
+  if(!populationCache.has(key)){
+    const q=populationQuery(hero,window);
+    const promise=apiFetch('/analytics/player-stats/metrics?'+q).then(data=>{
+      if(!data||typeof data!=='object'||!data.kills)throw new Error('No population metrics returned');
+      promise.data=data;
+      return data;
+    }).catch(e=>{populationCache.delete(key);dbg('Population metrics for hero '+hero+' unavailable: '+e,'wn');throw e;});
+    populationCache.set(key,promise);
+  }
+  return populationCache.get(key);
+}
+function populationCountFor(hero,window){
+  const key=populationKey(hero,window);
+  if(!populationCountCache.has(key)){
+    const q=populationQuery(hero,window);q.set('bucket','no_bucket');
+    const promise=apiFetch('/analytics/game-stats?'+q).then(rows=>{
+      const count=gn(Array.isArray(rows)?rows[0]:null,'total_matches');
+      if(count==null)throw new Error('No cohort match count returned');
+      promise.data=count;
+      return count;
+    }).catch(e=>{populationCountCache.delete(key);dbg('Population match count unavailable: '+e,'wn');throw e;});
+    populationCountCache.set(key,promise);
+  }
+  return populationCountCache.get(key);
+}
+function refreshIndividual(){
+  if(activeTab!=='individual')return;
+  const p=players.find(x=>x.id===individualId&&!x.loading&&!x.error)||players.find(x=>!x.loading&&!x.error);
+  if(!p)return;
+  const window=populationWindow(),hero=individualHero;
+  for(const request of [populationFor(hero,window),populationCountFor(hero,window)]){
+    request.then(()=>{if(activeTab==='individual')renderMain();},()=>{if(activeTab==='individual')renderMain();});
+  }
+}
+function populationPoints(data){
+  if(!data)return null;
+  const pts=IND_QUANTILES.map(q=>[Number(data['percentile'+q]),q/100]);
+  return pts.every(([x])=>Number.isFinite(x))?pts:null;
+}
+function populationCdf(points,value){
+  if(value<points[0][0])return 0;
+  if(value>points.at(-1)[0])return 1;
+  // Flat quantiles represent a mass at zero (or another repeated value).
+  // Place tied observations in the middle of that mass, not at an arbitrary edge.
+  const ties=points.filter(([x])=>x===value);
+  if(ties.length>1)return (ties[0][1]+ties.at(-1)[1])/2;
+  for(let i=1;i<points.length;i++){
+    const [hi,pHi]=points[i],[lo,pLo]=points[i-1];
+    if(value<=hi)return hi===lo?pHi:pLo+(value-lo)/(hi-lo)*(pHi-pLo);
+  }
+  return 1;
+}
+function populationCurve(groups,value,fmt,top,playerColor){
+  const lo=Math.min(...groups.map(g=>g.points[0][0])),hi=Math.max(...groups.map(g=>g.points.at(-1)[0]));
+  const span=Math.max(hi-lo,1e-9),bins=40,step=span/bins;
+  const cdf=x=>groups.reduce((s,g)=>s+g.weight*populationCdf(g.points,x),0);
+  const bars=Array.from({length:bins},(_,i)=>Math.max(0,cdf(lo+(i+1)*step)-cdf(lo+i*step)));
+  const peak=Math.max(...bars,0.001),xPos=value==null?null:Math.max(0,Math.min(100,(value-lo)/span*100));
+  const path='M 0 90 '+bars.map((b,i)=>`L ${(i+.5)*100/bins} ${(90-b/peak*72).toFixed(1)}`).join(' ')+' L 100 90 Z';
+  return `<div class="ind-plot">${xPos==null?'':`<span class="ind-percent" style="left:${xPos.toFixed(2)}%;transform:translateX(${xPos<15?'0':xPos>85?'-100%':'-50%'});color:${individualTopColor(top)}">Top ${top}%</span>`}<svg class="ind-chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Approximate playerbase match distribution${xPos==null?'':'; player average marked by a colored line, top '+top+' percent'}"><path d="${path}" fill="rgba(52,217,195,.27)" stroke="var(--teal)" stroke-width=".6" vector-effect="non-scaling-stroke"/>${xPos==null?'':`<line x1="${xPos.toFixed(2)}" x2="${xPos.toFixed(2)}" y1="0" y2="92" stroke="${playerColor}" stroke-width="2" vector-effect="non-scaling-stroke"/>`}<line x1="0" x2="100" y1="90" y2="90" stroke="var(--bdr2)" stroke-width="1" vector-effect="non-scaling-stroke"/></svg><div class="ind-axis"><span>${fmt(lo)}</span><span>${fmt(hi)}</span></div></div>`;
+}
+function individualTopColor(top){
+  // Smooth green → yellow → orange → red as the top-percent number worsens.
+  const stops=[[1,135],[25,95],[50,48],[75,25],[100,0]];
+  for(let i=1;i<stops.length;i++)if(top<=stops[i][0]){
+    const [a,ha]=stops[i-1],[b,hb]=stops[i];
+    return `hsl(${Math.round(ha+(hb-ha)*(top-a)/(b-a))},90%,65%)`;
+  }
+  return 'hsl(0,90%,65%)';
+}
+function indHeroIcon(id){
+  if(id==='all')return '<span class="hico" aria-hidden="true">★</span>';
+  const hero=heroMeta[id],name=String(heroName(id)),img=hero?.images||{};
+  const urls=[img.icon_image_small_webp,img.icon_image_small,img.minimap_image_webp,img.minimap_image].filter(url=>typeof url==='string'&&/^https:\/\//i.test(url));
+  return `<span class="hico" aria-hidden="true">${urls.length?`<img src="${chemText(urls[0])}" data-fallbacks="${chemText(urls.slice(1).join('|'))}" alt="${chemText(name)}" loading="lazy">`:chemText(name.slice(0,2).toUpperCase())}</span>`;
+}
+const IND_RANKS=['Obscurus','Initiate','Seeker','Acolyte','Sentinel','Mystic','Ritualist','Emissary','Oracle','Phantom','Ascendant','Eternus'];
+const IND_GROUPS=[
+  ['Combat','Fighting output and survivability',['kills','deaths','assists','kd','kda','player_damage_per_min','player_damage']],
+  ['Economy','Souls and farming',['net_worth_per_min','last_hits','denies']],
+  ['Objectives & farming','Boss and neutral pressure',['boss_damage_per_min','neutral_damage_per_min']],
+  ['Aim','Weapon precision',['accuracy']],
+  ['Support','Healing, barriers and prevention',['teammate_healing','teammate_barriering','heal_prevented']]
+];
+function tabIndividual(good){
+  if(!good.length)return '<div class="nd">Load a player to view individual comparisons.</div>';
+  const window=populationWindow();
+  const p=good.find(x=>x.id===individualId)||good[0];
+  individualId=p.id;
+  const heroIds=[...new Set(visibleMatches(p).map(m=>gn(m,'hero_id')).filter(x=>x!=null))].sort((a,b)=>String(heroName(a)).localeCompare(String(heroName(b))));
+  const hero=individualHero==='all'||heroIds.some(id=>String(id)===individualHero)?individualHero:'all';
+  individualHero=hero;
+  const ms=visibleMatches(p).filter(m=>hero==='all'||String(gn(m,'hero_id'))===hero);
+  const playerMark=x=>`<span class="pdot" style="background:${x.color}" aria-hidden="true"></span>`;
+  const referenceCount=populationCountCache.get(populationKey(hero,window))?.data;
+  const referenceLabel=referenceCount==null?'Reference match count loading/unavailable':`${referenceCount.toLocaleString()} reference matches`;
+  const rankName=individualRank==='all'?'All Ranks':IND_RANKS[Number(individualRank)];
+  let h=`<div class="ind-view" style="--ind-player:${p.color}"><div class="card ind-controls"><span class="lbl">Player</span><details class="ind-picker"><summary aria-label="Select player: ${chemText(p.label)}">${playerMark(p)}<span class="ind-name">${chemText(p.label)}</span></summary><div class="ind-menu">${good.map(x=>`<button type="button" data-ind-player="${chemText(x.id)}" aria-current="${x===p}">${playerMark(x)}<span class="ind-name">${chemText(x.label)}</span></button>`).join('')}</div></details><span class="lbl">Reference hero</span><details class="ind-picker"><summary aria-label="Select reference hero: ${hero==='all'?'All heroes':chemText(heroName(hero))}">${indHeroIcon(hero)}<span class="ind-name">${hero==='all'?'All heroes':chemText(heroName(hero))}</span></summary><div class="ind-menu"><button type="button" data-ind-hero="all" aria-current="${hero==='all'}">${indHeroIcon('all')}<span class="ind-name">All heroes</span></button>${heroIds.map(id=>`<button type="button" data-ind-hero="${id}" aria-current="${String(id)===hero}">${indHeroIcon(id)}<span class="ind-name">${chemText(heroName(id))}</span></button>`).join('')}</div></details><span class="lbl">Reference rank</span><details class="ind-picker"><summary aria-label="Select reference rank: ${rankName}" title="Filtered by average badge of both teams"><span class="ind-rank-icon" aria-hidden="true">◆</span><span class="ind-name">${rankName}</span></summary><div class="ind-menu"><button type="button" data-ind-rank="all" aria-current="${individualRank==='all'}">All Ranks</button>${IND_RANKS.map((name,tier)=>`<button type="button" data-ind-rank="${tier}" aria-current="${individualRank===String(tier)}">${name}</button>`).join('')}</div></details><span class="note">${ms.length} selected matches · ${referenceLabel} · ${window.label} · ${hero==='all'?'all heroes':chemText(heroName(hero))} · ${rankName}</span></div>`;
+  if(!ms.length)return h+'<div class="nd">No matches in the selected mode and period.</div></div>';
+  const byKey=new Map(IND_METRICS.map(metric=>[metric[1],metric]));
+  for(const [group,description,keys] of IND_GROUPS){
+    h+=`<section class="chem-category ind-category"><div class="chem-category-head"><h4>${group}</h4><p>${description}</p></div><div class="ind-grid">`;
+    for(const key of keys){
+      const [title,,get,fmt,lower]=byKey.get(key);
+      const samples=ms.map(get).filter(v=>v!=null&&Number.isFinite(v));
+      const avg=validAvg(samples);
+      const entry=populationCache.get(populationKey(hero,window));
+      const points=populationPoints(entry?.data?.[key]);
+      const top=avg==null||!points?null:Math.max(1,Math.min(100,Math.round(100*(lower?populationCdf(points,avg):1-populationCdf(points,avg)))));
+      h+=`<div class="chem-stat ind-card"><h5 class="chem-metric-title">${title}</h5><div class="ind-result"><strong class="ind-value">${avg==null?'—':fmt(avg)}</strong></div>`;
+      h+=!points?'<div class="ldbx">Loading or unavailable population data…</div>':populationCurve([{points,weight:1}],avg,fmt,top,p.color);
+      h+=`<div class="ind-meta">${samples.length} matches with data${avg==null?' · no player value available':''}</div></div>`;
+    }
+    h+='</div></section>';
+  }
+  return h+'</div>';
+}
+function sharedMatches(a,b){
+  const other=new Map(visibleMatches(b).map(m=>[String(m.match_id),m]));
+  return visibleMatches(a).flatMap(m=>{const x=other.get(String(m.match_id));return x?[[m,x]]:[];});
+}
+function chemText(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function chemWinColor(rate){return rate>50?`hsl(145,100%,${Math.round(54-(rate-50)*.2)}%)`:rate<50?`hsl(0,100%,${Math.round(61-(50-rate)*.16)}%)`:'var(--acc3)';}
+function chemCompareValues(av,bv,format){
+  const value=(v,other)=>v==null?'—':`<span style="color:${other==null||v===other?'var(--txt)':v>other?'var(--grn)':'var(--red)'};font-weight:700">${format(v)}</span>`;
+  return `${value(av,bv)} <span style="color:var(--txt3)">/</span> ${value(bv,av)}`;
+}
+// Core category weights; Support is a separate positive-only bonus, not a core weight.
+// Unavailable core categories are removed and the remaining weights normalized.
+const CHEM_WEIGHTS={Combat:30,Economy:25,'Objectives & farming':10,Aim:5,Support:0,Survivability:15};
+function weightedMetricScore(metrics){
+  const total=metrics.reduce((sum,m)=>sum+m.weight,0);
+  return total?metrics.reduce((sum,m)=>sum+m.score*m.weight,0)/total:null;
+}
+// Only paired, available measurements contribute. Each scored metric has a
+// within-category weight; missing metrics are omitted and available weights renormalized.
+// A direction/weight of 0 displays the metric but excludes it from scoring.
+const CHEM_STATS=[
+  ['Combat','Damage and fighting output','#ff9678',[
+    ['Hero damage/min',o=>o.ext.dpm,f1,1,30],['Hero damage/game',o=>gn(o.m,'player_damage'),fk,1,10],
+    ['Kills/game',o=>gn(o.m,'player_kills'),f1,1,20],['Assists/game',o=>gn(o.m,'player_assists'),f1,1,20],
+    ['KDA/game',o=>{const k=gn(o.m,'player_kills'),d=gn(o.m,'player_deaths'),v=gn(o.m,'player_assists');return k==null||d==null||v==null?null:(k+v)/(d||1);},f2,1,20]
+  ]],
+  ['Economy','Souls, farming and progression','#f0b429',[
+    ['Souls/min',o=>ratio(gn(o.m,'net_worth'),ratio(gn(o.m,'match_duration_s'),60)),f1,1,50],
+    ['Net worth',o=>gn(o.m,'net_worth'),fk,1,15],['Last hits/game',o=>gn(o.m,'last_hits'),f1,0,0],
+    ['Denies/game',o=>gn(o.m,'denies'),f1,1,15],['Hero level',o=>gn(o.m,'hero_level'),f1,1,20]
+  ]],
+  ['Objectives & farming','Boss, jungle and lane pressure','#79db80',[
+    ['Boss damage/game',o=>o.ext.boss,fk,1,50],['Jungle creep damage/game',o=>o.ext.neutral,fk,1,20],
+    ['Lane creep damage/game',o=>o.ext.creep,fk,1,30]
+  ]],
+  ['Aim','Weapon precision','#74b3ff',[
+    ['Weapon accuracy',o=>o.ext.accuracy,v=>f1(v)+'%',1,65],
+    ['Hero-bullet headshot share',o=>o.ext.headshot,v=>f1(v)+'%',1,35]
+  ]],
+  ['Support','Helping teammates and denying healing','#c084fc',[
+    ['Teammate healing/game',o=>o.ext.allyHeal,fk,1,35],['Teammate barriers/game',o=>o.ext.allyBarrier,fk,1,35],
+    ['Healing prevented/game',o=>o.ext.healPrevented,fk,1,30]
+  ]],
+  ['Survivability','Deaths and damage absorbed','#34d9c3',[
+    ['Deaths/game',o=>gn(o.m,'player_deaths'),f1,-1,55],['Damage taken/game',o=>o.ext.taken,fk,0,0],
+    ['Damage mitigated/game',o=>o.ext.mitigated,fk,1,25],['Self healing/game',o=>o.ext.selfHeal,fk,1,20]
+  ]]
+];
+function chemObservations(matches){return matches.map(([m,x])=>[{m,ext:metrics(m)},{m:x,ext:metrics(x)}]);}
+function chemPairedValues(observations,get){return observations.flatMap(([left,right])=>{
+  const av=get(left),bv=get(right);return av!=null&&Number.isFinite(av)&&bv!=null&&Number.isFinite(bv)?[[av,bv]]:[];
+});}
+function chemPerformance(matches){
+  const observations=chemObservations(matches);
+  const scoredCategories=CHEM_STATS.flatMap(([name,,color,items])=>{
+    const metricScores=items.flatMap(([,get,,direction,weight])=>{
+      if(!direction||!weight)return[];
+      const values=chemPairedValues(observations,get);
+      if(!values.length)return[];
+      const av=validAvg(values.map(v=>v[0])),bv=validAvg(values.map(v=>v[1]));
+      // Relative advantage is capped and shrunk toward a tie for small paired samples.
+      const confidence=values.length/(values.length+10);
+      return [{score:50+25*direction*(av-bv)/Math.max(Math.abs(av),Math.abs(bv),1)*confidence,weight}];
+    });
+    return metricScores.length?[{name,color,score:weightedMetricScore(metricScores),count:metricScores.length,weight:CHEM_WEIGHTS[name]}]:[];
+  });
+  const supportCategory=scoredCategories.find(c=>c.name==='Support')||null;
+  const categories=scoredCategories.filter(c=>c.name!=='Support');
+  const totalWeight=categories.reduce((sum,c)=>sum+c.weight,0);
+  const rawA=totalWeight?categories.reduce((sum,c)=>sum+c.score*c.weight,0)/totalWeight:null;
+  const coreScoreA=rawA==null?null:scalePerformanceScore(rawA);
+  const bonusA=coreScoreA==null?0:supportBonus(supportCategory?.score);
+  const bonusB=coreScoreA==null?0:supportBonus(supportCategory==null?null:100-supportCategory.score);
+  // Pairwise scores remain complementary: a support advantage shifts half the
+  // bonus difference to each side. The Overview bonus is not zero-sum.
+  const supportAdjustment=(bonusA-bonusB)/2;
+  const metricScoreA=coreScoreA==null?null:Math.max(0,Math.min(100,coreScoreA+supportAdjustment));
+  // Compare only shared games with BOTH estimated ranks; individual display
+  // averages can have different coverage and must not be compared here.
+  const pairedPlaces=matches.flatMap(([a,b])=>{
+    const av=placementForMatch(a),bv=placementForMatch(b);
+    return av==null||bv==null?[]:[[av,bv]];
+  });
+  const placeCount=pairedPlaces.length;
+  const placeA=validAvg(pairedPlaces.map(([av])=>av)),placeB=validAvg(pairedPlaces.map(([,bv])=>bv));
+  const confidence=placeCount/(placeCount+10);
+  const placeRaw=placeCount?50+25*(placeB-placeA)/Math.max(placeA,placeB,1)*confidence:null;
+  const placementScoreA=placeRaw==null?null:50+(scalePerformanceScore(placeRaw)-50)*placeCount/matches.length;
+  const metricWeight=metricScoreA==null?0:placementScoreA==null?100:80;
+  const placeWeight=placementScoreA==null?0:metricScoreA==null?100:20;
+  const scoreA=metricWeight+placeWeight?(metricWeight*(metricScoreA??0)+placeWeight*(placementScoreA??0))/(metricWeight+placeWeight):null;
+  const scoreB=scoreA==null?null:100-scoreA;
+  return {categories,supportCategory,totalWeight,rawA,coreScoreA,bonusA,bonusB,supportAdjustment,
+    metricScoreA,placementScoreA,metricWeight,placeWeight,
+    placeCount,placeA,placeB,scoreA,scoreB,gap:scoreA==null?null:Math.abs(scoreA-scoreB)};
+}
+// Visualize the support-adjusted metric share across core categories; the
+// signed support shift is explained separately, not a new weighted category.
+function chemCategoryPoints(performance,category,side){
+  const raw=(side==='A'?category.score:100-category.score)*category.weight/performance.totalWeight;
+  const rawTotal=side==='A'?performance.rawA:100-performance.rawA;
+  const metricScore=side==='A'?performance.metricScoreA:100-performance.metricScoreA;
+  return rawTotal?raw*metricScore/rawTotal*performance.metricWeight/100:0;
+}
+function chemPlacementPoints(performance,side){
+  const score=side==='A'?performance.placementScoreA:100-performance.placementScoreA;
+  return performance.placeWeight?score*performance.placeWeight/100:0;
+}
+// Intersect the visible histories by match ID, keeping only games in which every member shared a team.
+function chemTeamMatches(members){
+  if(!members.length)return [];
+  const histories=members.map(p=>new Map(visibleMatches(p).filter(m=>m.match_id!=null).map(m=>[String(m.match_id),m])));
+  return [...histories[0]].flatMap(([id,first])=>{
+    const rows=histories.map(h=>h.get(id));
+    return rows.every(m=>m&&gn(m,'player_team')!=null&&gn(m,'player_team')===gn(first,'player_team')&&gn(m,'match_result')!=null)?[rows]:[];
+  });
+}
+function chemAssembly(good){
+  chemistryTeam=chemistryTeam.filter(id=>good.some(p=>String(p.id)===id)).slice(0,6);
+  const members=chemistryTeam.map(id=>good.find(p=>String(p.id)===id));
+  const together=chemTeamMatches(members),wins=together.filter(row=>isWin(row[0])).length;
+  const baseline=together.length?wins/together.length*100:null;
+  let h=`<div class="card chem-assembly"><div class="ct">Team Assembly · ${members.length}/6 selected</div><p class="chem-foot">Choose up to six players. Results use only games where everyone was on the same team in the current mode and period. ${members.length?'Candidate change compares their shared-team win rate with the current lineup’s win rate (different match samples); it is not a predicted boost.':'With no selection, each player shows their own win rate in the current mode and period.'} Selecting a player filters Pairs to pairs involving at least one selected player.</p><div class="chem-roster">`;
+  for(const p of good){
+    const chosen=chemistryTeam.includes(String(p.id));
+    const sample=chosen?together:members.length?chemTeamMatches([...members,p]):visibleMatches(p).map(m=>[m]);
+    const w=sample.filter(row=>isWin(row[0])).length,rate=sample.length?w/sample.length*100:null;
+    const delta=members.length&&!chosen&&rate!=null&&baseline!=null?rate-baseline:null;
+    const display=chosen?'Selected':!members.length?rate==null?'No matches':`${f1(rate)}% win rate`:rate==null?'No shared games':`${delta==null?'—':(delta>=0?'+':'')+f1(delta)+' pp'} · ${f1(rate)}%`;
+    const detail=members.length&&!chosen&&rate!=null?`<span style="color:${delta==null?'var(--txt3)':chemWinColor(50+delta)}">${delta==null?'—':(delta>=0?'+':'')+f1(delta)+' pp'}</span> · <span style="color:${chemWinColor(rate)}">${f1(rate)}%</span>`:!members.length&&rate!=null?`<span style="color:${chemWinColor(rate)}">${chemText(display)}</span>`:chemText(display);
+    h+=`<button type="button" class="chem-person" data-chem-person="${chemText(p.id)}" aria-pressed="${chosen}" aria-label="${chosen?'Remove':'Add'} ${chemText(p.label)}${chosen?'':', '+chemText(display)}" ${!chosen&&members.length>=6?'disabled title="Maximum of six players"':''}><span class="pdot" style="background:${p.color}"></span><span><span class="chem-person-name">${chemText(p.label)}</span><small>${detail}${!chosen&&sample.length?` · ${sample.length} ${sample.length===1?'game':'games'}`:''}</small></span></button>`;
+  }
+  h+='</div>';
+  if(members.length){
+    h+=`<div class="chem-summary"><div class="chem-stat"><strong>${together.length}</strong><span>Shared team matches</span></div><div class="chem-stat"><strong>${wins}–${together.length-wins}</strong><span>Wins–losses together</span></div><div class="chem-stat"><strong style="color:${baseline==null?'var(--txt3)':chemWinColor(baseline)}">${baseline==null?'—':f1(baseline)+'%'}</strong><span>Win rate together</span></div><div class="chem-stat"><strong>${members.length}</strong><span>Selected players</span></div></div>`;
+    if(together.length){
+      h+='<div class="ct">Recent team matches · up to 10</div><div class="chem-team-history"><table class="st"><thead><tr><th class="l">Date</th><th class="l">Result</th><th class="r">Duration</th><th class="l">Players · hero · K/D/A</th></tr></thead><tbody>';
+      h+=[...together].sort((a,b)=>(gn(b[0],'start_time')||0)-(gn(a[0],'start_time')||0)).slice(0,10).map(row=>`<tr><td>${chemText(matchDate(row[0]))}</td><td><span class="${isWin(row[0])?'bwin':'bloss'}">${isWin(row[0])?'Win':'Loss'}</span></td><td class="r">${gn(row[0],'match_duration_s')==null?'—':f1(gn(row[0],'match_duration_s')/60)+' min'}</td><td><div class="chem-team-members">${row.map((m,i)=>{const id=gn(m,'hero_id'),hero=heroMeta[id]||{};return `<span><span style="color:${members[i].color}">${chemText(members[i].label)}</span> ${id==null?'':`<span class="hico tico" title="${chemText(hero.name||String(id))}">${heroImage(id,hero,chemText(hero.name||String(id)))}</span>`}${gf(m,'player_kills')}/${gf(m,'player_deaths')}/${gf(m,'player_assists')}</span>`;}).join('')}</div></td></tr>`).join('');
+      h+='</tbody></table></div>';
+    }else h+='<p class="chem-foot">No games with this entire lineup on the same team in the current mode and period. Try fewer players or a broader period.</p>';
+  }
+  return h+'</div>';
+}
+function tabChemistry(good){
+  if(good.length<2)return good.length?chemAssembly(good)+'<div class="nd">Add another player to explore pairs.</div>':'<div class="nd">Add players with match data to explore chemistry.</div>';
+  const assembly=chemAssembly(good);
+  const pairs=[];
+  for(let i=0;i<good.length;i++)for(let j=i+1;j<good.length;j++){
+    const a=good[i],b=good[j],matches=sharedMatches(a,b).filter(([m,n])=>
+      gn(m,'player_team')!=null&&gn(n,'player_team')!=null&&
+      (chemistryView==='team'?gn(m,'player_team')===gn(n,'player_team'):gn(m,'player_team')!==gn(n,'player_team')));
+    if(matches.length){
+      const wins=matches.filter(([m])=>isWin(m)).length,performance=chemPerformance(matches);
+      pairs.push({a,b,matches,wins,rate:wins/matches.length*100,performance,gap:performance.gap,key:a.id+'|'+b.id});
+    }
+  }
+  pairs.sort((x,y)=>{
+    const primary=chemistrySort==='winRate'?y.rate-x.rate:chemistrySort==='scoreGap'?(y.gap??-1)-(x.gap??-1):y.matches.length-x.matches.length;
+    return primary||y.matches.length-x.matches.length||x.a.label.localeCompare(y.a.label)||x.b.label.localeCompare(y.b.label);
+  });
+  const shown=chemistryTeam.length?pairs.filter(x=>chemistryTeam.includes(String(x.a.id))||chemistryTeam.includes(String(x.b.id))):pairs;
+  if(!shown.some(x=>x.key===chemistryPair))chemistryPair=shown[0]?.key||null;
+  const selected=shown.find(x=>x.key===chemistryPair);
+  let h=assembly+`<div class="chem-layout"><div class="card chem-pairs-card"><div class="ct">Pairs${chemistryTeam.length?' · involving selected players':''} (${shown.length})</div><div class="chem-controls"><div class="chem-toggle" role="group" aria-label="Pair relationship"><button type="button" data-chem-view="team" aria-pressed="${chemistryView==='team'}">Together</button><button type="button" data-chem-view="opponents" aria-pressed="${chemistryView==='opponents'}">Opponents</button></div><label>Sort by <select id="chem-sort" aria-label="Sort pairs by"><option value="shared"${chemistrySort==='shared'?' selected':''}>Shared matches</option><option value="winRate"${chemistrySort==='winRate'?' selected':''}>Win rate</option><option value="scoreGap"${chemistrySort==='scoreGap'?' selected':''}>Same-match score gap</option></select></label></div><div class="chem-list">`;
+  h+=shown.length?shown.map(({a,b,matches,wins,rate,gap,key})=>
+    `<button type="button" class="chem-pair" data-chem-pair="${chemText(key)}" aria-pressed="${key===chemistryPair}"><span class="chem-names"><span class="pdot" style="display:inline-block;background:${a.color};margin-right:5px"></span>${chemText(a.label)} <span style="color:var(--txt3)">${chemistryView==='team'?'&':'vs'}</span> <span class="pdot" style="display:inline-block;background:${b.color};margin:0 5px"></span>${chemText(b.label)}</span><span class="chem-meta"><span>${matches.length} shared ${matches.length===1?'match':'matches'}</span><span class="chem-result"><span class="chem-rate" style="color:${chemWinColor(rate)}">${f1(rate)}%</span><span class="chem-pill">${wins}–${matches.length-wins}</span></span></span><span class="chem-score-gap">Same-match score gap: ${f1(gap)} pts${chemistryView==='opponents'?' · results for '+chemText(a.label):''}</span></button>`
+  ).join(''):'<div class="chem-empty">No '+(chemistryView==='team'?'teammate':'opponent')+' pairs match the selected players in the current mode and period. Try another selection or broaden the filters.</div>';
+  h+='</div></div><div class="chem-detail">';
+  if(selected){
+    const {a,b,matches,wins,rate,gap,performance}=selected,n=matches.length;
+    h+=`<div class="card"><div class="ct">Selected pair · ${chemistryView==='team'?'teammates':'opponents'}</div><h3>${chemText(a.label)} ${chemistryView==='team'?'&':'vs'} ${chemText(b.label)}</h3>
+      <div class="chem-summary"><div class="chem-stat"><strong>${n}</strong><span>Shared ${n===1?'match':'matches'}</span></div><div class="chem-stat"><strong>${wins}–${n-wins}</strong><span>${chemistryView==='team'?'Together':'Wins–losses for '+chemText(a.label)}</span></div><div class="chem-stat"><strong style="color:${chemWinColor(rate)}">${f1(rate)}%</strong><span>${chemistryView==='team'?'Win rate together':'Win rate for '+chemText(a.label)}</span></div><div class="chem-stat"><strong>${f1(gap)}</strong><span>Same-match score gap · pts</span></div></div>
+      <div class="chem-foot">${chemistryView==='team'?'Shared win rate describes these games; it does not measure causal synergy.':'Opponent results are shown from '+chemText(a.label)+'’s perspective.'} The score gap below measures these shared matches, not the Overview leaderboard or pair synergy. The support bonus shifts this zero-sum pair split slightly; low support is not a standalone penalty. Small samples can swing sharply.</div></div>`;
+    const pairPlaceA=placementForMatches(matches.map(([m])=>m));
+    const pairPlaceB=placementForMatches(matches.map(([,m])=>m));
+    h+=`<div class="card"><div class="ct">Estimated lobby placement · shared matches</div><p class="chem-foot">Only the ${n} selected matches in this pair are included. Lower place is better; missing metadata is excluded. These independent 1–12 estimates are not Valve MVP awards or a measure of pair synergy. Matches where both places are calculated also contribute to the same-match performance score below.</p><div style="overflow-x:auto"><table class="st"><thead><tr><th class="l">Player</th><th class="r">Average estimated place</th><th class="r">Most common place</th><th class="r">Calculated / shared</th></tr></thead><tbody>${[[a,pairPlaceA],[b,pairPlaceB]].map(([p,s])=>`<tr><td class="l" style="color:${p.color}">${chemText(p.label)}</td><td class="r">${f1(s.average)}</td><td class="r">${placementModes(s)}</td><td class="r">${s.count}/${s.selected}</td></tr>`).join('')}</tbody></table></div></div>`;
+    const observations=chemObservations(matches);
+    const stats=CHEM_STATS;
+    const scoreLeader=performance.scoreA==null||performance.scoreA===performance.scoreB?null:performance.scoreA>performance.scoreB?a:b;
+    h+=`<div class="card chem-comparison" style="--chem-overall:${scoreLeader?.color||'var(--txt3)'}"><div class="ct">Same-match comparison</div><p class="chem-foot">Paired-match averages for <span style="color:${a.color}">${chemText(a.label)}</span> and <span style="color:${b.color}">${chemText(b.label)}</span>. Difference = ${chemText(a.label)} minus ${chemText(b.label)}. Card accents show who does better on scored metrics; deaths favor fewer, while last hits and damage taken are shown but not scored.</p>`;
+    h+=`<div class="chem-score-card"><h4>Same-match performance score</h4><p class="chem-foot">A pair-relative score, not the Overview leaderboard or a measure of pair synergy. Stat metrics contribute 80% and estimated lobby placement 20% when both are available; otherwise the available component counts for 100%. Core category weights: Combat 30%, Economy 25%, Objectives & farming 10%, Aim 5%, Survivability 15% (renormalized across available categories). Support is not a core weight: above-neutral support earns a capped +5 stat-point bonus, and half the bonus difference shifts the zero-sum pair split. Available metrics use their within-category weights (renormalized when missing) and compare only shared matches where both players have values. Placement compares only shared matches where both have estimated ranks, with small samples and incomplete coverage discounted. Lower place is better; deaths are inverted; last hits and damage taken are displayed but not scored; win rate is excluded. Metric and placement standings are individually stretched 2.5× around 50 before blending.</p>`;
+    if(performance.scoreA!=null){
+      for(const [player,side] of [[a,'A'],[b,'B']]){
+        const score=performance['score'+side];
+        h+=`<div class="chem-score-row"><div class="chem-score-head"><span style="color:${player.color}">${chemText(player.label)}</span><strong>${f1(score)} / 100</strong></div><div class="chem-score-track" role="img" aria-label="${chemText(player.label)}: ${f1(score)} out of 100; metric category and estimated placement contributions">${performance.categories.map(c=>{
+          const points=chemCategoryPoints(performance,c,side);
+          return `<span class="chem-score-segment" style="width:${points}%;background:${c.color}" title="${c.name}: ${f1(points)} of scaled score (${c.weight}% base weight, ${c.count} metrics)"></span>`;
+        }).join('')}${performance.placeWeight?`<span class="chem-score-segment" style="width:${chemPlacementPoints(performance,side)}%;background:#d69afb" title="Estimated avg place: ${f1(chemPlacementPoints(performance,side))} of scaled score (${performance.placeWeight}% performance weight)"></span>`:''}</div></div>`;
+      }
+      h+=`<div class="chem-score-legend">${performance.categories.map(c=>`<span title="${c.count} scored metrics"><i style="background:${c.color}"></i>${c.name} (${c.weight}% of metrics): ${f1(chemCategoryPoints(performance,c,'A'))} / ${f1(chemCategoryPoints(performance,c,'B'))} pts</span>`).join('')}${performance.placeWeight?`<span><i style="background:#d69afb"></i>Estimated avg place (${performance.placeWeight}% of performance): ${f1(chemPlacementPoints(performance,'A'))} / ${f1(chemPlacementPoints(performance,'B'))} pts</span>`:''}${performance.supportCategory?`<span>Support bonus: +${f1(performance.bonusA)} / +${f1(performance.bonusB)} stat pts · zero-sum shift ${f1(performance.supportAdjustment)} / ${f1(-performance.supportAdjustment)}</span>`:''}</div><p class="chem-foot" style="margin-top:12px">Stat metrics ${performance.metricWeight}%: ${f1(performance.metricScoreA)} / ${f1(performance.metricScoreA==null?null:100-performance.metricScoreA)} (core ${f1(performance.coreScoreA)} / ${f1(performance.coreScoreA==null?null:100-performance.coreScoreA)}; support bonus ${f1(performance.bonusA)} / ${f1(performance.bonusB)}, zero-sum shift ${f1(performance.supportAdjustment)} / ${f1(-performance.supportAdjustment)}). Estimated avg place ${performance.placeWeight}%: ${f1(performance.placementScoreA)} / ${f1(performance.placementScoreA==null?null:100-performance.placementScoreA)} (${performance.placeCount}/${n} shared matches with both places calculated; paired averages ${f1(performance.placeA)} / ${f1(performance.placeB)}). Colored core-category shares allocate the support-adjusted stat-metric portion; they are not separate category grades. The purple segment is placement. Gap: ${f1(gap)} points. Scores are complementary and only compare these two players in shared matches; unavailable components are omitted and remaining weights rescaled.</p>`;
+    }else h+='<p class="chem-foot" style="margin-top:12px">No comparable match metrics to score.</p>';
+    h+='</div>';
+    for(const [group,description,,items] of stats){
+      const category=group==='Support'?performance.supportCategory:performance.categories.find(c=>c.name===group);
+      const sectionLeader=!category||category.score===50?null:category.score>50?a:b;
+      h+=`<section class="chem-category" style="--chem-section:${sectionLeader?.color||'var(--txt3)'}"><div class="chem-category-head"><h4 title="${sectionLeader?chemText(sectionLeader.label)+' leads '+group:'No section leader'}">${group}</h4><p>${description}</p></div><div class="chem-compare">`;
+      for(const [label,get,format,direction,metricWeight] of items){
+        const values=chemPairedValues(observations,get);
+        const mean=validAvg(values.map(([av,bv])=>av-bv));
+        const avgA=validAvg(values.map(v=>v[0])),avgB=validAvg(values.map(v=>v[1]));
+        const winner=mean==null||!direction||mean===0?null:mean*direction>0?a:b;
+        const accent=winner?.color||'var(--txt3)';
+        const lead=mean==null?'':mean===0?'Even':direction?chemText(winner.label)+(direction<0?' fewer':' better'):chemText(mean>0?a.label:b.label)+' higher';
+        const max=Math.max(avgA||0,avgB||0,0);
+        const bar=(player,value)=>`<div class="chem-bar-row"><span class="chem-bar-name" title="${chemText(player.label)}" style="color:${player.color}">${chemText(player.label)}</span><span>${format(value)}</span><div class="chem-bar-track"><div class="chem-bar-fill" style="width:${max?Math.max(0,value/max*100):0}%;background:${player.color}"></div></div></div>`;
+        const betterCount=values.filter(([av,bv])=>direction<0?av<bv:av>bv).length;
+        h+=`<div class="chem-stat" style="--chem-metric:${accent}"><h5 class="chem-metric-title">${label}${direction&&metricWeight?` <small>· ${metricWeight}% base weight</small>`:''}</h5><div class="chem-delta"><strong style="color:${winner?accent:'var(--txt2)'}">${mean==null?'—':(mean>0?'+':'')+format(mean)}</strong>${mean!=null?`<em style="color:${accent}">${lead}</em>`:''}</div>${values.length?`<div class="chem-bars">${bar(a,avgA)}${bar(b,avgB)}</div><small>${chemText(a.label)} ${direction<0?'fewer':'higher'} in ${betterCount} of ${values.length} matches</small>`:'<small>No paired data</small>'}</div>`;
+      }
+      h+='</div></section>';
+    }
+    h+='</div>';
+    const recent=[...matches].sort((x,y)=>(gn(y[0],'start_time')||0)-(gn(x[0],'start_time')||0)).slice(0,10);
+    const byLabel=new Map(stats.flatMap(([, , ,items])=>items).map(item=>[item[0],item]));
+    const compact=['Hero damage/min','Souls/min','Kills/game','Deaths/game','Assists/game','KDA/game','Last hits/game','Net worth'].map(label=>byLabel.get(label));
+    const names=`<span style="color:${a.color}">${chemText(a.label)}</span> / <span style="color:${b.color}">${chemText(b.label)}</span>`;
+    h+=`<div class="card"><div class="ct">Recent shared matches · up to 10</div><div class="chem-foot">Results are from ${chemText(a.label)}’s perspective. Paired values read ${names}. Click a match row for all stats; scroll horizontally for more columns. Green marks the larger value, red the smaller (not necessarily better).</div><div class="chem-history"><table class="st chem-match-table"><thead><tr><th class="l">Date</th><th class="l">Result</th><th class="l" title="${chemText(a.label)}’s hero">${chemText(a.label)} hero</th><th class="l" title="${chemText(b.label)}’s hero">${chemText(b.label)} hero</th>${compact.map(([label])=>`<th class="r">${label.replace('/game','')}<small class="chem-head-pair">${names}</small></th>`).join('')}</tr></thead><tbody>`;
+    h+=recent.map(([m,x],i)=>{
+      const left={m,ext:metrics(m)},right={m:x,ext:metrics(x)};
+      const cell=([,get,format])=>chemCompareValues(get(left),get(right),format);
+      const icon=match=>{const id=gn(match,'hero_id');if(id==null)return '—';const hero=heroMeta[id]||{};return `<div class="hico tico" title="${chemText(hero.name||String(id))}">${heroImage(id,hero,chemText(hero.name||String(id)))}</div>`;};
+      const detailId='chem-match-'+i;
+      let row=`<tr class="chem-match-row" tabindex="0" aria-label="${chemText(matchDate(m))}, ${isWin(m)?'win':'loss'}; toggle match stats" aria-expanded="false" aria-controls="${detailId}"><td>${matchDate(m)}</td><td><span class="${isWin(m)?'bwin':'bloss'}">${isWin(m)?'Win':'Loss'}</span></td><td>${icon(m)}</td><td>${icon(x)}</td>${compact.map(item=>`<td class="r">${cell(item)}</td>`).join('')}</tr>`;
+      row+=`<tr class="chem-extra" id="${detailId}" hidden><td colspan="${4+compact.length}"><div class="chem-foot">${names} · Green is the larger number, not always the better one.</div>${stats.map(([group,,,items])=>`<div class="chem-match-section"><h4>${group}</h4><div class="chem-match-grid">${items.map(item=>`<div><span class="chem-match-metric-title">${item[0]}</span><strong>${cell(item)}</strong></div>`).join('')}</div></div>`).join('')}</td></tr>`;
+      return row;
+    }).join('');
+    h+='</tbody></table></div></div>';
+  }else h+='<div class="card chem-empty">Select a pair when shared matches are available.</div>';
+  h+='</div></div><div class="chem-foot">Only matches present in both loaded histories with player-team data are included. Performance comparisons require additional match metadata and may be unavailable even when results are shown. Mode and period filters apply to each player’s history; if their last-N windows differ, some shared matches may be excluded. “—” means the metric is unavailable.</div>';
+  return h;
+}
+const STAGE_KEYS=['net_worth','creep_kills','denies','player_damage','kills','deaths'];
+function stageSnapshot(stats,time){
+  const before=[...stats].reverse().find(x=>x.time_stamp_s<=time),after=stats.find(x=>x.time_stamp_s>=time);
+  if(!before||!after||after.time_stamp_s-before.time_stamp_s>360)return null;
+  const fraction=after.time_stamp_s===before.time_stamp_s?0:(time-before.time_stamp_s)/(after.time_stamp_s-before.time_stamp_s);
+  return Object.fromEntries(STAGE_KEYS.map(key=>{
+    const lo=gn(before,key),hi=gn(after,key);
+    return [key,lo==null||hi==null?null:lo+(hi-lo)*fraction];
+  }));
+}
+function matchStages(stats,duration){
+  const sorted=stats.filter(x=>gn(x,'time_stamp_s')!=null).sort((a,b)=>a.time_stamp_s-b.time_stamp_s);
+  const early=stageSnapshot(sorted,600);
+  let late=null;
+  if(duration>1200){
+    const start=stageSnapshot(sorted,1200);
+    const end=[...sorted].reverse().find(x=>x.time_stamp_s<=duration+60);
+    if(start&&end&&end.time_stamp_s>1200&&duration-end.time_stamp_s<=360){
+      const minutes=(end.time_stamp_s-1200)/60;
+      late=Object.fromEntries(STAGE_KEYS.map(key=>{
+        const from=start[key],to=gn(end,key);
+        return [key,from==null||to==null?null:(to-from)/minutes];
+      }));
+    }
+  }
+  return early||late?{early,late}:null;
+}
+async function refreshStages(){
+  const key=scopeKey();for(const p of players.filter(p=>!p.loading&&!p.error)){
+    p.stages=p.stages||{};if(Object.hasOwn(p.stages,key))continue;
+    const ms=visibleMatches(p).filter(m=>gn(m,'match_duration_s')>=600).slice(0,STAGE_MATCH_LIMIT);
+    p.stages[key]={loading:true,values:new Map(),done:0,total:ms.length};
+    const bucket=p.stages[key];renderMain();
+    const byId=new Map(ms.map(m=>[String(m.match_id),m]));
+    // Metadata filters use account32, even when the player was added by Steam64.
+    const accountId=String(p.matches?.find(m=>m.account_id!=null)?.account_id??p.id);
+    try{
+      for(let i=0;i<ms.length;i+=25){
+        const slice=ms.slice(i,i+25),q=new URLSearchParams({match_ids:slice.map(m=>m.match_id).join(','),account_ids:accountId,
+          only_filtered_players:'true',include_info:'false',include_player_stats:'true',limit:String(slice.length)});
+        let data;
+        for(let attempt=0;attempt<3;attempt++){
+          const wait=reserveMetadataRequest();
+          if(wait)await new Promise(resolve=>setTimeout(resolve,wait));
+          if(p.stages[key]!==bucket||!players.includes(p))return;
+          try{data=await apiFetch('/matches/metadata?'+q);break;}
+          catch(e){
+            if(attempt===2||!/HTTP (429|5\d\d)/.test(String(e))&&!String(e).includes('proxy:'))throw e;
+            dbg(p.label+' match-stage request failed; retrying: '+e,'wn');
+            await new Promise(resolve=>setTimeout(resolve,15000*(attempt+1)));
+          }
+        }
+        if(p.stages[key]!==bucket||!players.includes(p))return;
+        for(const row of Array.isArray(data)?data:[]){
+          const player=(row.players||[]).map(x=>{if(typeof x!=='string')return x;try{return JSON.parse(x);}catch(e){return null;}})
+            .find(x=>x&&String(x.account_id)===accountId);
+          if(player?.stats?.length){const v=matchStages(player.stats,gn(byId.get(String(row.match_id)),'match_duration_s'));if(v)bucket.values.set(String(row.match_id),v);}
+        }
+        bucket.done=Math.min(ms.length,i+slice.length);
+        if(activeTab==='stages')renderMain();
+      }
+    }catch(e){dbg(p.label+' match-stage data unavailable: '+e,'wn');bucket.error=true;}
+    if(p.stages[key]!==bucket||!players.includes(p))return;
+    bucket.loading=false;renderMain();
+  }
+}
+function tabStages(arr){
+  if(!arr.length)return '<div class="nd">No matches in the selected mode and period.</div>';
+  const rows=arr.map(({p})=>{
+    const bucket=p.stages?.[scopeKey()],samples=visibleMatches(p).map(m=>bucket?.values.get(String(m.match_id))).filter(Boolean);
+    const vals=(stage,key)=>validAvg(samples.map(v=>v[stage]?.[key]));
+    return {p,s:{souls10:vals('early','net_worth'),last10:vals('early','creep_kills'),denies10:vals('early','denies'),damage10:vals('early','player_damage'),kills10:vals('early','kills'),deaths10:vals('early','deaths'),
+      soulsLate:vals('late','net_worth'),lastLate:vals('late','creep_kills'),deniesLate:vals('late','denies'),damageLate:vals('late','player_damage'),killsLate:vals('late','kills'),deathsLate:vals('late','deaths')},
+      earlyCount:samples.filter(v=>v.early).length,lateCount:samples.filter(v=>v.late).length,loading:bucket?.loading,error:bucket?.error};
+  });
+  let h='<div class="slbl">Early game · first 10 minutes</div><div class="note">Most recent '+STAGE_MATCH_LIMIT+' eligible matches per player; snapshots bracketing 10:00 are linearly interpolated. These are early-game measures, not verified lane wins or lane-opponent matchups. Missing snapshots are excluded.</div>';
+  const pending=rows.filter(x=>x.loading);
+  if(pending.length){
+    const ready=rows.length-pending.length;
+    h+=`<div class="load-status" role="status" aria-live="polite"><div class="load-summary"><strong>Loading match-stage timelines</strong><span>${ready}/${rows.length} players complete</span></div><div class="load-track" role="progressbar" aria-label="Match-stage players complete" aria-valuenow="${ready}" aria-valuemin="0" aria-valuemax="${rows.length}"><div class="load-fill" style="width:${rows.length?ready/rows.length*100:0}%"></div></div><div class="load-list">${pending.map(x=>{const total=x.p.stages?.[scopeKey()]?.total??0,done=x.p.stages?.[scopeKey()]?.done??0,pct=total?Math.round(done/total*100):null;return `<div class="load-item"><div class="load-item-head"><span>${chemText(x.p.label)}</span><span>${done}/${total} matches</span></div><div class="load-track" role="progressbar" aria-label="${chemText(x.p.label)} match-stage progress" ${pct==null?'':`aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"`}><div class="load-fill${pct==null?' indeterminate':''}" style="${pct==null?'':'width:'+pct+'%'}"></div></div></div>`;}).join('')}</div></div>`;
+  }
+  h+='<div class="g3">';
+  for(const [title,key,fmt,higher] of [['Souls at 10:00','souls10',fk,true],['Last hits at 10:00','last10',f1,true],['Denies at 10:00','denies10',f1,true],['Hero damage at 10:00','damage10',fk,true],['Kills at 10:00','kills10',f1,true],['Deaths at 10:00','deaths10',f1,false]])h+=statCard(title,key,rows,fmt,higher);
+  h+='</div><div class="slbl">Late game · after 20 minutes</div><div class="note">Average per-minute gains from the interpolated 20:00 snapshot to the last timeline snapshot near match end. Only matches longer than 20 minutes with usable snapshots are included; late-game values are not full-match totals.</div><div class="g3">';
+  for(const [title,key,fmt,higher] of [['Souls/min after 20:00','soulsLate',f1,true],['Last hits/min after 20:00','lastLate',f1,true],['Denies/min after 20:00','deniesLate',f1,true],['Hero damage/min after 20:00','damageLate',f1,true],['Kills/min after 20:00','killsLate',f1,true],['Deaths/min after 20:00','deathsLate',f1,false]])h+=statCard(title,key,rows,fmt,higher);
+  h+='</div><div class="note">Usable timelines (early / late): '+rows.map(r=>r.p.label+': '+r.earlyCount+' / '+r.lateCount+(r.error?' (some timelines unavailable)':'')).join(' · ')+'</div>';return h;
+}
+
+function tabDebug(){
+  return`<div class="dbgbox"><div class="dbgh"><span>API Console</span><button class="btn btnsm" id="dbg-clr">Clear</button></div><div class="dbgb" id="dbg-bd">${
+    logs.length?logs.map(l=>`<div class="${{ok:'dbok',er:'dber',wn:'dbwn',in:'dbin'}[l.c]||''}">[${chemText(l.t)}] ${chemText(l.m)}</div>`).join(''):'<span style="color:var(--sub)">No logs yet.</span>'
+  }</div></div>`;
+}
+
+// ---- CHARTS ----
+const GRID='#22263a', TICK='#8892aa';
+const baseOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+  scales:{x:{grid:{color:GRID},ticks:{color:TICK,font:{size:10}}},y:{grid:{color:GRID},ticks:{color:TICK,font:{size:10}}}}};
+
+function mountCharts(arr){
+  if(!arr.length)return;
+
+  function mk(id,type,data,opts){
+    const el=document.getElementById(id);if(!el)return;
+    try{charts[id]=new Chart(el,{type,data,options:{...baseOpts,...opts}});}catch(e){dbg('Chart err '+id+': '+e,'er');}
+  }
+
+  if(activeTab==='combat'){
+    const mK=Math.max(...arr.map(x=>x.s.kills))||1,mD=Math.max(...arr.map(x=>x.s.deaths))||1,
+          minD=Math.min(...arr.map(x=>x.s.deaths)),dRange=mD-minD,
+          mA=Math.max(...arr.map(x=>x.s.assists))||1,mSouls=Math.max(...arr.map(x=>x.s.soulsMin??0))||1,
+          mKD=Math.max(...arr.map(x=>x.s.kd))||1,mKda=Math.max(...arr.map(x=>x.s.kda))||1;
+    const rEl=document.getElementById('ch-radar');
+    if(rEl)try{charts['ch-radar']=new Chart(rEl,{type:'radar',data:{
+      labels:['Kills/G','Assists/G','KDA','K/D','Souls/min','1/Deaths/G'],
+      datasets:arr.map(x=>({label:x.p.label,
+        data:[x.s.kills/mK,x.s.assists/mA,x.s.kda/mKda,x.s.kd/mKD,(x.s.soulsMin??0)/mSouls,dRange?1-((x.s.deaths-minD)/dRange):1],
+        borderColor:x.p.color,backgroundColor:x.p.color+'20',borderWidth:2,pointBackgroundColor:x.p.color,pointRadius:3
+      }))
+    },options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{color:TICK,boxWidth:9,font:{size:10}}}},
+      scales:{r:{grid:{color:GRID},ticks:{display:false},pointLabels:{color:TICK,font:{size:10}}}}}});}catch(e){dbg('Chart err ch-radar: '+e,'er');}
+
+    // KDA chart sorted by kills
+    const kdaSorted=[...arr].sort((a,b)=>b.s.kills-a.s.kills);
+    mk('ch-kda','bar',{labels:kdaSorted.map(x=>x.p.label),datasets:[
+      {label:'Kills',data:kdaSorted.map(x=>x.s.kills),backgroundColor:'#5aee8a88',borderWidth:0,borderRadius:3},
+      {label:'Deaths',data:kdaSorted.map(x=>x.s.deaths),backgroundColor:'#ff707088',borderWidth:0,borderRadius:3},
+      {label:'Assists',data:kdaSorted.map(x=>x.s.assists),backgroundColor:'#74b3ff88',borderWidth:0,borderRadius:3},
+    ]},{plugins:{legend:{display:true,labels:{color:TICK,boxWidth:9,font:{size:10}}}}});
+  }
+  else if(activeTab==='economy'){
+    const maxVal=key=>Math.max(...arr.map(x=>x.s[key]??0))||1;
+    const mSouls=maxVal('soulsMin'),mNw=maxVal('avgNw'),mLh=maxVal('avgLh'),
+          mDen=maxVal('avgDen'),mLvl=maxVal('avgLvl'),mDmg=maxVal('damageGame');
+    const rEl=document.getElementById('ch-eco-radar');
+    if(rEl)try{charts['ch-eco-radar']=new Chart(rEl,{type:'radar',data:{
+      labels:['Souls/min','Avg Net Worth','Last Hits/G','Denies/G','Avg Level','Damage/G'],
+      datasets:arr.map(x=>({label:x.p.label,
+        data:[(x.s.soulsMin??0)/mSouls,x.s.avgNw/mNw,x.s.avgLh/mLh,x.s.avgDen/mDen,x.s.avgLvl/mLvl,(x.s.damageGame??0)/mDmg],
+        borderColor:x.p.color,backgroundColor:x.p.color+'20',borderWidth:2,pointBackgroundColor:x.p.color,pointRadius:3
+      }))
+    },options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{color:TICK,boxWidth:9,font:{size:10}}}},
+      scales:{r:{grid:{color:GRID},ticks:{display:false},pointLabels:{color:TICK,font:{size:10}}}}}});}catch(e){dbg('Chart err ch-eco-radar: '+e,'er');}
+  }
+}
+
+// Init
+function init(){
+  document.getElementById('btn-add').addEventListener('click',()=>{
+    const id=document.getElementById('inp-id').value.trim();
+    const nm=document.getElementById('inp-nm').value.trim();
+    if(!id)return;
+    if(!/^\d{1,20}$/.test(id)){
+      dbg('Enter a numeric Steam account ID (up to 20 digits).','wn');
+      document.getElementById('inp-id').setCustomValidity('Enter a numeric Steam account ID (up to 20 digits).');
+      document.getElementById('inp-id').reportValidity();
+      return;
+    }
+    document.getElementById('inp-id').setCustomValidity('');
+    document.getElementById('inp-id').value='';
+    document.getElementById('inp-nm').value='';
+    loadHeroMeta();addPlayer(id,nm);
+  });
+  document.getElementById('inp-id').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-add').click();});
+  document.getElementById('btn-def').addEventListener('click',()=>{
+    loadHeroMeta();DEFAULTS.forEach(d=>{if(!players.find(p=>p.id===d.id))addPlayer(d.id,d.label);});
+  });
+  document.getElementById('btn-clr').addEventListener('click',()=>{
+    loadGeneration++;cancelPlacements();
+    placementRanks.clear();placementFailures.clear();placementUnsaved=0;
+    try{localStorage.removeItem(PLACEMENT_CACHE_KEY);}catch(e){dbg('Placement cache could not be cleared: '+e,'wn');}
+    players=[];Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});charts={};
+    renderChips();renderMain();
+  });
+  document.getElementById('btn-dbg').addEventListener('click',()=>{
+    activeTab='debug';
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.t==='debug'));
+    renderMain();
+  });
+  document.querySelectorAll('.filters select').forEach(select=>select.addEventListener('change',()=>{
+    cancelPlacements();scopeMode=document.getElementById('scope-mode').value;
+    scopeCount=+document.getElementById('scope-count').value;
+    scopeUnit=document.getElementById('scope-unit').value;
+    renderMain();schedulePlacements();refreshMvp();
+    if(activeTab==='stages')refreshStages();
+    if(activeTab==='performance')refreshTeamShare();
+    if(activeTab==='individual')refreshIndividual();
+  }));
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+    activeTab=t.dataset.t;
+    document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+    renderMain();if(activeTab==='stages')refreshStages();if(activeTab==='performance')refreshTeamShare();if(activeTab==='individual')refreshIndividual();
+  }));
+  dbg('Breadlock Stats ready','ok');
+}
+init();
+})();
+</script>
+</body>
+</html>
