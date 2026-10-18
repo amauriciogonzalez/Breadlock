@@ -398,9 +398,9 @@ input[type=text]::placeholder{color:var(--sub)}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="./statlocker_placement_core.js"></script>
+<script src="./data_coordinator.js"></script>
 <script>
 (function(){
-const API='https://api.deadlock-api.com/v1';
 const COLS=['#f0b429','#34d9c3','#74b3ff','#f472b6','#a78bfa','#5aee8a','#fb923c','#e879f9','#38bdf8','#f87171'];
 const DEFAULTS=[
   {id:'181311490',label:'WoodRefrigerator'},
@@ -420,20 +420,20 @@ let chemistryView='team',chemistryPair=null,chemistrySort='shared',chemistryTeam
 let scopeMode='normal',scopeCount=0,scopeUnit='matches',loadGeneration=0;
 let individualId=null,individualHero='all',individualRank='all';const populationCache=new Map(),populationCountCache=new Map();
 const DAMAGE_BATCH_SIZE=100,STAGE_MATCH_LIMIT=25,PLACEMENT_BATCH_SIZE=96;
-const PLACEMENT_CACHE_LIMIT=10000,PLACEMENT_MIN_START_GAP_MS=3000;
+const PLACEMENT_CACHE_LIMIT=10000;
 const PLACEMENT_CACHE_KEY='breadlock-estimated-placements-v'+(window.BreadlockPlacement?.VERSION||0);
 const placementRanks=new Map(),placementFailures=new Set();
-let placementLoading=false,placementProgress={done:0,total:0},placementRun=0,placementAbort=null;
+let placementLoading=false,placementProgress={done:0,total:0},placementRun=0;
 let placementTargets=[],placementRetryTimer=null,placementNextTimer=null;
 let placementUnsaved=0,placementBackoffMs=15000,placementRetryDelay=0;
 const PLACEMENT_MAX_FAILURE_ATTEMPTS=3;
 let placementFailureAttempts=0,placementStoppedReason='';
-let placementLastRequestStart=0;
-function reserveMetadataRequest(){
-  const start=Math.max(Date.now(),placementLastRequestStart+PLACEMENT_MIN_START_GAP_MS);
-  placementLastRequestStart=start;
-  return Math.max(0,start-Date.now());
-}
+let dataNotice='';
+BreadlockData.onStatus=(message,transient=false)=>{
+  if(!message&&transient){if(dataNotice.startsWith('API '))dataNotice='';}
+  else {dataNotice=message;if(message)dbg(message,'wn');}
+  renderLoadStatus();
+};
 try{
   const saved=JSON.parse(localStorage.getItem(PLACEMENT_CACHE_KEY)||'[]');
   if(Array.isArray(saved))for(const [id,ranks] of saved){
@@ -487,7 +487,7 @@ async function loadMvp(p){
     const q=new URLSearchParams({account_ids:p.id,game_mode:'normal'});
     if(scopeMode!=='normal')q.set('match_mode',scopeMode==='standard'?'unranked':'ranked');
     if(scopeCount)q.set('min_unix_timestamp',String(Math.floor(Date.now()/1000)-scopeCount*86400));
-    const data=await apiFetch('/players/hero-stats?'+q);
+    const data=await apiFetch('/players/hero-stats?'+q,{ttl:30*60*1000,priority:1,staleOnError:true});
     const rows=Array.isArray(data)?data:[];
     const rated=rows.reduce((s,r)=>s+(gn(r,'mvp_rated_matches')||0),0);
     const counts=[0,1,2].map(i=>rows.reduce((s,r)=>s+(gn({v:r.mvp_rank_counts?.[i]},'v')||0),0));
@@ -495,15 +495,15 @@ async function loadMvp(p){
     const objectiveTime=objectiveRows.reduce((s,r)=>s+r.time_played,0);
     const objDpm=objectiveTime?objectiveRows.reduce((s,r)=>s+r.obj_damage_per_min*r.time_played,0)/objectiveTime:null;
     p.mvp[key]={rated,counts,objDpm};
-  }catch(e){p.mvp[key]=null;dbg(p.label+' MVP stats unavailable: '+e,'wn');}
+  }catch(e){dbg(p.label+' MVP stats unavailable: '+e,'wn');}
   if(p.mvpPending===key)p.mvpPending=null;
   renderMain();
 }
 function refreshMvp(){players.filter(p=>!p.loading&&!p.error).forEach(loadMvp);}
 
 // Per-match 1–12 estimates, distinct from Valve's official MVP top-three awards.
-// A complete match is ~1 MB. Process selected games in paced background batches
-// after histories are ready; cache only derived ranks, not metadata.
+// Full-match data can be large. Process selected games in paced background batches
+// after histories are ready; persist compact derived ranks separately.
 function placementForMatch(m){
   return placementRanks.get(String(m.match_id))?.[String(m.hero_id)]??null;
 }
@@ -571,7 +571,7 @@ function renderPlacementStatus(){
   }
 }
 function cancelPlacements(){
-  placementRun++;placementAbort?.abort();placementAbort=null;
+  placementRun++; // Queued/shared requests may finish; the generation check ignores old results.
   if(placementRetryTimer)clearTimeout(placementRetryTimer);
   if(placementNextTimer)clearTimeout(placementNextTimer);
   placementRetryTimer=null;placementNextTimer=null;placementTargets=[];
@@ -613,7 +613,7 @@ async function calculatePlacements(){
   if(placementLoading||!window.BreadlockPlacement)return;
   const ids=placementTargets.filter(id=>!placementRanks.has(id)&&!placementFailures.has(id)).slice(0,PLACEMENT_BATCH_SIZE);
   if(!ids.length)return;
-  const run=++placementRun,controller=new AbortController();placementAbort=controller;
+  const run=++placementRun;
   placementLoading=true;placementProgress={done:0,total:ids.length};
   renderPlacementStatus();
   if(activeTab==='performance'||activeTab==='matches')renderMain();
@@ -621,25 +621,10 @@ async function calculatePlacements(){
   try{
     // Bulk endpoint: 30 requests/minute per IP. Pace starts, not completions;
     // a slow response already counts toward the interval.
-    const wait=reserveMetadataRequest();
-    if(wait)await new Promise(resolve=>setTimeout(resolve,wait));
-    if(run!==placementRun)return;
-    const q=new URLSearchParams({match_ids:ids.join(','),limit:String(ids.length),
+    const rows=await BreadlockData.metadata(ids,{
       only_filtered_players:'false',include_info:'true',include_objectives:'true',
       include_player_kda:'true',include_player_stats:'true',
-      include_player_death_details:'true'});
-    const response=await fetch(API+'/matches/metadata?'+q,
-      {headers:{Accept:'application/json'},signal:controller.signal});
-    if(!response.ok){
-      if(response.status===429){
-        const retryAfter=response.headers?.get('Retry-After');
-        const seconds=Number(retryAfter);
-        retryAfterMs=retryAfter&&Number.isFinite(seconds)?Math.max(0,seconds*1000):
-          retryAfter?Math.max(0,Date.parse(retryAfter)-Date.now())||0:0;
-      }
-      throw Error('HTTP '+response.status);
-    }
-    const rows=await response.json();
+      include_player_death_details:'true'},{priority:1});
     if(run!==placementRun)return;
     if(!Array.isArray(rows))throw Error('Invalid bulk match response');
     const byId=new Map(rows.map(row=>[String(row.match_id),row]));
@@ -665,11 +650,13 @@ async function calculatePlacements(){
     if(run!==placementRun)return;
     dbg('Bulk estimated placements unavailable: '+e,'wn');
     // Leave all matches queued on rate limiting/server errors; retry with backoff.
-    if(/HTTP (429|5\d\d)/.test(String(e))||e.name==='TypeError')rateLimited=true;
+    if(e.status===429||e.status>=500||e.name==='TypeError'){
+      rateLimited=true;retryAfterMs=e.retryMs||0;
+    }
     else for(const id of ids)placementFailures.add(id);
   }
   if(run===placementRun){
-    placementAbort=null;placementLoading=false;flushPlacementRanks();
+    placementLoading=false;flushPlacementRanks();
     if(rateLimited){
       placementFailureAttempts++;
       if(placementFailureAttempts>=PLACEMENT_MAX_FAILURE_ATTEMPTS){
@@ -697,18 +684,14 @@ async function calculatePlacements(){
 
 function dbg(m,t='in'){logs.push({t:new Date().toLocaleTimeString(),m:String(m).slice(0,400),c:t});if(logs.length>400)logs.shift();if(activeTab==='debug')renderMain();}
 
-async function apiFetch(path){
-  const response=await fetch(API+path,{headers:{Accept:'application/json'}});
-  if(!response.ok)throw new Error('HTTP '+response.status);
-  return response.json();
-}
+async function apiFetch(path,options){return BreadlockData.request(path,options);}
 
 async function loadHeroMeta(){
   if(Object.keys(heroMeta).length)return;
   if(heroMetaPromise)return heroMetaPromise;
   heroMetaPromise=(async()=>{
     try{
-      const response=await apiFetch('/assets/heroes');
+      const response=await apiFetch('/assets/heroes',{ttl:24*60*60*1000,priority:0,staleOnError:true});
       const heroes=Array.isArray(response)?response:(response?.data||[]);
       if(!heroes.length)throw new Error('API returned no heroes');
       heroes.forEach(h=>{heroMeta[h.id]=h;});
@@ -729,7 +712,8 @@ async function addPlayer(id,label){
   renderChips();renderMain();
   dbg('Loading '+p.label+' ('+id+')…');
   try{
-    const mh=await apiFetch('/players/'+id+'/match-history?only_stored_history=true');
+    const mh=await apiFetch('/players/'+id+'/match-history?only_stored_history=true',
+      {ttl:5*60*1000,priority:0,staleOnError:true});
     p.matches=Array.isArray(mh)?mh:(mh?.data||[]);
     if(generation!==loadGeneration||!players.includes(p))return;
     p.loading=false;
@@ -753,7 +737,9 @@ async function addPlayer(id,label){
   }catch(e){
     if(generation!==loadGeneration||!players.includes(p))return;
     dbg(p.label+' match-history failed: '+e,'er');
-    p.matches=[];p.loading=false;p.error='No match data. Player may be private or not tracked.';
+    p.matches=[];p.loading=false;p.error=e.status===429?'API rate limit reached. Try again shortly.':
+      e.status>=500||e.name==='TypeError'?'API temporarily unavailable. Try again shortly.':
+      'Could not load match history (HTTP '+(e.status||'network error')+').';
     renderChips();renderMain();schedulePlacements();
   }
 }
@@ -782,8 +768,7 @@ async function loadMatchDetails(p){
         include_player_final_stats:'true',
         limit:String(batch.length)
       });
-      const response=await apiFetch('/matches/metadata?'+q);
-      const rows=Array.isArray(response)?response:(response?.data||[]);
+      const rows=await BreadlockData.metadata(batch,Object.fromEntries(q),{priority:1});
       rows.forEach(row=>{
         const match=byMatch.get(String(row.match_id));if(!match)return;
         const rawPlayers=Array.isArray(row.players)?row.players:[];
@@ -809,6 +794,7 @@ async function loadMatchDetails(p){
     }
     dbg(p.label+': final stats found for '+found+'/'+ids.length+' matches',found?'ok':'wn');
   }catch(e){dbg(p.label+' damage metadata unavailable ('+found+'/'+ids.length+' found): '+e,'wn');}
+  if(players.includes(p))p.detailCoverage={found,total:ids.length};
 }
 
 // Accessors — gf is for schema fields where zero is a valid fallback; gn preserves missing data.
@@ -910,7 +896,7 @@ function statCard(title, key, allArr, fmtFn, higher=true){
 
 function loadStatusHtml(){
   const pending=players.filter(p=>p.loading),details=players.filter(p=>p.detailsLoading&&!p.loading),mvp=players.filter(p=>p.mvpPending===scopeKey());
-  if(!pending.length&&!details.length&&!mvp.length)return '';
+  if(!pending.length&&!details.length&&!mvp.length)return dataNotice?`<div id="load-status" class="note" role="status">${chemText(dataNotice)}</div>`:'';
   const completed=players.length-pending.length;
   const item=(label,detail,done,total)=>{
     const determinate=total!=null&&total>0;
@@ -920,7 +906,7 @@ function loadStatusHtml(){
   const rows=pending.map(p=>item(p.label,p.phase,0,null));
   rows.push(...details.map(p=>item(p.label,`Optional match details ${p.progressDone}/${p.progressTotal}`,p.progressDone,p.progressTotal)));
   rows.push(...mvp.map(p=>item(p.label,'Official MVP awards…',0,null)));
-  return `<div id="load-status" class="load-status" role="status" aria-live="polite"><div class="load-summary"><strong>${pending.length?'Loading player histories':'Loading additional stats in background'}</strong><span>${completed}/${players.length} player histories complete${details.length?' · '+details.length+' detail '+(details.length===1?'request':'requests')+' in progress':''}${mvp.length?' · '+mvp.length+' MVP '+(mvp.length===1?'request':'requests')+' in progress':''}</span></div>${pending.length?`<div class="load-track" role="progressbar" aria-label="Player histories complete" aria-valuenow="${completed}" aria-valuemin="0" aria-valuemax="${players.length}"><div class="load-fill" style="width:${players.length?completed/players.length*100:0}%"></div></div>`:''}<div class="load-list">${rows.join('')}</div></div>`;
+  return `<div id="load-status" class="load-status" role="status" aria-live="polite">${dataNotice?`<div class="note">${chemText(dataNotice)}</div>`:''}<div class="load-summary"><strong>${pending.length?'Loading player histories':'Loading additional stats in background'}</strong><span>${completed}/${players.length} player histories complete${details.length?' · '+details.length+' detail '+(details.length===1?'request':'requests')+' in progress':''}${mvp.length?' · '+mvp.length+' MVP '+(mvp.length===1?'request':'requests')+' in progress':''}</span></div>${pending.length?`<div class="load-track" role="progressbar" aria-label="Player histories complete" aria-valuenow="${completed}" aria-valuemin="0" aria-valuemax="${players.length}"><div class="load-fill" style="width:${players.length?completed/players.length*100:0}%"></div></div>`:''}<div class="load-list">${rows.join('')}</div></div>`;
 }
 function renderLoadStatus(){
   const main=document.getElementById('main');if(!main)return;
@@ -961,6 +947,8 @@ function renderMain(){
   html+=loadStatusHtml();
   html+=placementStatusHtml();
   if(players.some(p=>p.detailsLoading&&!p.loading))html+='<div class="note">Match histories are ready. Detailed damage and support stats are loading in the background; rankings that use them may update.</div>';
+  const incomplete=players.filter(p=>p.detailCoverage&&p.detailCoverage.found<p.detailCoverage.total);
+  if(incomplete.length)html+=`<div class="note">Detailed stats are incomplete: ${incomplete.map(p=>chemText(p.label)+' '+p.detailCoverage.found+'/'+p.detailCoverage.total).join(', ')} matches with damage data. Some results may change when data is available.</div>`;
   errored.forEach(p=>html+=`<div class="errbx">✕ ${chemText(p.label)} (${chemText(p.id)}): ${chemText(p.error)}</div>`);
   const arr=good.map(p=>({p,s:derive(p)})).filter(x=>x.s);
   if(activeTab==='overview')html+=tabOverview(arr);
@@ -1498,8 +1486,8 @@ function tabMatches(good){
 }
 
 async function refreshTeamShare(){
-  const key=scopeKey();for(const p of players.filter(p=>!p.loading&&!p.error)){
-    p.rosterScope=p.rosterScope||new Set();if(p.rosterScope.has(key))continue;
+  const key=scopeKey();await Promise.all(players.filter(p=>!p.loading&&!p.error).map(async p=>{
+    p.rosterScope=p.rosterScope||new Set();if(p.rosterScope.has(key))return;
     p.rosterScope.add(key);
     p.teamSharePending=key;
     const ms=visibleMatches(p).slice(0,25).filter(m=>teamShare(m)==null);
@@ -1511,18 +1499,8 @@ async function refreshTeamShare(){
         const slice=ms.slice(i,i+25),q=new URLSearchParams({match_ids:slice.map(m=>m.match_id).join(','),
           only_filtered_players:'false',include_info:'false',include_player_final_stats:'true',limit:String(slice.length)});
         const byId=new Map(slice.map(m=>[String(m.match_id),m]));
-        let data;
-        for(let attempt=0;attempt<3;attempt++){
-          const wait=reserveMetadataRequest();
-          if(wait)await new Promise(resolve=>setTimeout(resolve,wait));
-          if(!players.includes(p)||!p.rosterScope.has(key)){if(p.teamSharePending===key)p.teamSharePending=null;return;}
-          try{data=await apiFetch('/matches/metadata?'+q);break;}
-          catch(e){
-            if(attempt===2||!/HTTP (429|5\d\d)/.test(String(e))&&!String(e).includes('proxy:'))throw e;
-            dbg(p.label+' team-share metadata failed; retrying: '+e,'wn');
-            await new Promise(resolve=>setTimeout(resolve,15000*(attempt+1)));
-          }
-        }
+        if(!players.includes(p)||!p.rosterScope.has(key)){if(p.teamSharePending===key)p.teamSharePending=null;return;}
+        const data=await BreadlockData.metadata(slice.map(m=>m.match_id),Object.fromEntries(q),{priority:0});
         if(!players.includes(p)||!p.rosterScope.has(key)){if(p.teamSharePending===key)p.teamSharePending=null;return;}
         for(const row of Array.isArray(data)?data:[]){
           const m=byId.get(String(row.match_id));if(!m||!Array.isArray(row.players)||row.players.length!==12)continue;
@@ -1535,12 +1513,12 @@ async function refreshTeamShare(){
         missing+=slice.filter(m=>teamShare(m)==null).length;
       }
       if(missing)dbg(p.label+': team share unavailable for '+missing+'/'+ms.length+' selected matches','wn');
-    }catch(e){dbg(p.label+' team shares unavailable: '+e,'wn');missing=ms.length;}
+    }catch(e){dbg(p.label+' team shares unavailable: '+e,'wn');missing=ms.length;dataNotice='Full-team data is incomplete: '+e.message;}
     // Allow another attempt on a later Performance visit if the API omitted rows.
     if(missing)p.rosterScope.delete(key);
     if(p.teamSharePending===key)p.teamSharePending=null;
     if(players.includes(p))renderMain();
-  }
+  }));
 }
 function tabPerformance(arr){
   if(!arr.length)return '<div class="nd">No matches in the selected mode and period.</div>';
@@ -2006,8 +1984,8 @@ function matchStages(stats,duration){
   return early||late?{early,late}:null;
 }
 async function refreshStages(){
-  const key=scopeKey();for(const p of players.filter(p=>!p.loading&&!p.error)){
-    p.stages=p.stages||{};if(Object.hasOwn(p.stages,key))continue;
+  const key=scopeKey();await Promise.all(players.filter(p=>!p.loading&&!p.error).map(async p=>{
+    p.stages=p.stages||{};if(Object.hasOwn(p.stages,key))return;
     const ms=visibleMatches(p).filter(m=>gn(m,'match_duration_s')>=600).slice(0,STAGE_MATCH_LIMIT);
     p.stages[key]={loading:true,values:new Map(),done:0,total:ms.length};
     const bucket=p.stages[key];renderMain();
@@ -2018,18 +1996,8 @@ async function refreshStages(){
       for(let i=0;i<ms.length;i+=25){
         const slice=ms.slice(i,i+25),q=new URLSearchParams({match_ids:slice.map(m=>m.match_id).join(','),account_ids:accountId,
           only_filtered_players:'true',include_info:'false',include_player_stats:'true',limit:String(slice.length)});
-        let data;
-        for(let attempt=0;attempt<3;attempt++){
-          const wait=reserveMetadataRequest();
-          if(wait)await new Promise(resolve=>setTimeout(resolve,wait));
-          if(p.stages[key]!==bucket||!players.includes(p))return;
-          try{data=await apiFetch('/matches/metadata?'+q);break;}
-          catch(e){
-            if(attempt===2||!/HTTP (429|5\d\d)/.test(String(e))&&!String(e).includes('proxy:'))throw e;
-            dbg(p.label+' match-stage request failed; retrying: '+e,'wn');
-            await new Promise(resolve=>setTimeout(resolve,15000*(attempt+1)));
-          }
-        }
+        if(p.stages[key]!==bucket||!players.includes(p))return;
+        const data=await BreadlockData.metadata(slice.map(m=>m.match_id),Object.fromEntries(q),{priority:0});
         if(p.stages[key]!==bucket||!players.includes(p))return;
         for(const row of Array.isArray(data)?data:[]){
           const player=(row.players||[]).map(x=>{if(typeof x!=='string')return x;try{return JSON.parse(x);}catch(e){return null;}})
@@ -2039,10 +2007,10 @@ async function refreshStages(){
         bucket.done=Math.min(ms.length,i+slice.length);
         if(activeTab==='stages')renderMain();
       }
-    }catch(e){dbg(p.label+' match-stage data unavailable: '+e,'wn');bucket.error=true;}
+    }catch(e){dbg(p.label+' match-stage data unavailable: '+e,'wn');bucket.error=true;dataNotice='Match-stage data is incomplete: '+e.message;}
     if(p.stages[key]!==bucket||!players.includes(p))return;
     bucket.loading=false;renderMain();
-  }
+  }));
 }
 function tabStages(arr){
   if(!arr.length)return '<div class="nd">No matches in the selected mode and period.</div>';
@@ -2149,7 +2117,7 @@ function init(){
   });
   document.getElementById('btn-clr').addEventListener('click',()=>{
     loadGeneration++;cancelPlacements();
-    placementRanks.clear();placementFailures.clear();placementUnsaved=0;
+    placementRanks.clear();placementFailures.clear();placementUnsaved=0;dataNotice='';
     try{localStorage.removeItem(PLACEMENT_CACHE_KEY);}catch(e){dbg('Placement cache could not be cleared: '+e,'wn');}
     players=[];Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});charts={};
     renderChips();renderMain();
