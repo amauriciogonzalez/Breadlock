@@ -4,23 +4,29 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Breadlock Stats: compare Deadlock players, matches, heroes, and team performance.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#080a0e">
 <title>Breadlock Stats</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0b0d10;--bg2:#13161c;--bg3:#1a1e27;--bg4:#22263100;
+  color-scheme:dark;
+  --bg:#080a0e;--bg2:#10131a;--bg3:#171b24;--bg4:#22263100;
   --acc:#f0b429;--acc2:#c8891a;--acc3:#ffd060;
   --teal:#34d9c3;--red:#ff7070;--blue:#74b3ff;--grn:#5aee8a;--pur:#c084fc;
-  --bdr:#2a2f3d;--bdr2:#363c50;
-  --txt:#f0f2fa;--txt2:#bdc3d8;--txt3:#8892aa;--sub:#4a5168;
-  --ff:system-ui,-apple-system,'Segoe UI',sans-serif;
-  --fm:'Courier New',monospace;
+  --bdr:#222836;--bdr2:#2f3649;
+  --txt:#f0f2fa;--txt2:#c3c9dc;--txt3:#8d97b0;--sub:#4a5168;
+  --ff:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --fm:'JetBrains Mono',ui-monospace,'SF Mono',Consolas,monospace;
   --r:5px;--r2:8px;
 }
-body{background:var(--bg);color:var(--txt);font-family:var(--ff);font-size:15px;min-height:100vh;line-height:1.4}
+body{background:var(--bg);color:var(--txt);font-family:var(--ff);font-size:15px;min-height:100vh;line-height:1.4;padding-inline:clamp(12px,3vw,28px);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+.pbar,.filters,.tabs,.main{width:100%;max-width:1600px;margin-inline:auto}
 h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 /* Header */
-.hdr{background:var(--bg2);border-bottom:2px solid var(--bdr);padding:13px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.hdr{background:var(--bg2);border-bottom:2px solid var(--bdr);margin-inline:calc(-1 * clamp(12px,3vw,28px));padding:13px clamp(20px,4vw,44px);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .logo{font-size:20px;font-weight:800;letter-spacing:3px;color:var(--acc);text-transform:uppercase}
 .logo em{color:var(--txt3);font-style:normal}
 .hsub{font-size:11px;color:var(--txt3);font-family:var(--fm);margin-left:auto}
@@ -46,9 +52,13 @@ input[type=text]::placeholder{color:var(--sub)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 /* Tabs */
 .tabs{background:var(--bg2);border-bottom:1px solid var(--bdr);display:flex;padding:0 18px;overflow-x:auto}
-.tab{padding:10px 15px;font-size:12px;letter-spacing:.7px;font-weight:700;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;text-transform:uppercase}
+.tab{padding:10px 12px;font:700 12px var(--ff);letter-spacing:.5px;color:var(--txt3);cursor:pointer;border:0;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s;text-transform:uppercase;display:inline-flex;align-items:center;gap:7px;background:none;flex-shrink:0}
+.tab svg{width:16px;height:16px;flex-shrink:0}
 .tab:hover{color:var(--txt2)}
-.tab.on{color:var(--acc);border-bottom-color:var(--acc)}
+.tab.on{color:var(--txt);border-bottom-color:var(--acc)}
+.tab.on svg{color:var(--acc)}
+.tab[data-t="debug"]{margin-left:auto}
+.tab:focus-visible{outline:2px solid var(--acc);outline-offset:-3px}
 /* Main */
 .main{padding:16px;display:flex;flex-direction:column;gap:14px;min-height:200px}
 .empty{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:60px 20px;color:var(--txt3)}
@@ -57,7 +67,10 @@ input[type=text]::placeholder{color:var(--sub)}
 .esub{font-size:13px;font-family:var(--fm);color:var(--sub)}
 /* Grids */
 .g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(minmax(0,280px),1fr));gap:12px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}
+.combat-charts{grid-template-columns:repeat(2,minmax(0,1fr))}
+.combat-charts>.card{min-width:0}
+@media(max-width:800px){.combat-charts{grid-template-columns:1fr}}
 .performance-tables{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .performance-tables>.card{min-width:0}
 .performance-mvp-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -147,6 +160,19 @@ input[type=text]::placeholder{color:var(--sub)}
 .rank-table .rank-hero{white-space:nowrap;color:var(--txt3);font-size:11px}
 .rank-table .rank-hero .hcell{display:inline-flex;align-items:center}
 .rank-table{min-width:1250px}
+.rank-table.best-heroes{min-width:1100px;table-layout:fixed}
+.rank-table.best-heroes th,.rank-table.best-heroes td{padding-inline:5px}
+.rank-table.best-heroes th{white-space:normal;overflow-wrap:normal;letter-spacing:0;line-height:1.25}
+.rank-table.best-heroes th:nth-child(1){width:34px}
+.rank-table.best-heroes th:nth-child(2){width:62px}
+.rank-table.best-heroes th:nth-child(3){width:125px}
+.rank-table.best-heroes th:nth-child(4){width:115px}
+.rank-table.best-heroes th:nth-child(5){width:100px}
+.rank-table.best-heroes .rank-player,.rank-table.best-heroes .rank-hero{overflow:hidden;text-overflow:ellipsis}
+.rank-table.best-heroes .rank-hero .hcell{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.rank-table.best-heroes .rank-select{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.rank-table.best-heroes .rank-score{gap:4px;white-space:nowrap}
+.rank-table.best-heroes .rank-track{width:40px;flex-shrink:1}
 .rank-table td{padding:11px 9px}
 .rank-table .rank-player{font-weight:700;color:var(--txt);white-space:nowrap}
 .rank-select{border:1px solid transparent;border-radius:5px;background:transparent;color:var(--txt);font:inherit;font-weight:700;cursor:pointer;padding:5px 7px;text-align:left;white-space:nowrap}
@@ -363,6 +389,7 @@ input[type=text]::placeholder{color:var(--sub)}
 .match-roster-scroll{overflow-x:auto;margin-top:10px}
 .match-roster{min-width:1100px}
 .match-roster td{vertical-align:middle}
+.st.match-roster td.r.match-high{color:var(--acc3);font-weight:800}
 .match-roster .match-score{min-width:240px}
 .match-score strong{font:700 12px var(--fm)}
 .match-stack{display:flex;overflow:hidden;height:14px;border-radius:3px;background:var(--bg2);margin-top:5px}
@@ -423,17 +450,17 @@ input[type=text]::placeholder{color:var(--sub)}
 
 <div class="filters"><label class="row"><span class="lbl">Mode</span><select id="scope-mode"><option value="normal">All Normal</option><option value="standard">Standard</option><option value="ranked">Ranked</option></select></label><div class="row"><span class="lbl">Period: Last</span><select id="scope-count" aria-label="Period amount"><option value="0">All</option><option value="30">30</option><option value="90">90</option></select><select id="scope-unit" aria-label="Period unit"><option value="matches">Matches</option><option value="days">Days</option></select></div><span class="note">All comparisons use the same selected mode and period.</span></div>
 
-<div class="tabs" id="tabs">
-  <div class="tab on" data-t="overview">Overview</div>
-  <div class="tab" data-t="combat">Combat</div>
-  <div class="tab" data-t="economy">Economy</div>
-  <div class="tab" data-t="performance">Performance</div>
-  <div class="tab" data-t="stages">Match Stages</div>
-  <div class="tab" data-t="heroes">Heroes</div>
-  <div class="tab" data-t="chemistry">Chemistry</div>
-  <div class="tab" data-t="individual">Individual</div>
-  <div class="tab" data-t="matches">Matches</div>
-  <div class="tab" data-t="debug">Console</div>
+<div class="tabs" id="tabs" role="tablist" aria-label="Sections">
+  <button type="button" role="tab" aria-selected="true" class="tab on" data-t="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Overview</button>
+  <button type="button" role="tab" aria-selected="false" class="tab" data-t="combat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/></svg>Combat</button>
+  <button type="button" role="tab" aria-selected="false" class="tab" data-t="economy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="6"/><path d="M15 9.2A6 6 0 1 1 9.2 15"/></svg>Economy</button>
+  <button type="button" role="tab" aria-selected="false" class="tab" data-t="performance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Performance</button>
+  <button type="button" role="tab" aria-selected="false" class="tab" data-t="stages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Match Stages</button>
+  <button type="button" role="tab" aria-selected="false" class="tab" data-t="heroes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Heroes</button>
+  <button type="button" role="tab" aria-selected="false" class="tab" data-t="chemistry"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c.5-3.5 3.5-6 7-6s6.5 2.5 7 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.2.8 3.6 2.8 4 6"/></svg>Chemistry</button>
+  <button type="button" role="tab" aria-selected="false" class="tab" data-t="individual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4.2 4-7 8-7s7.3 2.8 8 7"/></svg>Individual</button>
+  <button type="button" role="tab" aria-selected="false" class="tab" data-t="matches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Matches</button>
+  <button type="button" role="tab" aria-selected="false" class="tab" data-t="debug"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l6-5-6-5M12 19h8"/></svg>Console</button>
 </div>
 
 <div class="main" id="main">
@@ -532,7 +559,11 @@ const visibleMatches=p=>{
 const scopeKey=()=>scopeMode+':'+scopeCount+':'+scopeUnit;
 function validAvg(values){const xs=values.filter(v=>v!=null&&Number.isFinite(v));return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;}
 function ratio(num,den){return num!=null&&den>0?num/den:null;}
-function finalOf(m){return m._detail?.final_stats||null;}
+function finalOf(m){
+  const stats=m._detail?.final_stats;
+  if(typeof stats==='string')try{return JSON.parse(stats);}catch(e){return null;}
+  return stats||null;
+}
 function matchMetric(m,key){return gn(finalOf(m),key);}
 function metrics(m){
   const f=finalOf(m),dur=gn(m,'match_duration_s'),minutes=dur>0?dur/60:null;
@@ -1167,11 +1198,11 @@ function tabOverview(arr){
   comparedRankIds=comparedRankIds.filter(id=>ranked.some(r=>String(r.p.id)===id));
   const statsByPlayer=new Map(bestHeroes?ranked.map(r=>[r.p,derive(r.p,r.matches)]):arr.map(x=>[x.p,x.s]));
   h+=`<div class="card"><div class="ct">Leaderboard <span class="rank-mode" role="group" aria-label="Leaderboard view"><button type="button" class="btn btnsm ${bestHeroes?'':'btna'}" data-leaderboard-mode="overall" aria-pressed="${!bestHeroes}">Overall</button><button type="button" class="btn btnsm ${bestHeroes?'btna':''}" data-leaderboard-mode="heroes" aria-pressed="${bestHeroes}">Best Heroes</button></span></div><div class="rank-scroll">
-  <table class="st rank-table"><thead><tr>
+  <table class="st rank-table${bestHeroes?' best-heroes':''}"><thead><tr>
     <th class="l">#</th><th class="l">Tier</th><th class="l">Player</th>${bestHeroes?'<th class="l">Hero</th>':''}<th class="r">Score</th>
     <th class="r">Games</th><th class="r">W</th><th class="r">L</th><th class="r">Win% (10%)</th>
-    <th class="r">Stat performance (70%)</th><th class="r">KDA</th><th class="r">K/D</th><th class="r">K/G</th><th class="r">D/G</th><th class="r">A/G</th>
-    <th class="r">DMG/G</th><th class="r">Souls/min</th><th class="r" title="Estimated lobby placement contributes 20% of the overall score when available. Its peer-relative score is adjusted toward neutral 50 for incomplete calculated-game coverage; lower place is better. Missing components cause remaining weights to be rescaled.">Est. avg place (20%)</th><th class="r">Most common</th><th class="r">Est. coverage</th>
+    <th class="r">Performance (70%)</th><th class="r">KDA</th><th class="r">K/G</th><th class="r">D/G</th><th class="r">A/G</th>
+    <th class="r">DMG/G</th><th class="r">Souls/min</th><th class="r" title="Estimated lobby placement contributes 20% of the overall score when available. Its peer-relative score is adjusted toward neutral 50 for incomplete calculated-game coverage; lower place is better. Missing components cause remaining weights to be rescaled.">Avg place (20%)</th><th class="r">Most common</th><th class="r">Est. coverage</th>
   </tr></thead><tbody>`;
   ranked.forEach((r,i)=>{const s=statsByPlayer.get(r.p),placement=r.placement;
     const place=r.score==null?'—':ranked.findIndex(other=>other.score===r.score)+1;
@@ -1187,14 +1218,13 @@ function tabOverview(arr){
     <td class="r" style="color:${r.winRate>=50?'var(--grn)':'var(--red)'};font-weight:700">${r.winRate==null?'—':f1(r.winRate)+'%'}</td>
     <td class="r" style="color:var(--acc3)">${f1(r.metricPerformance)}</td>
     <td class="r" style="color:var(--acc3)">${f2(r.kda)}</td>
-    <td class="r">${s.kd}</td>
     <td class="r">${s.kills}</td>
     <td class="r">${s.deaths}</td>
     <td class="r">${s.assists}</td>
     <td class="r">${fk(r.damageGame)}</td>
     <td class="r">${fk(r.soulsMin)}</td>
     <td class="r">${f1(placement.average)}</td><td class="r">${placementModes(placement)}</td><td class="r">${placement.count}/${placement.selected}</td>
-  </tr><tr id="rank-detail-${i}" class="rank-detail" hidden><td colspan="${bestHeroes?20:19}">${rankingExplanation(r)}</td></tr>`;});
+  </tr><tr id="rank-detail-${i}" class="rank-detail" hidden><td colspan="${bestHeroes?19:18}">${rankingExplanation(r)}</td></tr>`;});
   h+=`</tbody></table></div>${comparedRankIds.length===2?rankingComparison(...comparedRankIds.map(id=>ranked.find(r=>String(r.p.id)===id)).sort((a,b)=>ranked.indexOf(a)-ranked.indexOf(b))):`<div class="rank-compare rank-compare-prompt"><span class="rank-compare-step">${comparedRankIds.length?'1 / 2':'0 / 2'}</span><strong>${comparedRankIds.length?`${chemText(ranked.find(r=>String(r.p.id)===comparedRankIds[0]).p.label)} selected`:'Compare two players'}</strong><span class="note">${comparedRankIds.length?'Select another name in the table to see the breakdown.':'Click two player names in the table to see what separates their scores.'}</span></div>`}</div>`;
   // Keep the overview about results and match context; specialist comparisons live in their tabs.
   h+=`<div class="slbl">Results and match context${bestHeroes?' · all heroes':''}</div><div class="g3">`;
@@ -1502,7 +1532,7 @@ function tabCombat(arr){
   h+=statCard('K/D Ratio','kd',arr);
   h+=statCard('Damage per Game','damageGame',arr,fk);
   h+=`</div>`;
-  h+=`<div class="g2">
+  h+=`<div class="g2 combat-charts">
     <div class="card"><div class="ct">Combat Radar (normalized)</div><div class="cwl"><canvas id="ch-radar" role="img" aria-label="Radar">Radar</canvas></div></div>
     <div class="card"><div class="ct">K / D / A Per Game (sorted by kills)</div><div class="cwl"><canvas id="ch-kda" role="img" aria-label="KDA">KDA</canvas></div></div>
   </div>`;
@@ -1694,6 +1724,22 @@ function matchBreakdownHtml(id,selectedHero){
   const {match,result,row}=data;
   const raw=new Map((row.players||[]).map(x=>typeof x==='string'?JSON.parse(x):x).map(x=>[String(x.hero_id),x]));
   const info=new Map(match.players.map(x=>[String(x.heroId),x]));
+  const stats=new Map(result.map(entry=>{
+    const r=raw.get(String(entry.heroId))||{},last=placementFinalStats(r);
+    const self=gn(last,'self_healing'),ally=gn(last,'teammate_healing');
+    const kills=gn(r,'kills'),deaths=gn(last,'deaths')??r.death_details?.length,assists=gn(last,'assists');
+    return [String(entry.heroId),{kills,deaths,assists,
+      kda:kills==null||deaths==null||assists==null?null:(kills+assists)/(deaths||1),
+      damage:gn(last,'player_damage'),souls:gn(last,'net_worth'),objective:gn(last,'boss_damage'),
+      healing:self==null||ally==null?null:self+ally}];
+  }));
+  const highlighted=['kills','assists','kda','damage','souls','objective','healing'];
+  const highs=Object.fromEntries(highlighted.map(key=>[key,Math.max(0,...[...stats.values()].map(s=>s[key]??0))]));
+  const fewestDeaths=Math.min(...[...stats.values()].map(s=>s.deaths??Infinity));
+  const statCell=(value,key,format=fk)=>{
+    const best=value!=null&&(key==='deaths'?value===fewestDeaths:value>0&&value===highs[key]);
+    return `<td class="r${best?' match-high':''}"${best?` title="Match ${key==='deaths'?'low':'high'} (ties included)"`:''}>${value==null?'—':format(value)}</td>`;
+  };
   const parts=entry=>{
     const p=info.get(String(entry.heroId));
     const weighted=keys=>keys.reduce((sum,key)=>sum+p[key]*BreadlockPlacement.WEIGHTS[key],0);
@@ -1716,24 +1762,22 @@ function matchBreakdownHtml(id,selectedHero){
   const rowsByTeam=[0,1].map(team=>result.filter(entry=>info.get(String(entry.heroId)).team===team)
     .sort((a,b)=>b.score-a.score||a.heroId-b.heroId).map(entry=>{
     const p=info.get(String(entry.heroId)),r=raw.get(String(entry.heroId))||{};
-    const last=placementFinalStats(r);
+    const s=stats.get(String(entry.heroId));
     const components=parts(entry),positive=components.reduce((sum,[,points])=>sum+Math.max(0,points),0);
     const penalty=p['Death Score']*BreadlockPlacement.WEIGHTS['Death Score'];
     const hero=heroMeta[entry.heroId]||{},account=String(r.account_id??'');
     const username=steamNames.get(account)||(!/^\d{1,10}$/.test(account)||account==='0'?'Anonymous player':matchNamesPending.has(id)?'Loading username…':'Username unavailable');
-    const stat=(value,format=fk)=>value==null?'—':format(value);
     return `<tr${String(entry.heroId)===String(selectedHero)?' class="match-selected"':''}>
       <td class="r">${placementOrdinal(entry.rank)}</td><td class="l"><div class="hcell"><span class="hico tico" title="${chemText(entry.hero)}">${heroImage(entry.heroId,hero,hero.name||entry.hero)}</span><span class="match-username" title="${chemText(username)}">${chemText(username)}</span></div></td>
       <td class="l match-score"><strong>${f1(entry.score)} pts</strong><div class="match-stack" role="img" aria-label="${chemText(entry.hero)}: estimated score ${f1(entry.score)} points; positive components ${f1(positive)} minus death penalty ${f1(-penalty)}">${components.filter(([,v])=>v>0).map(([name,points,color])=>`<span style="width:${points/maxScale*100}%;background:${color}" title="${chemText(name)}: +${f1(points)} points"></span>`).join('')}</div><div class="match-penalty"><div class="match-penalty-head"><span>Deaths ◀</span><span>−${f1(-penalty)} pts</span></div><div class="match-penalty-track" role="img" aria-label="Death penalty: ${f1(-penalty)} points, subtracted from positive points"><span class="match-penalty-fill" style="width:${Math.max(0,-penalty)/maxScale*100}%" title="Deaths: −${f1(-penalty)} points"></span></div></div></td>
-      <td class="r">${stat(gn(r,'kills'),String)}</td><td class="r">${stat(gn(last,'deaths')??r.death_details?.length,String)}</td><td class="r">${stat(gn(last,'assists'),String)}</td>
-      <td class="r">${stat(gn(last,'player_damage'))}</td><td class="r">${stat(gn(last,'net_worth'))}</td><td class="r">${stat(gn(last,'creep_kills'),String)}</td><td class="r">${stat(gn(last,'denies'),String)}</td><td class="r">${stat(gn(last,'level'),String)}</td>
-      <td class="r">${stat(gn(last,'teammate_healing'))}</td><td class="r">${stat(gn(last,'player_damage_taken'))}</td><td class="r">${stat(gn(last,'boss_damage'))}</td>
+      ${statCell(s.kills,'kills',String)}${statCell(s.deaths,'deaths',String)}${statCell(s.assists,'assists',String)}${statCell(s.kda,'kda',f1)}
+      ${statCell(s.damage,'damage')}${statCell(s.souls,'souls')}${statCell(s.objective,'objective')}${statCell(s.healing,'healing')}
     </tr>`;
   }).join(''));
   const legend=parts(result[0]).map(([name,,color])=>`<span><i style="background:${color}"></i>${chemText(name)}</span>`).join('');
   const missing=(row.players||[]).map(x=>typeof x==='string'?JSON.parse(x):x).some(x=>/^\d{1,10}$/.test(String(x.account_id??''))&&String(x.account_id)!=='0'&&!steamNames.has(String(x.account_id)));
-  return `<div class="note">Experimental 1–12 estimate, not Valve MVP. Teammates are grouped together, then sorted by estimated score within each team. Stacked bars show positive points; red bars below extend in the opposite direction for the death penalty. Both use the same scale across all 12 players (the largest positive total or penalty fills a track); subtract the penalty to get the final score. Hover for point values.${missing&&!matchNamesPending.has(id)?` <button type="button" class="match-names-refresh" data-match-id="${chemText(id)}">Refresh missing Steam usernames</button>`:''}${matchNamesErrors.has(id)?` <span role="status">Steam names unavailable: ${chemText(matchNamesErrors.get(id))}</span>`:''}</div><div class="match-legend">${legend}<span><i style="background:#ed6b77"></i>Deaths (subtracted)</span></div>
-    <div class="match-roster-scroll"><table class="st match-roster"><thead><tr><th class="r">Est. place</th><th class="l">Steam username · hero icon</th><th class="l">Estimated score breakdown</th><th class="r">K</th><th class="r">D</th><th class="r">A</th><th class="r">Damage</th><th class="r">Souls</th><th class="r">Creeps</th><th class="r">Denies</th><th class="r">Lvl</th><th class="r">Ally heal</th><th class="r">Dmg taken</th><th class="r">Boss dmg</th></tr></thead><tbody class="match-team-group match-team-0" aria-label="First group of teammates">${rowsByTeam[0]}</tbody><tbody class="match-team-group match-team-1" aria-label="Second group of teammates">${rowsByTeam[1]}</tbody></table></div>`;
+  return `<div class="note">Experimental 1–12 estimate, not Valve MVP. Teammates are grouped together, then sorted by estimated score within each team. Stacked bars show positive points; red bars below extend in the opposite direction for the death penalty. Both use the same scale across all 12 players (the largest positive total or penalty fills a track); subtract the penalty to get the final score. Hover for point values. Gold numbers mark match highs, or the fewest deaths (ties included). OBJ is boss/structure damage; HEAL is self healing + ally healing.${missing&&!matchNamesPending.has(id)?` <button type="button" class="match-names-refresh" data-match-id="${chemText(id)}">Refresh missing Steam usernames</button>`:''}${matchNamesErrors.has(id)?` <span role="status">Steam names unavailable: ${chemText(matchNamesErrors.get(id))}</span>`:''}</div><div class="match-legend">${legend}<span><i style="background:#ed6b77"></i>Deaths (subtracted)</span></div>
+    <div class="match-roster-scroll"><table class="st match-roster"><thead><tr><th class="r">Est. place</th><th class="l">Steam username · hero icon</th><th class="l">Estimated score breakdown</th><th class="r">K</th><th class="r">D</th><th class="r">A</th><th class="r" title="(Kills + assists) / deaths; zero deaths use 1">KDA</th><th class="r" title="Hero damage">DMG</th><th class="r">Souls</th><th class="r" title="Boss/structure damage">OBJ</th><th class="r" title="Self healing + ally healing">HEAL</th></tr></thead><tbody class="match-team-group match-team-0" aria-label="First group of teammates">${rowsByTeam[0]}</tbody><tbody class="match-team-group match-team-1" aria-label="Second group of teammates">${rowsByTeam[1]}</tbody></table></div>`;
 }
 function matchOpenKey(playerId,matchId){return JSON.stringify([String(playerId),String(matchId)]);}
 function matchPageFor(player,total){
@@ -1762,7 +1806,7 @@ function tabMatches(good){
       ${pagination}
       <div style="overflow-x:auto">
       <table class="st"><thead><tr>
-        <th class="l">Hero</th><th class="l">Date / Time</th><th class="l">Mode</th><th class="r">Est. place</th><th class="r">K</th><th class="r">D</th><th class="r">A</th><th class="r">KDA</th><th class="r">Damage</th><th class="r">Souls/min</th><th class="r">Net Worth</th><th class="r">Last Hits</th><th class="r">Denies</th><th class="r">Lvl</th><th class="r">Result</th><th class="r">Duration</th>
+        <th class="l">Hero</th><th class="r">Result</th><th class="l">Date / Time</th><th class="l">Mode</th><th class="r">Est. place</th><th class="r">K</th><th class="r">D</th><th class="r">A</th><th class="r">KDA</th><th class="r">Damage</th><th class="r">Objective damage</th><th class="r">Self healing</th><th class="r">Teammate healing</th><th class="r">Souls/min</th><th class="r">Net Worth</th><th class="r">Duration</th>
       </tr></thead><tbody>
       ${ms.slice(page*MATCHES_PAGE_SIZE,(page+1)*MATCHES_PAGE_SIZE).map(m=>{
         const hid=gf(m,'hero_id');const hero=heroMeta[hid]||{};
@@ -1770,24 +1814,25 @@ function tabMatches(good){
         const kda=d?((k+a)/d).toFixed(1):(k+a);
         const dur=gf(m,'match_duration_s');
         const damage=gn(m,'player_damage'),netWorth=gn(m,'net_worth');
+        const objective=matchMetric(m,'boss_damage'),selfHealing=matchMetric(m,'self_healing'),teammateHealing=matchMetric(m,'teammate_healing');
         const soulsMin=dur>0&&netWorth!=null?netWorth*60/dur:null;
         const won=isWin(m);
         const id=String(m.match_id),open=openMatchIds.has(matchOpenKey(p.id,id));
         const detailId=`match-roster-${p.id}-${id}`;
         return`<tr>
           <td class="l"><button type="button" class="match-toggle" data-match-id="${chemText(id)}" data-match-player="${chemText(p.id)}" aria-expanded="${open}" aria-controls="${chemText(detailId)}" aria-label="${open?'Hide':'Show'} all players for ${chemText(p.label)}'s match ${chemText(id)}">${open?'▾':'▸'} <span class="hico tico" title="${chemText(hero.name||hid||'Unknown hero')}">${heroImage(hid,hero,hero.name||'Hero')}</span></button></td>
+          <td class="r"><span class="${won?'bwin':'bloss'}">${won?'WIN':'LOSS'}</span></td>
           <td class="l" style="font-size:11px;color:var(--txt3);white-space:nowrap">${matchDate(m)}</td>
           <td class="l" style="font-size:11px;color:var(--txt3)">${gf(m,'game_mode')===2?'Ranked':'Normal'}</td>
           <td class="r" title="Experimental 1–12 lobby estimate, not a Valve award">${placementForMatch(m)==null?'—':placementOrdinal(placementForMatch(m))}</td>
           <td class="r">${k}</td><td class="r">${d}</td><td class="r">${a}</td>
           <td class="r" style="color:var(--acc3)">${kda}</td>
           <td class="r">${damage==null?'—':fk(damage)}</td>
+          <td class="r">${objective==null?'—':fk(objective)}</td>
+          <td class="r">${selfHealing==null?'—':fk(selfHealing)}</td>
+          <td class="r">${teammateHealing==null?'—':fk(teammateHealing)}</td>
           <td class="r">${soulsMin==null?'—':fk(soulsMin)}</td>
           <td class="r">${fk(gf(m,'net_worth'))}</td>
-          <td class="r">${gf(m,'last_hits')||'—'}</td>
-          <td class="r">${gf(m,'denies')||'—'}</td>
-          <td class="r">${gf(m,'hero_level')||'—'}</td>
-          <td class="r"><span class="${won?'bwin':'bloss'}">${won?'WIN':'LOSS'}</span></td>
           <td class="r">${dur?Math.floor(dur/60)+':'+String(dur%60).padStart(2,'0'):'—'}</td>
         </tr>${open?`<tr class="match-expanded" id="${chemText(detailId)}"><td colspan="16">${matchBreakdownHtml(id,hid)}</td></tr>`:''}`;
       }).join('')}
@@ -2452,9 +2497,7 @@ function init(){
     renderChips();renderMain();
   });
   document.getElementById('btn-dbg').addEventListener('click',()=>{
-    activeTab='debug';
-    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.t==='debug'));
-    renderMain();
+    document.querySelector('.tab[data-t="debug"]').click();
   });
   document.querySelectorAll('.filters select').forEach(select=>select.addEventListener('change',()=>{
     cancelPlacements();matchPages.clear();openMatchIds.clear();scopeMode=document.getElementById('scope-mode').value;
@@ -2467,7 +2510,10 @@ function init(){
   }));
   document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
     activeTab=t.dataset.t;
-    document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+    document.querySelectorAll('.tab').forEach(x=>{
+      x.classList.toggle('on',x===t);
+      x.setAttribute('aria-selected',String(x===t));
+    });
     renderMain();if(activeTab==='stages')refreshStages();if(activeTab==='performance')refreshTeamShare();if(activeTab==='individual')refreshIndividual();
   }));
   dbg('Breadlock Stats ready','ok');

@@ -15,6 +15,7 @@ const context = {
   placementOrdinal: n => n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'),
   gn: (obj, ...keys) => { for (const key of keys) if (obj?.[key] != null && Number.isFinite(+obj[key])) return +obj[key]; return null; },
   heroImage: () => 'icon', visibleMatches: p => p.matches, gf: (obj, key) => Number(obj?.[key] || 0),
+  matchMetric: (m,key) => m._detail?.final_stats?.[key] ?? null,
   isWin: () => true, matchDate: () => 'Today', placementForMatch: () => 1,
   players: [], matchPages: new Map(), MATCHES_PAGE_SIZE: 20,
 };
@@ -29,8 +30,9 @@ test('expanded roster shows all 12, scored component stacks and death deduction'
     timeline: [], farmSouls: 100, bossDamage: 10, killEvents: [{time: 50}]}));
   const result = players.map((p, i) => ({heroId:p.heroId, hero:p.hero, rank:i + 1, score:1000-i,
     estimatedKillPoints:300, estimatedObjectivePoints:10, estimatedFarmBonus:0}));
-  context.matchBreakdowns.set('42', {match:{players}, result, row:{players:players.map(p => ({hero_id:p.heroId,account_id:p.heroId,kills:1,
-    stats:[{deaths:2,assists:3,player_damage:300,net_worth:1000,creep_kills:20}]}))}});
+  context.matchBreakdowns.set('42', {match:{players}, result, row:{players:players.map((p, i) => ({hero_id:p.heroId,account_id:p.heroId,kills:1,
+    stats:[{deaths:2,assists:i===0?9:3,player_damage:i===0?900:300,net_worth:i===0?2000:1000,
+      boss_damage:i===11?400:10,self_healing:i===11?250:20,teammate_healing:i===11?100:10,creep_kills:20}]}))}});
   result[4].score = 1700; // Team 0 leader appears ahead of the 1st-place hero.
   result[6].score = 3000; // Team 1 leader stays after every Team 0 player.
   const rendered = context.matchBreakdownHtml('42', 1);
@@ -46,6 +48,17 @@ test('expanded roster shows all 12, scored component stacks and death deduction'
   assert.match(rendered, /not Valve MVP/);
   assert.match(rendered, /class="match-username" title="Username unavailable">Username unavailable<\/span>/);
   assert.match(rendered, /<th class="l">Steam username · hero icon<\/th><th class="l">Estimated score breakdown<\/th><th class="r">K<\/th>/);
+  assert.match(rendered, /<th class="r">A<\/th><th class="r" title="\(Kills \+ assists\) \/ deaths; zero deaths use 1">KDA<\/th>/);
+  assert.match(rendered, /<th class="r" title="Hero damage">DMG<\/th><th class="r">Souls<\/th><th class="r" title="Boss\/structure damage">OBJ<\/th><th class="r" title="Self healing \+ ally healing">HEAL<\/th>/);
+  // Must outrank the generic .st td.r text color, not just add a class to the cells.
+  assert.match(html, /\.st\.match-roster td\.r\.match-high\{color:var\(--acc3\);font-weight:800\}/);
+  assert.doesNotMatch(rendered, /<th class="r">(?:Creeps|Denies|Lvl|Dmg taken|Boss dmg|Ally heal)<\/th>/);
+  const rows = [...rendered.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)].map(m => m[1]).filter(row => row.includes('class="match-username"'));
+  assert.equal(rows.length, 12);
+  assert.match(rows[0], /<td class="r match-high" title="Match high \(ties included\)">1<\/td>/); // tied kills
+  assert.match(rows[1], /<td class="r match-high" title="Match high \(ties included\)">1<\/td>/);
+  assert.match(rows.find(row => row.includes('&lt;Player&gt;')), /<td class="r match-high" title="Match high \(ties included\)">1<\/td><td class="r match-high" title="Match low \(ties included\)">2<\/td><td class="r match-high" title="Match high \(ties included\)">9<\/td><td class="r match-high" title="Match high \(ties included\)">5\.0<\/td>\s*<td class="r match-high" title="Match high \(ties included\)">900<\/td><td class="r match-high" title="Match high \(ties included\)">2000<\/td>/);
+  assert.match(rows.find(row => row.includes('Hero 12')), /<td class="r match-high" title="Match high \(ties included\)">400<\/td><td class="r match-high" title="Match high \(ties included\)">350<\/td>/);
   assert.equal((rendered.match(/<th class="l">Estimated score breakdown<\/th>/g) || []).length, 1);
   assert.doesNotMatch(rendered, /Team [01] ·|<th class="l">Team<\/th>|ID 1/);
   assert.match(rendered, /<tbody class="match-team-group match-team-0"[^>]*>/);
@@ -57,6 +70,13 @@ test('expanded roster shows all 12, scored component stacks and death deduction'
   context.steamNames.set('1', '<Steam & Name>');
   assert.match(context.matchBreakdownHtml('42', 1), /class="match-username" title="&lt;Steam &amp; Name&gt;">&lt;Steam &amp; Name&gt;<\/span>/);
   context.steamNames.clear();
+  const rawPlayers=context.matchBreakdowns.get('42').row.players;
+  rawPlayers[0].stats[0].deaths=0;
+  assert.match(context.matchBreakdownHtml('42', 1), /<td class="r match-high" title="Match low \(ties included\)">0<\/td><td class="r match-high" title="Match high \(ties included\)">9<\/td><td class="r match-high" title="Match high \(ties included\)">10\.0<\/td>/);
+  rawPlayers[1].kills=null;
+  const missingRow=[...context.matchBreakdownHtml('42', 1).matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)]
+    .find(([,row])=>row.includes('title="Hero 2"'))?.[1]||'';
+  assert.match(missingRow, /<td class="r">—<\/td><td class="r">2<\/td><td class="r">3<\/td><td class="r">—<\/td>/);
   players[0]['Death Score'] = 100;
   const heavyPenalty = context.matchBreakdownHtml('42', 1);
   assert.match(heavyPenalty, /class="match-penalty-fill" style="width:100%" title="Deaths: −13500\.0 points"/);
@@ -78,6 +98,23 @@ test('matches paginate independently by player, with bounded rows and controls',
   context.matchPages.set('1', 100);
   assert.equal(context.matchPageFor(a,43), 2);
   assert.equal(context.matchPages.get('1'), 2);
+});
+
+test('match list puts result near the front and displays objective and both healing values', () => {
+  const match={match_id:42,hero_id:1,game_mode:1,match_duration_s:1200,net_worth:12000,
+    last_hits:40,denies:8,hero_level:20,
+    _detail:{final_stats:{boss_damage:345,self_healing:123,teammate_healing:0}}};
+  const rendered=context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]);
+  const headings=[...rendered.matchAll(/<th class="[lr]"[^>]*>(.*?)<\/th>/g)].map(m=>m[1]);
+  assert.deepEqual(headings.slice(0,5),['Hero','Result','Date / Time','Mode','Est. place']);
+  assert.deepEqual(headings.slice(10,13),['Objective damage','Self healing','Teammate healing']);
+  assert.ok(!headings.some(h=>['Last Hits','Denies','Lvl'].includes(h)));
+  assert.match(rendered, /<td class="r">345<\/td>\s*<td class="r">123<\/td>\s*<td class="r">0<\/td>/);
+  context.openMatchIds.add(JSON.stringify(['1','42']));
+  assert.match(context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]), /<td colspan="16">/);
+  context.openMatchIds.clear();
+  delete match._detail;
+  assert.match(context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]), /<td class="r">—<\/td>\s*<td class="r">—<\/td>\s*<td class="r">—<\/td>/);
 });
 
 test('opening a shared match affects only that player row and uses distinct detail IDs', () => {
