@@ -71,3 +71,24 @@ test('metadata caches individual matches and fetches only missing IDs', async ()
   assert.equal(new URLSearchParams(paths[0]).get('match_ids'), '1,2');
   assert.equal(new URLSearchParams(paths[1]).get('match_ids'), '3');
 });
+
+test('overlapping placement batches still obey start spacing and concurrency limits', async () => {
+  const starts = [];
+  let active = 0, maxActive = 0;
+  const coordinator = new DataCoordinator({
+    spacingMs: 30,
+    fetchImpl: async url => {
+      starts.push(Date.now());
+      maxActive = Math.max(maxActive, ++active);
+      await new Promise(resolve => setTimeout(resolve, 85));
+      active--;
+      const id = new URL(url).searchParams.get('match_ids');
+      return { ok: true, json: async () => [{ match_id: id }] };
+    },
+  });
+  await Promise.all([1, 2, 3].map(id => coordinator.metadata([id], { include_info: 'true' })));
+  assert.equal(starts.length, 3);
+  assert.ok(starts[1] - starts[0] >= 22);
+  assert.ok(starts[2] - starts[1] >= 22);
+  assert.ok(maxActive <= 2);
+});

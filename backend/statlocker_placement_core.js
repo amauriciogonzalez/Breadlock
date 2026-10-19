@@ -70,18 +70,32 @@
       if(!match)throw Error('Unknown bulk match team');
       return Number(match[1]);
     };
+    // ClickHouse flattens selected stats.* fields into parallel stats_* arrays.
+    const fields=['time_stamp_s','net_worth','player_damage','assists','creep_kills',
+        'player_damage_taken','damage_mitigated','damage_absorbed','teammate_healing',
+        'teammate_barriering','heal_prevented','boss_damage',
+        ...['lane_creeps','neutrals','treasure','breakable'].flatMap(name=>
+          ['gold','gold_orbs'].map(suffix=>'gold_source_'+name+'_'+suffix))];
     const players=row.players.map(raw=>{
       const p=typeof raw==='string'?JSON.parse(raw):raw;
-      if(!Array.isArray(p.stats)||!p.stats.length)throw Error('Missing bulk player timeline');
-      const last=p.stats[p.stats.length-1];
+      // Reject partial arrays rather than silently computing incorrect ranks.
+      const stats=p.stats||(()=>{
+        const times=p.stats_time_stamp_s;
+        if(!Array.isArray(times)||!times.length||fields.some(field=>
+          !Array.isArray(p['stats_'+field])||p['stats_'+field].length!==times.length))
+          throw Error('Missing bulk player timeline');
+        return times.map((_,i)=>Object.fromEntries(fields.map(field=>[field,p['stats_'+field][i]])));
+      })();
+      if(!Array.isArray(stats)||!stats.length)throw Error('Missing bulk player timeline');
+      const last=stats[stats.length-1];
       const source=(id,name)=>({source:id,gold:last['gold_source_'+name+'_gold'],
         gold_orbs:last['gold_source_'+name+'_gold_orbs']});
-      const stats=[...p.stats];
-      stats[stats.length-1]={...last,gold_sources:[
+      const snapshots=[...stats];
+      snapshots[snapshots.length-1]={...last,gold_sources:[
         source(2,'lane_creeps'),source(3,'neutrals'),
         source(5,'treasure'),source(12,'breakable')]};
       return {hero_id:p.hero_id,player_slot:p.player_slot,team:team(p.team),
-        kills:p.kills,death_details:p.death_details,stats};
+        kills:p.kills,death_details:p.death_details,stats:snapshots};
     });
     const objectives=(row.objectives||[]).map(o=>({
       team_objective_id:/^(BarrackBoss|Titan|Core)/.test(o.team_objective)?9:0,

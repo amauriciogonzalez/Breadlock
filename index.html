@@ -142,13 +142,31 @@ input[type=text]::placeholder{color:var(--sub)}
 .hrowx .hgm{font-size:12px;line-height:1.35;min-width:42px}
 /* Rankings */
 .rank-scroll{overflow-x:auto}
-.rank-mode{display:inline-flex;gap:6px;margin-left:auto;letter-spacing:normal;text-transform:none}
+.rank-mode{display:inline-flex;gap:6px;letter-spacing:normal;text-transform:none}
 .rank-mode .btn{padding:5px 11px;font-size:11px}
 .rank-table .rank-hero{white-space:nowrap;color:var(--txt3);font-size:11px}
 .rank-table .rank-hero .hcell{display:inline-flex;align-items:center}
 .rank-table{min-width:1250px}
 .rank-table td{padding:11px 9px}
 .rank-table .rank-player{font-weight:700;color:var(--txt);white-space:nowrap}
+.rank-select{border:1px solid transparent;border-radius:5px;background:transparent;color:var(--txt);font:inherit;font-weight:700;cursor:pointer;padding:5px 7px;text-align:left;white-space:nowrap}
+.rank-select:hover,.rank-select[aria-pressed="true"]{border-color:var(--acc2);background:var(--bg3);color:var(--acc3)}
+.rank-select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.rank-compare{padding:20px clamp(14px,3vw,32px);border-top:1px solid var(--bdr2)}
+.rank-compare-prompt{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.rank-compare-prompt strong{color:var(--txt);font-size:13px}
+.rank-compare-prompt .note{margin-left:auto}
+.rank-compare-step{font:700 12px var(--fm);color:var(--acc3);background:rgba(240,180,41,.12);border:1px solid var(--acc2);border-radius:5px;padding:6px 9px}
+.rank-compare>.ct{margin-bottom:8px}
+.rank-compare h3{font-size:19px;overflow-wrap:anywhere}
+.rank-compare .chem-score-card{margin-bottom:14px}
+.rank-compare .chem-category{margin-top:12px}
+.rank-compare .chem-stat small{display:block;color:var(--txt3);font-size:11px;line-height:1.4;margin-top:8px}
+.rank-compare .chem-bar-fill{min-width:0}
+.rank-compare-more{margin-top:14px;border-top:1px solid var(--bdr2);padding-top:12px}
+.rank-compare-more summary{cursor:pointer;color:var(--acc3);font-size:12px;font-weight:700;width:fit-content}
+.rank-compare-more summary:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.rank-compare-more[open] summary{margin-bottom:12px}
 .rank-place{font-family:var(--fm);font-weight:700;color:var(--acc3)!important}
 .rank-tier{display:inline-block;min-width:27px;text-align:center;padding:2px 6px;border-radius:4px;font-weight:800;border:1px solid currentColor}
 .rank-S{color:var(--acc3)}.rank-A{color:var(--grn)}.rank-B{color:var(--blue)}.rank-C{color:var(--teal)}
@@ -169,7 +187,7 @@ input[type=text]::placeholder{color:var(--sub)}
 .rank-explain-head strong{font-size:16px;color:var(--txt)}
 .rank-explain-head span{font:700 20px var(--fm);color:var(--acc3)}
 .rank-explain h4{font-size:11px;letter-spacing:1px;color:var(--txt3);text-transform:uppercase;margin-bottom:8px}
-.rank-components{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.rank-components{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
 .rank-component,.rank-cat,.rank-trend{padding:12px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:6px}
 .rank-component-head,.rank-cat-head,.rank-trend-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12px}
 .rank-component-head strong,.rank-cat-head strong{color:var(--txt);font:700 15px var(--fm)}
@@ -339,6 +357,36 @@ input[type=text]::placeholder{color:var(--sub)}
 .chem-category-head p{font-size:12px;color:var(--txt3);line-height:1.4}
 .chem-category .chem-compare{margin-top:12px}
 .chem-match-section{margin-top:12px}
+.match-toggle{display:inline-flex;align-items:center;gap:5px;border:0;background:none;color:var(--acc);cursor:pointer;padding:2px;font-size:15px}
+.match-toggle:focus-visible,.match-retry:focus-visible{outline:2px solid var(--acc)}
+.match-expanded>td{background:var(--bg3);padding:14px;white-space:normal}
+.match-roster-scroll{overflow-x:auto;margin-top:10px}
+.match-roster{min-width:1100px}
+.match-roster td{vertical-align:middle}
+.match-roster .match-score{min-width:240px}
+.match-score strong{font:700 12px var(--fm)}
+.match-stack{display:flex;overflow:hidden;height:14px;border-radius:3px;background:var(--bg2);margin-top:5px}
+.match-stack span{height:100%;min-width:1px;border-right:1px solid var(--bg2)}
+.match-penalty{margin-top:5px}
+.match-penalty-head{display:flex;justify-content:space-between;gap:8px;color:var(--red);font:10px var(--fm);margin-bottom:2px}
+.match-penalty-track{display:flex;justify-content:flex-end;width:100%;height:10px;overflow:hidden;border-radius:3px;background:var(--bg2)}
+.match-penalty-fill{height:100%;background:linear-gradient(to left,#ed6b77,#ed6b7788)}
+.match-legend{display:flex;flex-wrap:wrap;gap:5px 14px;margin-top:10px;color:var(--txt2);font-size:11px}
+.match-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.match-roster .match-team-0 td{background:rgba(240,180,41,.045)}
+.match-roster .match-team-1 td{background:rgba(116,179,255,.06)}
+.match-roster .match-team-0 td:first-child{border-left:4px solid var(--acc)}
+.match-roster .match-team-1 td:first-child{border-left:4px solid #74b3ff}
+.match-roster .match-team-1 tr:first-child td{border-top:12px solid var(--bg2)}
+.match-roster .match-selected td{background:rgba(240,180,41,.18)}
+.match-username{display:block;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:var(--txt)}
+.match-names-refresh{border:1px solid var(--bdr);border-radius:4px;background:var(--bg2);color:var(--acc);cursor:pointer;padding:3px 7px}
+.match-names-refresh:focus-visible{outline:2px solid var(--acc)}
+.match-pagination{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:12px 0;color:var(--txt2);font-size:12px}
+.match-pagination button{background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;color:var(--txt);padding:6px 10px;cursor:pointer;font:inherit}
+.match-pagination button:hover:not(:disabled),.match-pagination button:focus-visible{border-color:var(--acc);outline:none}
+.match-pagination button:disabled{opacity:.45;cursor:default}
+.match-page-status:focus{outline:2px solid var(--acc);outline-offset:3px}
 .chem-match-section h4{color:var(--acc3);font-size:12px;margin-bottom:6px}
 .chem-history{overflow-x:auto;margin-top:10px}
 .chem-history .st{min-width:940px}
@@ -415,14 +463,45 @@ const DEFAULTS=[
   {id:'76561198170676771',label:'TragicSensei'},
 ];
 
-let players=[], heroMeta={}, heroMetaPromise=null, activeTab='overview', charts={}, logs=[], heroSort='played', leaderboardMode='overall';
+let players=[], heroMeta={}, heroMetaPromise=null, activeTab='overview', charts={}, logs=[], heroSort='played', leaderboardMode='overall', comparedRankIds=[];
 let chemistryView='team',chemistryPair=null,chemistrySort='shared',chemistryTeam=[];
 let scopeMode='normal',scopeCount=0,scopeUnit='matches',loadGeneration=0;
 let individualId=null,individualHero='all',individualRank='all';const populationCache=new Map(),populationCountCache=new Map();
-const DAMAGE_BATCH_SIZE=100,STAGE_MATCH_LIMIT=25,PLACEMENT_BATCH_SIZE=96;
+// One 512-match projection is ~21 MB; half as many paced requests as 256.
+const DAMAGE_BATCH_SIZE=512,STAGE_MATCH_LIMIT=25,PLACEMENT_BATCH_SIZE=512,PLACEMENT_WORKERS=2;
+// Project scoring fields plus the fields displayed in rankings and match details.
+// Avoid include_player_final_stats: its custom_user_stats alone adds ~27 KB/match.
+const PLACEMENT_TIMELINE_FIELDS=[
+  'time_stamp_s','net_worth','player_damage','assists','creep_kills',
+  'player_damage_taken','damage_mitigated','damage_absorbed','teammate_healing',
+  'teammate_barriering','heal_prevented','boss_damage',
+  'shots_hit','shots_missed','hero_bullets_hit_crit','hero_bullets_hit',
+  'self_healing','neutral_damage','creep_damage','denies','level','deaths',
+  ...['lane_creeps','neutrals','treasure','breakable'].flatMap(name=>
+    ['gold','gold_orbs'].map(suffix=>'gold_source_'+name+'_'+suffix))
+];
+const PLACEMENT_METADATA_OPTIONS={
+  only_filtered_players:'false',include_info:'true',include_objectives:'true',
+  include_player_kda:'true',include_player_death_details:'true',
+  extra_player_columns:PLACEMENT_TIMELINE_FIELDS.map(field=>'stats.'+field).join(',')
+};
 const PLACEMENT_CACHE_LIMIT=10000;
 const PLACEMENT_CACHE_KEY='breadlock-estimated-placements-v'+(window.BreadlockPlacement?.VERSION||0);
 const placementRanks=new Map(),placementFailures=new Set();
+// Full telemetry is held only in memory; the compact rank cache remains the persisted format.
+const matchBreakdowns=new Map(),openMatchIds=new Set(),matchBreakdownPending=new Set(),matchBreakdownErrors=new Map();
+function rememberMatchBreakdown(id,value){
+  matchBreakdowns.delete(id);matchBreakdowns.set(id,value);
+  // Do not retain thousands of full rosters just to display compact tier ranks.
+  if(matchBreakdowns.size>48){
+    const open=new Set([...openMatchIds].map(key=>JSON.parse(key)[1]));
+    for(const oldest of matchBreakdowns.keys()){
+      if(!open.has(oldest)){matchBreakdowns.delete(oldest);break;}
+    }
+  }
+}
+const steamNames=new Map(),matchNamesLoaded=new Set(),matchNamesPending=new Set(),matchNamesErrors=new Map();
+const MATCHES_PAGE_SIZE=20,matchPages=new Map();
 let placementLoading=false,placementProgress={done:0,total:0},placementRun=0;
 let placementTargets=[],placementRetryTimer=null,placementNextTimer=null;
 let placementUnsaved=0,placementBackoffMs=15000,placementRetryDelay=0;
@@ -549,7 +628,7 @@ function placementStatusHtml(){
   const state=placementLoading?'Calculating in background':placementRetryTimer?'Metadata request failed — retry scheduled':
     placementNextTimer?'Continuing next batch':players.some(p=>p.loading)?'Waiting for player histories':
     unavailable?'Some match data unavailable':'Coverage incomplete';
-  const detail=placementLoading?`${placementProgress.done}/${placementProgress.total} matches processed in this batch; ${remaining} distinct games still queued.`:
+  const detail=placementLoading?`${placementProgress.done}/${placementProgress.total} distinct matches processed; ${remaining} still queued.`:
     placementRetryTimer?`Retrying queued games automatically in about ${Math.ceil(placementRetryDelay/1000)} second(s).`:
     placementNextTimer?`${remaining} distinct games remain queued; the next batch starts shortly.`:
     unavailable?`${unavailable} distinct games could not be calculated; they are excluded from averages.`:
@@ -579,26 +658,36 @@ function cancelPlacements(){
   flushPlacementRanks();
   placementLoading=false;placementProgress={done:0,total:0};
 }
-function schedulePlacements(){
-  // Wait for all requested histories so each batch can alternate across players.
-  if(players.some(p=>p.loading))return;
-  cancelPlacements();
+function schedulePlacements(extend=false){
+  // Incoming histories extend the work list instead of cancelling in-flight
+  // metadata. Start as soon as the first player is ready, while the remaining
+  // player histories continue on their independent request lane.
+  if(!extend)cancelPlacements();
   if(!window.BreadlockPlacement)return;
-  const lists=players.filter(p=>!p.error).map(p=>[...visibleMatches(p)]
+  const lists=players.filter(p=>!p.loading&&!p.error).map(p=>[...visibleMatches(p)]
     .sort((a,b)=>(gn(b,'start_time')||0)-(gn(a,'start_time')||0)));
-  const seen=new Set();
+  const seen=new Set(),targets=[];
   for(let i=0;lists.some(ms=>ms.length>i);i++)for(const ms of lists){
     const id=String(ms[i]?.match_id||'');
     if(!/^\d+$/.test(id)||seen.has(id))continue;
-    seen.add(id);placementTargets.push(id);
+    seen.add(id);targets.push(id);
   }
-  return calculatePlacements();
+  placementTargets=targets;
+  if(!placementLoading&&!placementRetryTimer&&!placementNextTimer&&!placementStoppedReason)
+    return calculatePlacements();
+}
+function placementFinalStats(p){
+  if(p.final_stats)return p.final_stats;
+  if(p.stats?.length)return p.stats[p.stats.length-1];
+  if(!p.stats_time_stamp_s?.length)return null;
+  return Object.fromEntries(PLACEMENT_TIMELINE_FIELDS.map(field=>
+    [field,p['stats_'+field]?.at(-1)]).filter(([,value])=>value!=null));
 }
 function applyBulkMatchDetails(row){
-  // Reuse the full-player bulk response for the ordinary damage/support views.
+  // Reuse the projected full-roster response for damage/support views.
   const roster=(row.players||[]).map(raw=>typeof raw==='string'?JSON.parse(raw):raw)
     .map(p=>({hero_id:p.hero_id,team:p.team,account_id:p.account_id,
-      final_stats:p.final_stats||p.stats?.[p.stats.length-1]}));
+      final_stats:placementFinalStats(p)}));
   for(const p of players){
     const m=p.matches?.find(m=>String(m.match_id)===String(row.match_id));
     if(!m)continue;
@@ -611,50 +700,70 @@ function applyBulkMatchDetails(row){
 }
 async function calculatePlacements(){
   if(placementLoading||!window.BreadlockPlacement)return;
-  const ids=placementTargets.filter(id=>!placementRanks.has(id)&&!placementFailures.has(id)).slice(0,PLACEMENT_BATCH_SIZE);
+  const ids=placementTargets.filter(id=>!placementRanks.has(id)&&!placementFailures.has(id));
   if(!ids.length)return;
   const run=++placementRun;
   placementLoading=true;placementProgress={done:0,total:ids.length};
   renderPlacementStatus();
   if(activeTab==='performance'||activeTab==='matches')renderMain();
-  let rateLimited=false,retryAfterMs=0;
-  try{
-    // Bulk endpoint: 30 requests/minute per IP. Pace starts, not completions;
-    // a slow response already counts toward the interval.
-    const rows=await BreadlockData.metadata(ids,{
-      only_filtered_players:'false',include_info:'true',include_objectives:'true',
-      include_player_kda:'true',include_player_stats:'true',
-      include_player_death_details:'true'},{priority:1});
-    if(run!==placementRun)return;
-    if(!Array.isArray(rows))throw Error('Invalid bulk match response');
-    const byId=new Map(rows.map(row=>[String(row.match_id),row]));
-    for(const id of ids){
-      if(run!==placementRun)return;
+  let next=0,rateLimited=false,retryAfterMs=0;
+  // Keep two batches in flight. The shared coordinator still spaces metadata
+  // request starts >=2.1s apart and gives visible-tab requests priority.
+  async function worker(){
+    const splitBatches=[];
+    while(run===placementRun&&!rateLimited&&(splitBatches.length||next<ids.length)){
+      const fromSplit=splitBatches.length>0;
+      const batch=fromSplit?splitBatches.pop():ids.slice(next,next+PLACEMENT_BATCH_SIZE);
+      if(!fromSplit)next+=batch.length;
       try{
-        const row=byId.get(id);
-        if(!row)throw Error('Match unavailable in bulk metadata');
-        const match=BreadlockPlacement.fromBulkMetadata(row,heroMeta);
-        const result=BreadlockPlacement.scoreMatch(match);
-        const ranks=Object.fromEntries(result.map(player=>[String(player.heroId),player.rank]));
-        if(Object.keys(ranks).length!==12)throw Error('Incomplete ranking');
-        placementRanks.delete(id);placementRanks.set(id,ranks);
-        applyBulkMatchDetails(row);
-        if(++placementUnsaved>=24)flushPlacementRanks();
+        const rows=await BreadlockData.metadata(batch,PLACEMENT_METADATA_OPTIONS,{priority:1});
+        if(run!==placementRun)return;
+        if(!Array.isArray(rows))throw Error('Invalid bulk match response');
+        const byId=new Map(rows.map(row=>[String(row.match_id),row]));
+        for(const id of batch){
+          if(run!==placementRun)return;
+          if(placementRanks.has(id)){placementProgress.done++;continue;}
+          try{
+            const row=byId.get(id);
+            if(!row)throw Error('Match unavailable in bulk metadata');
+            const match=BreadlockPlacement.fromBulkMetadata(row,heroMeta);
+            const result=BreadlockPlacement.scoreMatch(match);
+            const ranks=Object.fromEntries(result.map(player=>[String(player.heroId),player.rank]));
+            if(Object.keys(ranks).length!==12)throw Error('Incomplete ranking');
+            placementRanks.delete(id);placementRanks.set(id,ranks);
+            rememberMatchBreakdown(id,{row,result,match});
+            applyBulkMatchDetails(row);
+            placementUnsaved++;
+          }catch(e){
+            placementFailures.add(id);dbg('Estimated placement '+id+' unavailable: '+e,'wn');
+          }
+          placementProgress.done++;
+          if(placementProgress.done%32===0)renderPlacementStatus();
+        }
+        flushPlacementRanks();
+        renderMain(); // Reveal settled tiers as each batch finishes.
       }catch(e){
-        placementFailures.add(id);dbg('Estimated placement '+id+' unavailable: '+e,'wn');
+        if(run!==placementRun)return;
+        dbg('Bulk estimated placements unavailable: '+e,'wn');
+        // An intermediary may reject long URLs or large responses even when the
+        // API accepts them. Split this batch without losing IDs or other work.
+        if([413,414,431].includes(e.status)&&batch.length>1){
+          const half=Math.floor(batch.length/2);
+          splitBatches.push(batch.slice(half),batch.slice(0,half));
+          continue;
+        }
+        // Leave transient failures queued; do not mislabel them as missing matches.
+        if(e.status===429||e.status>=500||e.name==='TypeError'){
+          rateLimited=true;retryAfterMs=Math.max(retryAfterMs,e.retryMs||0);
+        }else{
+          for(const id of batch)placementFailures.add(id);
+          placementProgress.done+=batch.length;
+        }
+        renderPlacementStatus();
       }
-      placementProgress.done++;
-      if(placementProgress.done%4===0)renderPlacementStatus();
     }
-  }catch(e){
-    if(run!==placementRun)return;
-    dbg('Bulk estimated placements unavailable: '+e,'wn');
-    // Leave all matches queued on rate limiting/server errors; retry with backoff.
-    if(e.status===429||e.status>=500||e.name==='TypeError'){
-      rateLimited=true;retryAfterMs=e.retryMs||0;
-    }
-    else for(const id of ids)placementFailures.add(id);
   }
+  await Promise.all(Array.from({length:Math.min(PLACEMENT_WORKERS,Math.ceil(ids.length/PLACEMENT_BATCH_SIZE))},()=>worker()));
   if(run===placementRun){
     placementLoading=false;flushPlacementRanks();
     if(rateLimited){
@@ -704,7 +813,6 @@ async function loadHeroMeta(){
 
 async function addPlayer(id,label){
   if(!id||players.find(p=>p.id===id))return;
-  cancelPlacements();
   const color=COLS[players.length%COLS.length];
   const p={id,label:label||id,color,loading:true,detailsLoading:false,error:null,matches:null,mvp:{},phase:'Fetching match history',progressDone:0,progressTotal:null};
   const generation=loadGeneration;
@@ -725,13 +833,9 @@ async function addPlayer(id,label){
     dbg(p.label+': '+p.matches.length+' matches','ok');
     if(p.matches.length)dbg('Fields: '+Object.keys(p.matches[0]).join(', '),'in');
     renderChips();renderMain();
-    schedulePlacements();
+    schedulePlacements(true);
+    startMatchDetails();
     if(p.error)return;
-    // History powers the first render; slower per-match enrichment must not block it.
-    loadMatchDetails(p).catch(e=>dbg(p.label+' optional match details failed: '+e,'wn')).finally(()=>{
-      if(generation!==loadGeneration||!players.includes(p))return;
-      p.detailsLoading=false;renderChips();renderMain();
-    });
     loadMvp(p);
     if(activeTab==='stages')refreshStages();if(activeTab==='performance')refreshTeamShare();if(activeTab==='individual')refreshIndividual();
   }catch(e){
@@ -740,61 +844,86 @@ async function addPlayer(id,label){
     p.matches=[];p.loading=false;p.error=e.status===429?'API rate limit reached. Try again shortly.':
       e.status>=500||e.name==='TypeError'?'API temporarily unavailable. Try again shortly.':
       'Could not load match history (HTTP '+(e.status||'network error')+').';
-    renderChips();renderMain();schedulePlacements();
+    renderChips();renderMain();schedulePlacements(true);startMatchDetails();
   }
 }
 
-async function loadMatchDetails(p){
-  const byMatch=new Map((p.matches||[]).map(m=>[String(m.match_id),m]));
-  // The full-player placement batches enrich uncached games. Only fetch
-  // already-cached games here, using the cheaper player-only aggregate request.
-  const ids=[...byMatch.keys()].filter(id=>id&&id!=='undefined'&&id!=='null'&&
-    (!window.BreadlockPlacement||placementRanks.has(id)));
-  p.progressTotal=ids.length;
-  if(!ids.length)return;
-  renderLoadStatus();
-  // Match history accepts Steam64 IDs; metadata's account_ids filter requires account32.
-  const accountId=String(p.matches?.find(m=>m.account_id!=null)?.account_id??p.id);
-  let found=0;
-  try{
-    for(let i=0;i<ids.length&&players.includes(p);i+=DAMAGE_BATCH_SIZE){
-      const batch=ids.slice(i,i+DAMAGE_BATCH_SIZE).filter(id=>!byMatch.get(id)?._detail);
-      if(!batch.length){p.progressDone=Math.min(ids.length,i+DAMAGE_BATCH_SIZE);renderLoadStatus();continue;}
-      const q=new URLSearchParams({
-        match_ids:batch.join(','),
-        account_ids:accountId,
-        only_filtered_players:'true',
-        include_info:'false',
-        include_player_final_stats:'true',
-        limit:String(batch.length)
-      });
-      const rows=await BreadlockData.metadata(batch,Object.fromEntries(q),{priority:1});
-      rows.forEach(row=>{
-        const match=byMatch.get(String(row.match_id));if(!match)return;
-        const rawPlayers=Array.isArray(row.players)?row.players:[];
-        const player=rawPlayers.map(x=>{
-          if(typeof x!=='string')return x;
-          try{return JSON.parse(x);}catch(e){return null;}
-        }).find(x=>x&&String(x.account_id)===accountId);
-        if(!player)return;
-        if(rawPlayers.length===12)match._roster=rawPlayers.map(x=>{if(typeof x!=='string')return x;try{return JSON.parse(x);}catch(e){return null;}}).filter(Boolean);
-        match._detail=player;
-        let finalStats=player.final_stats;
-        if(typeof finalStats==='string')try{finalStats=JSON.parse(finalStats);}catch(e){finalStats=null;}
-        let damage=gn(finalStats,'player_damage');
-        if(damage==null)damage=gn(player,'final_stats_player_damage');
-        if(damage==null){
-          const series=player.stats_player_damage??player.stats?.player_damage;
-          if(Array.isArray(series)&&series.length)damage=gn({v:series[series.length-1]},'v');
-        }
-        if(damage!=null){match.player_damage=damage;found++;}
-      });
-      p.progressDone=Math.min(ids.length,i+Math.min(DAMAGE_BATCH_SIZE,ids.length-i));
-      renderLoadStatus();renderChips();
+function startMatchDetails(){
+  // Wait for histories so every requested account can share one response shape.
+  if(players.some(p=>p.loading))return;
+  const selected=players.filter(p=>p.detailsLoading&&!p.detailsStarted&&!p.error);
+  if(!selected.length)return;
+  selected.forEach(p=>{p.detailsStarted=true;});
+  const generation=loadGeneration;
+  return loadMatchDetails(selected).catch(e=>dbg('Optional match details failed: '+e,'wn')).finally(()=>{
+    if(generation!==loadGeneration)return;
+    selected.filter(p=>players.includes(p)).forEach(p=>{p.detailsLoading=false;});
+    renderChips();renderMain();
+  });
+}
+
+async function loadMatchDetails(selected){
+  // Compact placement ranks survive reloads but full final stats do not. Fetch
+  // only those ranked games needing details, once per unique match rather than
+  // once per player. A single account filter returns all loaded participants.
+  const targets=new Map(),found=new Map();
+  const accountIds=[...new Set(players.filter(p=>!p.loading&&p.matches?.length)
+    .map(p=>String(p.matches.find(m=>m.account_id!=null)?.account_id??p.id)))].sort().join(',');
+  for(const p of selected){
+    const accountId=String(p.matches?.find(m=>m.account_id!=null)?.account_id??p.id);
+    const byMatch=new Map((p.matches||[]).map(m=>[String(m.match_id),m]));
+    const ids=[...byMatch.keys()].filter(id=>/^\d+$/.test(id)&&
+      (!window.BreadlockPlacement||placementRanks.has(id)));
+    p.progressTotal=ids.length;
+    p.progressDone=0;found.set(p,0);
+    for(const id of ids){
+      const match=byMatch.get(id);
+      if(match._detail){
+        p.progressDone++;
+        if(gn(match,'player_damage')!=null)found.set(p,found.get(p)+1);
+      }else{
+        if(!targets.has(id))targets.set(id,[]);
+        targets.get(id).push({p,match,accountId});
+      }
     }
-    dbg(p.label+': final stats found for '+found+'/'+ids.length+' matches',found?'ok':'wn');
-  }catch(e){dbg(p.label+' damage metadata unavailable ('+found+'/'+ids.length+' found): '+e,'wn');}
-  if(players.includes(p))p.detailCoverage={found,total:ids.length};
+  }
+  const ids=[...targets.keys()];
+  if(ids.length)renderLoadStatus();
+  try{
+    for(let i=0;i<ids.length;i+=DAMAGE_BATCH_SIZE){
+      const batch=ids.slice(i,i+DAMAGE_BATCH_SIZE).filter(id=>targets.get(id).some(({p})=>players.includes(p)));
+      if(!batch.length)continue;
+      const q=new URLSearchParams({match_ids:batch.join(','),account_ids:accountIds,
+        only_filtered_players:'true',include_info:'false',include_player_final_stats:'true',
+        limit:String(batch.length)});
+      const rows=await BreadlockData.metadata(batch,Object.fromEntries(q),{priority:1});
+      const byId=new Map(rows.map(row=>[String(row.match_id),row]));
+      for(const id of batch){
+        const row=byId.get(id),roster=(row?.players||[]).map(raw=>{
+          if(typeof raw!=='string')return raw;
+          try{return JSON.parse(raw);}catch(e){return null;}
+        }).filter(Boolean);
+        for(const {p,match,accountId} of targets.get(id)){
+          if(!players.includes(p))continue;
+          const detail=roster.find(x=>String(x.account_id)===accountId);
+          if(detail){
+            if(roster.length===12)match._roster=roster;
+            match._detail=detail;
+            let stats=detail.final_stats;
+            if(typeof stats==='string')try{stats=JSON.parse(stats);}catch(e){stats=null;}
+            const damage=gn(stats,'player_damage')??gn(detail,'final_stats_player_damage');
+            if(damage!=null){match.player_damage=damage;found.set(p,found.get(p)+1);}
+          }
+          p.progressDone++;
+        }
+      }
+      renderLoadStatus();renderChips();renderMain();
+    }
+  }catch(e){dbg('Shared damage metadata unavailable: '+e,'wn');}
+  for(const p of selected)if(players.includes(p)){
+    p.detailCoverage={found:found.get(p),total:p.progressTotal};
+    dbg(p.label+': final stats found for '+found.get(p)+'/'+p.progressTotal+' matches',found.get(p)?'ok':'wn');
+  }
 }
 
 // Accessors — gf is for schema fields where zero is a valid fallback; gn preserves missing data.
@@ -924,8 +1053,8 @@ function renderChips(){
     <span class="crm" data-id="${chemText(p.id)}">×</span>
   </div>`).join('');
   el.querySelectorAll('.crm').forEach(x=>x.addEventListener('click',()=>{
-    cancelPlacements();players=players.filter(p=>p.id!==x.dataset.id);
-    renderChips();renderMain();schedulePlacements();
+    cancelPlacements();matchPages.delete(x.dataset.id);players=players.filter(p=>p.id!==x.dataset.id);
+    renderChips();renderMain();schedulePlacements();startMatchDetails();
   }));
 }
 
@@ -933,6 +1062,7 @@ function renderMain(){
   const el=document.getElementById('main');if(!el)return;
   const expandedRankIds=activeTab==='overview'?new Set([...el.querySelectorAll('.rank-expand[aria-expanded="true"]')].map(b=>b.dataset.rankPerson)):new Set();
   const openRankCats=activeTab==='overview'?new Set([...el.querySelectorAll('.rank-cat-toggle[aria-expanded="true"]')].map(b=>b.dataset.rankCatToggle)):new Set();
+  const openCompareMore=activeTab==='overview'&&!!el.querySelector('.rank-compare-more[open]');
   const chemScroll=activeTab==='chemistry'?{page:window.scrollY,list:el.querySelector('.chem-list')?.scrollTop||0,
     focus:document.activeElement?.dataset.chemPerson?document.activeElement.dataset.chemPerson:document.activeElement?.dataset.chemPair?'pair':document.activeElement?.id==='chem-sort'?'sort':null}:null;
   Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});charts={};
@@ -962,6 +1092,7 @@ function renderMain(){
   else if(activeTab==='matches')html+=tabMatches(good);
   else if(activeTab==='debug')html+=tabDebug();
   el.innerHTML=html;
+  if(openCompareMore&&el.querySelector('.rank-compare-more'))el.querySelector('.rank-compare-more').open=true;
   const setCategoryOpen=(button,open)=>{
     const panel=document.getElementById(button.getAttribute('aria-controls'));
     if(!panel)return;
@@ -994,6 +1125,13 @@ function renderMain(){
     const d=document.getElementById('dbg-bd');if(d)d.scrollTop=d.scrollHeight;
   }
   if(activeTab==='overview'){
+    el.querySelectorAll('[data-rank-select]').forEach(button=>button.addEventListener('click',()=>{
+      const id=button.dataset.rankSelect;
+      comparedRankIds=comparedRankIds.includes(id)?comparedRankIds.filter(x=>x!==id):[...comparedRankIds.slice(-1),id];
+      renderMain();
+      el.querySelectorAll('[data-rank-select]').forEach(b=>{if(b.dataset.rankSelect===id)b.focus({preventScroll:true});});
+      if(comparedRankIds.length===2)el.querySelector('.rank-compare')?.scrollIntoView({behavior:'smooth',block:'start'});
+    }));
     el.querySelectorAll('[data-leaderboard-mode]').forEach(b=>b.addEventListener('click',()=>{leaderboardMode=b.dataset.leaderboardMode;renderMain();}));
     el.querySelectorAll('.rank-hero img[data-fallbacks]').forEach(img=>img.addEventListener('error',()=>rotateHeroImage(img)));
   }
@@ -1026,27 +1164,28 @@ function tabOverview(arr){
   // One leaderboard combines overall rank and the existing overview summary stats.
   const bestHeroes=leaderboardMode==='heroes';
   const ranked=assignRankingTiers(bestHeroes?bestHeroRankings(arr.map(x=>x.p)):rankPlayers(arr.map(x=>x.p)));
+  comparedRankIds=comparedRankIds.filter(id=>ranked.some(r=>String(r.p.id)===id));
   const statsByPlayer=new Map(bestHeroes?ranked.map(r=>[r.p,derive(r.p,r.matches)]):arr.map(x=>[x.p,x.s]));
   h+=`<div class="card"><div class="ct">Leaderboard <span class="rank-mode" role="group" aria-label="Leaderboard view"><button type="button" class="btn btnsm ${bestHeroes?'':'btna'}" data-leaderboard-mode="overall" aria-pressed="${!bestHeroes}">Overall</button><button type="button" class="btn btnsm ${bestHeroes?'btna':''}" data-leaderboard-mode="heroes" aria-pressed="${bestHeroes}">Best Heroes</button></span></div><div class="rank-scroll">
   <table class="st rank-table"><thead><tr>
     <th class="l">#</th><th class="l">Tier</th><th class="l">Player</th>${bestHeroes?'<th class="l">Hero</th>':''}<th class="r">Score</th>
     <th class="r">Games</th><th class="r">W</th><th class="r">L</th><th class="r">Win% (10%)</th>
-    <th class="r">Performance (90%)</th><th class="r">KDA</th><th class="r">K/D</th><th class="r">K/G</th><th class="r">D/G</th><th class="r">A/G</th>
-    <th class="r">DMG/G</th><th class="r">Souls/min</th><th class="r" title="Estimated lobby placement contributes up to 20% of performance (up to 18% overall), scaled by calculated-game coverage; lower place is better. Unavailable placement is excluded.">Est. avg place (up to 20% of perf.)</th><th class="r">Most common</th><th class="r">Est. coverage</th>
+    <th class="r">Stat performance (70%)</th><th class="r">KDA</th><th class="r">K/D</th><th class="r">K/G</th><th class="r">D/G</th><th class="r">A/G</th>
+    <th class="r">DMG/G</th><th class="r">Souls/min</th><th class="r" title="Estimated lobby placement contributes 20% of the overall score when available. Its peer-relative score is adjusted toward neutral 50 for incomplete calculated-game coverage; lower place is better. Missing components cause remaining weights to be rescaled.">Est. avg place (20%)</th><th class="r">Most common</th><th class="r">Est. coverage</th>
   </tr></thead><tbody>`;
   ranked.forEach((r,i)=>{const s=statsByPlayer.get(r.p),placement=r.placement;
     const place=r.score==null?'—':ranked.findIndex(other=>other.score===r.score)+1;
     h+=`<tr${i&&r.tier&&r.tier!==ranked[i-1].tier?' class="rank-boundary"':''}>
     <td class="rank-place">${place}</td>
     <td class="rank-tier-cell">${r.tier==null?'—':`<span class="rank-tier rank-${r.tier}">${r.tier}</span>`}<button type="button" class="rank-expand" data-rank-expand="${i}" data-rank-person="${chemText(r.p.id)}" aria-expanded="false" aria-controls="rank-detail-${i}" aria-label="Show score breakdown for ${chemText(r.p.label)}" title="Show score breakdown"></button></td>
-    <td class="rank-player"><span class="pdot" style="display:inline-block;background:${r.p.color};margin-right:8px"></span>${chemText(r.p.label)}</td>
+    <td class="rank-player"><button type="button" class="rank-select" data-rank-select="${chemText(String(r.p.id))}" aria-pressed="${comparedRankIds.includes(String(r.p.id))}" aria-label="${comparedRankIds.includes(String(r.p.id))?'Remove':'Select'} ${chemText(r.p.label)} for comparison" title="Select two players to compare"><span class="pdot" style="display:inline-block;background:${r.p.color};margin-right:8px"></span>${chemText(r.p.label)}</button></td>
     ${bestHeroes?`<td class="rank-hero">${r.heroId!=null?`<span class="hcell"><span class="hico tico">${heroImage(r.heroId,heroMeta[r.heroId]||{},chemText(heroName(r.heroId)))}</span>${chemText(heroName(r.heroId))}</span>`:'Hero unavailable'}</td>`:''}
     <td class="r"><div class="rank-score"><div class="rank-track"><div class="rank-fill" style="width:${r.score==null?0:r.score.toFixed(1)}%;background:${r.p.color}"></div></div>${f1(r.score)}</div></td>
     <td class="r">${s.n}</td>
     <td class="r" style="color:var(--grn)">${r.wins??'—'}</td>
     <td class="r" style="color:var(--red)">${r.losses??'—'}</td>
     <td class="r" style="color:${r.winRate>=50?'var(--grn)':'var(--red)'};font-weight:700">${r.winRate==null?'—':f1(r.winRate)+'%'}</td>
-    <td class="r" style="color:var(--acc3)">${f1(r.performance)}</td>
+    <td class="r" style="color:var(--acc3)">${f1(r.metricPerformance)}</td>
     <td class="r" style="color:var(--acc3)">${f2(r.kda)}</td>
     <td class="r">${s.kd}</td>
     <td class="r">${s.kills}</td>
@@ -1056,7 +1195,7 @@ function tabOverview(arr){
     <td class="r">${fk(r.soulsMin)}</td>
     <td class="r">${f1(placement.average)}</td><td class="r">${placementModes(placement)}</td><td class="r">${placement.count}/${placement.selected}</td>
   </tr><tr id="rank-detail-${i}" class="rank-detail" hidden><td colspan="${bestHeroes?20:19}">${rankingExplanation(r)}</td></tr>`;});
-  h+=`</tbody></table></div></div>`;
+  h+=`</tbody></table></div>${comparedRankIds.length===2?rankingComparison(...comparedRankIds.map(id=>ranked.find(r=>String(r.p.id)===id)).sort((a,b)=>ranked.indexOf(a)-ranked.indexOf(b))):`<div class="rank-compare rank-compare-prompt"><span class="rank-compare-step">${comparedRankIds.length?'1 / 2':'0 / 2'}</span><strong>${comparedRankIds.length?`${chemText(ranked.find(r=>String(r.p.id)===comparedRankIds[0]).p.label)} selected`:'Compare two players'}</strong><span class="note">${comparedRankIds.length?'Select another name in the table to see the breakdown.':'Click two player names in the table to see what separates their scores.'}</span></div>`}</div>`;
   // Keep the overview about results and match context; specialist comparisons live in their tabs.
   h+=`<div class="slbl">Results and match context${bestHeroes?' · all heroes':''}</div><div class="g3">`;
   h+=statCard('Win Rate','winRate',arr,v=>v+'%');
@@ -1066,6 +1205,62 @@ function tabOverview(arr){
   h+=statCard('Abandon Rate','abandRate',arr,v=>v+'%',false);
   h+=`</div>`;
   return h;
+}
+
+function rankingComparison(a,b){
+  const signed=n=>`${n>=0?'+':'−'}${f2(Math.abs(n))}`;
+  const scoreLeader=a.score==null||b.score==null||a.score===b.score?null:a.score>b.score?a:b;
+  const summary=(value,label,color)=>`<div class="chem-stat"><strong${color?` style="color:${color}"`:''}>${value}</strong><span>${label}</span></div>`;
+  // Allocate the actual stretched core score across available categories using
+  // their weighted, stretched standings. This is a visual allocation, not an
+  // independent per-category contribution to the ranking formula.
+  const scorePieces=r=>{
+    const metricWeight=r.scoreWeights.metric/100;
+    const available=r.categoryDetails.filter(c=>c.name!=='Support'&&c.effectiveWeight>0);
+    const proxies=available.map(c=>c.effectiveWeight/100*scalePerformanceScore(c.rawScore));
+    const proxyTotal=proxies.reduce((sum,x)=>sum+x,0);
+    const core=r.metricCorePerformance??0;
+    const pieces=available.map((c,i)=>({name:c.name,color:CHEM_STATS.find(([name])=>name===c.name)?.[2]||'var(--acc)',
+      points:metricWeight*core*(proxyTotal?proxies[i]/proxyTotal:c.effectiveWeight/100)}));
+    const bonus=metricWeight*Math.max(0,(r.metricPerformance??0)-core);
+    if(bonus>0)pieces.push({name:'Support bonus',color:'#c084fc',points:bonus});
+    if(r.placementScore!=null&&r.scoreWeights.placement>0)pieces.push({name:'Estimated place',color:'#ff7eb6',points:r.scoreWeights.placement/100*r.placementScore});
+    if(r.winStanding!=null)pieces.push({name:'Win-rate standing',color:'var(--teal)',points:r.scoreWeights.win/100*r.winStanding});
+    return pieces;
+  };
+  const piecesA=scorePieces(a),piecesB=scorePieces(b);
+  const scoreRow=(r,pieces)=>`<div class="chem-score-row"><div class="chem-score-head"><span style="color:${r.p.color}">${chemText(r.p.label)}</span><strong>${f1(r.score)} / 100</strong></div><div class="chem-score-track" role="img" aria-label="${chemText(r.p.label)}: ${f1(r.score)} out of 100, broken down by category, support, estimated place, and win-rate standing">${pieces.filter(p=>p.points>0).map(p=>`<span class="chem-score-segment" style="width:${p.points.toFixed(4)}%;background:${p.color}" title="${p.name}: ${f2(p.points)} allocated overall score points"></span>`).join('')}</div></div>`;
+  const legend=[...new Set([...piecesA,...piecesB].map(p=>p.name))].map(name=>{
+    const item=piecesA.find(p=>p.name===name)||piecesB.find(p=>p.name===name);
+    const points=(pieces)=>pieces.find(p=>p.name===name)?.points??0;
+    return `<span><i style="background:${item.color}"></i>${chemText(name)}: ${f2(points(piecesA))} / ${f2(points(piecesB))} pts</span>`;
+  }).join('');
+  const categoryMap=r=>new Map(r.categoryDetails.map(c=>[c.name,c]));
+  const ac=categoryMap(a),bc=categoryMap(b);
+  const categories=CHEM_STATS.map(([name,description,color,items])=>{
+    const ca=ac.get(name),cb=bc.get(name);
+    if(!ca&&!cb)return '';
+    const leader=ca&&cb&&ca.rawScore!==cb.rawScore?(ca.rawScore>cb.rawScore?a:b):null;
+    const metricCards=items.flatMap(([label,,format,direction])=>{
+      const left=ca?.metrics.find(m=>m.label===label),right=cb?.metrics.find(m=>m.label===label);
+      if(!left&&!right)return [];
+      const diff=left&&right?left.score-right.score:null;
+      const higher=diff==null||diff===0?null:diff>0?a:b;
+      const max=Math.max(left?.mean??0,right?.mean??0,0);
+      const bar=(r,m)=>`<div class="chem-bar-row"><span class="chem-bar-name" style="color:${r.p.color}" title="${chemText(r.p.label)}">${chemText(r.p.label)}</span><span>${m?format(m.mean):'—'}</span><div class="chem-bar-track"><div class="chem-bar-fill" style="width:${m&&max?Math.max(0,m.mean/max*100):0}%;background:${r.p.color}"></div></div></div>`;
+      return [`<div class="chem-stat" style="--chem-metric:${higher?.p.color||'var(--txt3)'}"><h5 class="chem-metric-title">${chemText(label)}${direction<0?' · lower is better':''}</h5><div class="chem-delta"><strong style="color:${higher?.p.color||'var(--txt2)'}">${diff==null?'—':signed(diff)}</strong><em style="color:${higher?.p.color||'var(--txt3)'}">${higher?chemText(higher.p.label)+' higher peer score':diff===0?'Even peer scores':'Unavailable'}</em></div><div class="chem-bars">${bar(a,left)}${bar(b,right)}</div><small>Peer scores ${f1(left?.score)} / ${f1(right?.score)} · games ${left?.count??0}/${a.n} / ${right?.count??0}/${b.n}${left&&right?` · ${f1(left.effectiveWeight)}% / ${f1(right.effectiveWeight)}% of category`:''}</small></div>`];
+    }).join('');
+    return `<section class="chem-category" style="--chem-section:${leader?.p.color||color}"><div class="chem-category-head"><h4>${chemText(name)}</h4><p>${description} · peer-relative category score ${f1(ca?.rawScore)} / ${f1(cb?.rawScore)}${name==='Support'?' · bonus only':` · core weight ${coreWeightText(ca?.effectiveWeight)}% / ${coreWeightText(cb?.effectiveWeight)}%`}</p></div><div class="chem-compare">${metricCards}</div></section>`;
+  }).join('');
+  const bothScored=a.score!=null&&b.score!=null;
+  const sameWeights=[a,b].every(r=>r.metricPerformance!=null&&r.placementScore!=null&&r.winStanding!=null);
+  return `<section class="rank-compare chem-comparison" style="--chem-overall:${scoreLeader?.p.color||'var(--txt3)'}" aria-label="Leaderboard player comparison"><div class="ct">Leaderboard comparison</div><h3>${chemText(a.p.label)} vs ${chemText(b.p.label)}</h3>
+    <div class="chem-summary">${summary(f1(a.score),chemText(a.p.label)+' · tier '+(a.tier||'—'),a.p.color)}${summary(f1(b.score),chemText(b.p.label)+' · tier '+(b.tier||'—'),b.p.color)}${summary(bothScored?f2(a.score-b.score):'—',bothScored?'Overall score gap · pts':'No comparable gap')}${summary(`${a.n} / ${b.n}`,'Selected games')}</div>
+    <p class="chem-foot">Scores are relative to the original ${leaderboardMode==='heroes'?'Best Heroes candidate-hero':'Overall player'} peer pool, not recalculated between these two players. Tiers group gaps across the leaderboard, not head-to-head results.</p>
+    <div class="chem-score-card"><h4>Overall score · full breakdown</h4><p class="chem-foot">One bar per player · segments add up to the overall score (out of 100). Stats 70% · estimated place 20% · win standing 10% when available. Use the legend to identify each component.</p>${scoreRow(a,piecesA)}${scoreRow(b,piecesB)}<div class="chem-score-legend">${legend}</div><p class="chem-foot" style="margin-top:10px">Avg estimated place (lower is better): ${f1(a.placement.average)} / ${f1(b.placement.average)} · calculated ${a.placement.count}/${a.placement.selected} / ${b.placement.count}/${b.placement.selected} games · win rate ${f1(a.winRate)}% / ${f1(b.winRate)}%.</p>${sameWeights?`<p class="chem-foot" style="margin-top:7px">Score gap: ${signed(.7*(a.metricPerformance-b.metricPerformance))} stat pts + ${signed(.2*(a.placementScore-b.placementScore))} place pts + ${signed(.1*(a.winStanding-b.winStanding))} win pts = ${signed(a.score-b.score)} pts (${chemText(a.p.label)} minus ${chemText(b.p.label)}).</p>`:''}</div>
+    <div class="ct">Category & metric breakdown</div><p class="chem-foot">Like Chemistry, cards show player averages with side-by-side bars. Unlike Chemistry, these are separate selected histories, not shared matches: the large number is the difference in peer-relative metric scores (first player minus second), <strong>not</strong> a direct contribution to the overall gap. Each metric is compared with the original scoring pool.</p>
+    ${categories||'<p class="chem-foot">No scored categories are available.</p>'}
+    <details class="rank-compare-more"><summary>How to read this comparison</summary><p class="chem-foot">Scores retain the original ${leaderboardMode==='heroes'?'Best Heroes candidate-hero':'Overall player'} peer pool; selecting two names does not recalculate them. In Best Heroes the pool includes candidates not displayed. Category and metric scores compare each player with that pool, not just each other. Their gaps do not add directly to the overall score gap. Overall bar category slices proportionally allocate the stretched core stat score using weighted category standings: they sum to the actual core component, but are not independent category grades. Support is only the applied bonus after the stat-score cap; incomplete placement coverage shrinks its standing toward 50 without changing the other weights. The Overview score weighs stat performance 70%, estimated place 20%, and win-rate standing 10% when available; missing components cause remaining weights to be rescaled. Chemistry's same-match pair score is separate and unchanged. Bars in metric cards are raw per-game averages, not score contributions; a lower raw value can be better for inverse metrics. Missing data is excluded, not zero. Expand either player’s chevron for the full personal breakdown.</p></details></section>`;
 }
 
 function rankingExplanation(r){
@@ -1088,7 +1283,7 @@ function rankingExplanation(r){
         <div class="rank-sway${impact>0?' positive':impact<0?' negative':''}">${isSupport?'Part of the capped support bonus':sway(impact)+' raw core pts'}</div></div>`;
     }).join('');
     const key=chemText(r.p.id+':'+index);
-    return {card:`<div class="rank-cat"><div class="rank-cat-head"><span>${chemText(category.name)} <small>· ${isSupport?'additive bonus (up to +5)':f1(category.effectiveWeight)+'% core weight'}</small></span><strong>${f1(score)}</strong></div>
+    return {card:`<div class="rank-cat"><div class="rank-cat-head"><span>${chemText(category.name)} <small>· ${isSupport?'additive bonus (up to +5)':coreWeightText(category.effectiveWeight)+'% core weight'}</small></span><strong>${f1(score)}</strong></div>
       ${bar(score)}<div class="rank-cat-foot"><span>Below peers</span><span>50 · even</span><span>Above peers</span></div>
       <div class="rank-sway${contribution>0?' positive':contribution<0?' negative':''}">${isSupport?'+'+f2(contribution)+' bonus stat pts':sway(contribution)+' raw core pts'}</div>
       <p class="note">${best?`${chemText(best.label)}: ${f1(best.mean)} vs ${f1(best.peerMean)} peer avg · ${best.count}/${c.games} games`:''}</p>
@@ -1103,17 +1298,15 @@ function rankingExplanation(r){
   const strongest=[...eligible].filter(m=>m.impact>0).sort((a,b)=>b.impact-a.impact).slice(0,3);
   const weakest=[...eligible].filter(m=>m.impact<0).sort((a,b)=>a.impact-b.impact).slice(0,3);
   const component=(name,value,weight,kind,detail)=>value==null?'':`<div class="rank-component"><div class="rank-component-head"><span>${name} · ${f1(weight)}%</span><strong>${f1(value)}</strong></div><div class="rank-bar" aria-hidden="true"><div class="rank-bar-fill ${kind}" style="width:${Math.max(0,Math.min(100,value))}%"></div></div><p class="note">${detail}</p></div>`;
-  const metricWeight=r.metricPerformanceWeight;
-  const placeWeight=r.placementWeight;
+  const {metric:metricWeight,placement:placeWeight,win:winWeight}=r.scoreWeights;
   const trendCards=trends.map(t=>{
     const notable=Math.abs(t.change)>=.15,max=Math.max(t.prev,t.now,1);
     return `<div class="rank-trend"><div class="rank-trend-head"><strong>Average ${chemText(t.name.toLowerCase())}</strong><span>${notable?(t.good?'Favorable':'Less favorable')+' change':'Small change'}${leadingTrend===t?' · largest shift':''}</span></div>
       ${[['Older',t.prev,t.old],['Newer',t.now,t.recent]].map(([label,value,n],i)=>`<div class="rank-trend-row"><span>${label} ${n} games</span><div class="rank-bar" aria-hidden="true"><div class="rank-bar-fill" style="width:${Math.max(0,Math.min(100,value/max*100))}%;background:${!i?'var(--txt3)':!notable?'var(--blue)':t.good?'var(--grn)':'var(--red)'}"></div></div><span>${f1(value)}</span></div>`).join('')}</div>`;
   }).join('');
   return `<div class="rank-explain"><div class="rank-explain-head"><strong>${chemText(r.p.label)}</strong><span>${f1(r.score)} / 100</span><small>Relative to loaded players</small></div>
-    <h4>Overall score</h4><div class="rank-components">${component('Performance',r.performance,r.winStanding==null?100:90,'','Made up of the two components below when both are available.')}${component('Win-rate standing',r.winStanding,r.performance==null?100:10,'win','Peer percentile, shrunk toward 50 for fewer games.')}</div>
-    <h4>Inside performance · ${f1(metricWeight)}% metrics + ${f1(placeWeight)}% estimated place</h4><div class="rank-components">${component('Stat metrics',r.metricPerformance,metricWeight,'',`Core categories ${f1(r.metricCorePerformance)} + support bonus ${f1(r.supportBonus)} (capped at 100).`)}${component('Estimated avg place',r.placementScore,placeWeight,'',`Avg place ${f1(r.placement.average)} · ${r.placement.count}/${r.placement.selected} selected games calculated. Lower is better; compared with loaded peers. Small samples and incomplete coverage reduce its effect.`)}</div>
-    <p class="note">Estimated place is up to 20% of performance (up to 18% of the overall score with the usual 90% performance / 10% win-rate split). Incomplete placement coverage reduces its weight; if placement is unavailable, metrics count for 100% of performance instead. These are experimental lobby estimates, not official Valve awards. Scores and tiers may change as calculations finish.</p>
+    <h4>Overall score · ${f1(metricWeight)}% stats + ${f1(placeWeight)}% estimated place + ${f1(winWeight)}% win standing</h4><div class="rank-components">${component('Stat performance',r.metricPerformance,metricWeight,'',`Core categories ${f1(r.metricCorePerformance)} + support bonus ${f1(r.supportBonus)} (capped at 100).`)}${component('Estimated avg place',r.placementScore,placeWeight,'',`Avg place ${f1(r.placement.average)} · ${r.placement.count}/${r.placement.selected} selected games calculated. Lower is better; compared with loaded peers. Coverage shrinks the placement standing toward 50, not its weight.`)}${component('Win-rate standing',r.winStanding,winWeight,'win','Peer percentile, shrunk toward 50 for fewer games.')}</div>
+    <p class="note">When all components are available, stat performance is 70% of the overall score, estimated place 20%, and win-rate standing 10%. Missing components are excluded and the remaining weights rescaled. Incomplete placement coverage shrinks its score toward 50, without reducing the stat-performance weight. These are experimental lobby estimates, not official Valve awards. Scores and tiers may change as calculations finish.</p>
     <h4>Core categories + additive support bonus · stat metrics only</h4><div class="rank-cat-grid">${categories.map(x=>x.card).join('')||'<p class="note">No comparable performance metrics.</p>'}</div>${categories.map(x=>x.panel).join('')}
     <p class="note">Expand a category to see every scored metric. Core-category sway contributes to the raw core average relative to 50: available metrics are weighted within each category, then available core categories are weighted. Support never subtracts points; its above-neutral score adds up to 5 stat-performance points after the 2.5× stretch. Core swings are not direct changes to the final leaderboard score. Bars show metric/category scores versus 50 (even with peers), not raw stat values.</p>
     <p class="note">Top three metrics in each direction with at least ${Math.min(10,c.games)} of your selected games; expand categories to see the rest.</p>
@@ -1141,11 +1334,18 @@ function personalTrends(p,matches=visibleMatches(p)){
 function personalTrend(p){return personalTrends(p).find(t=>Math.abs(t.change)>=.15)||null;}
 
 // Relative leaderboard, not an opponent-based Elo or an official match MVP rank.
-const RANK_WIN_WEIGHT=10,RANK_PERFORMANCE_WEIGHT=90;
-const RANK_METRIC_WEIGHT=80,RANK_PLACEMENT_WEIGHT=20;
+const RANK_METRIC_WEIGHT=70,RANK_PLACEMENT_WEIGHT=20,RANK_WIN_WEIGHT=10;
 function scalePerformanceScore(score){return Math.max(0,Math.min(100,50+2.5*(score-50)));}
 // At most five stat-performance points; scores at/below the neutral 50 add nothing.
 function supportBonus(rawScore){return rawScore==null?0:Math.max(0,scalePerformanceScore(rawScore)-50)/10;}
+function rankScoreParts(metric,placement,win){
+  const values={metric,placement,win};
+  const base={metric:RANK_METRIC_WEIGHT,placement:RANK_PLACEMENT_WEIGHT,win:RANK_WIN_WEIGHT};
+  const available=Object.keys(base).filter(key=>values[key]!=null);
+  const total=available.reduce((sum,key)=>sum+base[key],0);
+  const weights=Object.fromEntries(Object.keys(base).map(key=>[key,total&&values[key]!=null?base[key]/total*100:0]));
+  return {weights,score:total?available.reduce((sum,key)=>sum+weights[key]*values[key]/100,0):null};
+}
 function rankingStats(p,ms=visibleMatches(p)){
   const valid=(fn)=>ms.map(fn).filter(v=>v!=null&&Number.isFinite(v));
   const results=valid(m=>{
@@ -1211,9 +1411,9 @@ function rankPlayers(good){
     });
     row.categoryDetails.forEach(c=>{c.effectiveWeight=performanceWeight?c.baseWeight/performanceWeight*100:0;});
     row.performanceCoverage={games:row.n,details:row.matches.filter(m=>m._detail).length};
-    // The paired Chemistry formula and sample prior compress performance near 50,
-    // whereas win standing is a full percentile. Stretch performance before the
-    // 90/10 blend, or nominally 10% win rate can dominate close comparisons.
+    // The paired Chemistry formula and sample prior compress metrics near 50,
+    // whereas win standing is a full percentile. Stretch metrics before the
+    // 70/20/10 blend so the 10% win component cannot dominate close comparisons.
     const rawPerformance=performanceWeight?performanceTotal/performanceWeight:null;
     row.rawPerformance=rawPerformance;
     row.metricCorePerformance=rawPerformance==null?null:scalePerformanceScore(rawPerformance);
@@ -1228,20 +1428,9 @@ function rankPlayers(good){
       return [50+25*(y.average-x.average)/Math.max(Math.abs(x.average),Math.abs(y.average),1)*confidence];
     });
     const placementRaw=validAvg(placementComparisons);
-    // Uncalculated games must not be silently treated as poor placements, nor
-    // should a tiny calculated subset receive the same influence as full coverage.
+    // Coverage shrinks placement's standing toward neutral, but no longer changes
+    // its 20% overall weight or the 70% weight of available stat metrics.
     row.placementScore=placementRaw==null?null:50+(scalePerformanceScore(placementRaw)-50)*x.count/x.selected;
-    // A neutralized, sparsely calculated place must not take the full 20% away
-    // from real metrics (which would artificially boost a below-50 hero).
-    const placeWeight=row.placementScore==null?0:row.metricPerformance==null?100:
-      RANK_PLACEMENT_WEIGHT*x.count/x.selected;
-    const metricWeight=row.metricPerformance==null?0:100-placeWeight;
-    row.metricPerformanceWeight=metricWeight;
-    row.placementWeight=placeWeight;
-    row.performance=metricWeight+placeWeight?
-      (metricWeight*(row.metricPerformance??0)+placeWeight*(row.placementScore??0))/(metricWeight+placeWeight):null;
-    let total=0,weight=0;
-    if(row.performance!=null){total+=RANK_PERFORMANCE_WEIGHT*row.performance;weight+=RANK_PERFORMANCE_WEIGHT;}
     if(row.winRate!=null){
       const peers=rows.filter(other=>other.winRate!=null);
       const below=peers.filter(other=>other.winRate<row.winRate).length;
@@ -1249,9 +1438,10 @@ function rankPlayers(good){
       const percentile=peers.length===1?50:(below+(tied-1)/2)/(peers.length-1)*100;
       const confidence=row.counts.winRate/(row.counts.winRate+10);
       row.winStanding=50+(percentile-50)*confidence;
-      total+=RANK_WIN_WEIGHT*row.winStanding;weight+=RANK_WIN_WEIGHT;
     }
-    row.score=weight?total/weight:null;
+    const parts=rankScoreParts(row.metricPerformance,row.placementScore,row.winStanding);
+    row.scoreWeights=parts.weights;
+    row.score=parts.score;
   });
   return rows.sort((a,b)=>(b.score??-1)-(a.score??-1)||b.n-a.n||a.p.label.localeCompare(b.p.label));
 }
@@ -1445,18 +1635,136 @@ function tabHeroes(good){
   return h;
 }
 
+async function loadMatchBreakdown(id){
+  if(matchBreakdowns.has(id)||matchBreakdownPending.has(id)||!window.BreadlockPlacement)return;
+  const generation=loadGeneration;
+  matchBreakdownPending.add(id);matchBreakdownErrors.delete(id);
+  if(activeTab==='matches')renderMain();
+  try{
+    const rows=await BreadlockData.metadata([id],PLACEMENT_METADATA_OPTIONS,{priority:0});
+    if(generation!==loadGeneration)return;
+    const row=rows.find(x=>String(x.match_id)===id);
+    if(!row)throw Error('Match metadata unavailable');
+    const match=BreadlockPlacement.fromBulkMetadata(row,heroMeta);
+    const result=BreadlockPlacement.scoreMatch(match);
+    rememberMatchBreakdown(id,{row,match,result});
+    void loadMatchNames(id);
+    // An on-demand request can also finish before the background placement batch.
+    placementRanks.set(id,Object.fromEntries(result.map(x=>[String(x.heroId),x.rank])));
+    if(++placementUnsaved>=24)flushPlacementRanks();
+    applyBulkMatchDetails(row);
+  }catch(e){if(generation===loadGeneration)matchBreakdownErrors.set(id,String(e));}
+  finally{
+    matchBreakdownPending.delete(id);
+    if(generation===loadGeneration&&activeTab==='matches')renderMain();
+  }
+}
+async function loadMatchNames(id,refresh=false){
+  const data=matchBreakdowns.get(id);
+  if(!data||matchNamesPending.has(id)||(!refresh&&matchNamesLoaded.has(id)))return;
+  const generation=loadGeneration;
+  const accounts=[...new Set(data.row.players.map(x=>typeof x==='string'?JSON.parse(x):x)
+    .map(x=>String(x.account_id??'')).filter(x=>/^\d{1,10}$/.test(x)&&x!=='0'&&!steamNames.has(x)))];
+  if(!accounts.length){matchNamesLoaded.add(id);return;}
+  matchNamesPending.add(id);matchNamesErrors.delete(id);
+  if(activeTab==='matches')renderMain();
+  try{
+    const q=new URLSearchParams({account_ids:accounts.join(',')});
+    if(refresh)q.set('refresh','true');
+    const profiles=await apiFetch('/players/steam?'+q,{ttl:refresh?0:6*60*60*1000,priority:0,staleOnError:!refresh});
+    if(generation!==loadGeneration)return;
+    if(!Array.isArray(profiles))throw Error('Invalid Steam profile response');
+    for(const profile of profiles){
+      const account=String(profile.account_id),name=profile.personaname;
+      if(accounts.includes(account)&&typeof name==='string'&&name.trim())steamNames.set(account,name.trim());
+    }
+    matchNamesLoaded.add(id);
+  }catch(e){if(generation===loadGeneration)matchNamesErrors.set(id,String(e));}
+  finally{
+    matchNamesPending.delete(id);
+    if(generation===loadGeneration&&activeTab==='matches')renderMain();
+  }
+}
+function matchBreakdownHtml(id,selectedHero){
+  const data=matchBreakdowns.get(id);
+  if(!data){
+    const error=matchBreakdownErrors.get(id);
+    return `<div class="note" role="status">${error?`Could not load all 12 players: ${chemText(error)}. <button type="button" class="match-retry" data-match-id="${id}">Retry</button>`:matchBreakdownPending.has(id)?'Loading all 12 players and estimated score components…':'Match details unavailable.'}</div>`;
+  }
+  const {match,result,row}=data;
+  const raw=new Map((row.players||[]).map(x=>typeof x==='string'?JSON.parse(x):x).map(x=>[String(x.hero_id),x]));
+  const info=new Map(match.players.map(x=>[String(x.heroId),x]));
+  const parts=entry=>{
+    const p=info.get(String(entry.heroId));
+    const weighted=keys=>keys.reduce((sum,key)=>sum+p[key]*BreadlockPlacement.WEIGHTS[key],0);
+    return [
+      ['Kills',entry.estimatedKillPoints,'#f0b429'],
+      ['Hero damage',weighted(['Early Game Damage','Late Game Damage']),'#ff7979'],
+      ['Assists',weighted(['Early Game Assists','Late Game Assists']),'#74b3ff'],
+      ['Creep kills',weighted(['Lane Creep Kills']),'#93d98a'],
+      ['Defense',weighted(['Damage Absorbed']),'#ae92ef'],
+      ['Healing & barriers',weighted(['Other Player Total Healing','Teammate Barriers Provided','Healing Prevented']),'#66d2c0'],
+      ['Objectives',entry.estimatedObjectivePoints,'#fa9d62'],
+      ['Farm adjustment',entry.estimatedFarmBonus,'#e6dd80']
+    ];
+  };
+  // Positive slices and right-to-left death penalties share one match-wide scale.
+  const maxScale=Math.max(1,...result.flatMap(entry=>[
+    parts(entry).reduce((sum,[,points])=>sum+Math.max(0,points),0),
+    Math.max(0,-info.get(String(entry.heroId))['Death Score']*BreadlockPlacement.WEIGHTS['Death Score'])
+  ]));
+  const rowsByTeam=[0,1].map(team=>result.filter(entry=>info.get(String(entry.heroId)).team===team)
+    .sort((a,b)=>b.score-a.score||a.heroId-b.heroId).map(entry=>{
+    const p=info.get(String(entry.heroId)),r=raw.get(String(entry.heroId))||{};
+    const last=placementFinalStats(r);
+    const components=parts(entry),positive=components.reduce((sum,[,points])=>sum+Math.max(0,points),0);
+    const penalty=p['Death Score']*BreadlockPlacement.WEIGHTS['Death Score'];
+    const hero=heroMeta[entry.heroId]||{},account=String(r.account_id??'');
+    const username=steamNames.get(account)||(!/^\d{1,10}$/.test(account)||account==='0'?'Anonymous player':matchNamesPending.has(id)?'Loading username…':'Username unavailable');
+    const stat=(value,format=fk)=>value==null?'—':format(value);
+    return `<tr${String(entry.heroId)===String(selectedHero)?' class="match-selected"':''}>
+      <td class="r">${placementOrdinal(entry.rank)}</td><td class="l"><div class="hcell"><span class="hico tico" title="${chemText(entry.hero)}">${heroImage(entry.heroId,hero,hero.name||entry.hero)}</span><span class="match-username" title="${chemText(username)}">${chemText(username)}</span></div></td>
+      <td class="l match-score"><strong>${f1(entry.score)} pts</strong><div class="match-stack" role="img" aria-label="${chemText(entry.hero)}: estimated score ${f1(entry.score)} points; positive components ${f1(positive)} minus death penalty ${f1(-penalty)}">${components.filter(([,v])=>v>0).map(([name,points,color])=>`<span style="width:${points/maxScale*100}%;background:${color}" title="${chemText(name)}: +${f1(points)} points"></span>`).join('')}</div><div class="match-penalty"><div class="match-penalty-head"><span>Deaths ◀</span><span>−${f1(-penalty)} pts</span></div><div class="match-penalty-track" role="img" aria-label="Death penalty: ${f1(-penalty)} points, subtracted from positive points"><span class="match-penalty-fill" style="width:${Math.max(0,-penalty)/maxScale*100}%" title="Deaths: −${f1(-penalty)} points"></span></div></div></td>
+      <td class="r">${stat(gn(r,'kills'),String)}</td><td class="r">${stat(gn(last,'deaths')??r.death_details?.length,String)}</td><td class="r">${stat(gn(last,'assists'),String)}</td>
+      <td class="r">${stat(gn(last,'player_damage'))}</td><td class="r">${stat(gn(last,'net_worth'))}</td><td class="r">${stat(gn(last,'creep_kills'),String)}</td><td class="r">${stat(gn(last,'denies'),String)}</td><td class="r">${stat(gn(last,'level'),String)}</td>
+      <td class="r">${stat(gn(last,'teammate_healing'))}</td><td class="r">${stat(gn(last,'player_damage_taken'))}</td><td class="r">${stat(gn(last,'boss_damage'))}</td>
+    </tr>`;
+  }).join(''));
+  const legend=parts(result[0]).map(([name,,color])=>`<span><i style="background:${color}"></i>${chemText(name)}</span>`).join('');
+  const missing=(row.players||[]).map(x=>typeof x==='string'?JSON.parse(x):x).some(x=>/^\d{1,10}$/.test(String(x.account_id??''))&&String(x.account_id)!=='0'&&!steamNames.has(String(x.account_id)));
+  return `<div class="note">Experimental 1–12 estimate, not Valve MVP. Teammates are grouped together, then sorted by estimated score within each team. Stacked bars show positive points; red bars below extend in the opposite direction for the death penalty. Both use the same scale across all 12 players (the largest positive total or penalty fills a track); subtract the penalty to get the final score. Hover for point values.${missing&&!matchNamesPending.has(id)?` <button type="button" class="match-names-refresh" data-match-id="${chemText(id)}">Refresh missing Steam usernames</button>`:''}${matchNamesErrors.has(id)?` <span role="status">Steam names unavailable: ${chemText(matchNamesErrors.get(id))}</span>`:''}</div><div class="match-legend">${legend}<span><i style="background:#ed6b77"></i>Deaths (subtracted)</span></div>
+    <div class="match-roster-scroll"><table class="st match-roster"><thead><tr><th class="r">Est. place</th><th class="l">Steam username · hero icon</th><th class="l">Estimated score breakdown</th><th class="r">K</th><th class="r">D</th><th class="r">A</th><th class="r">Damage</th><th class="r">Souls</th><th class="r">Creeps</th><th class="r">Denies</th><th class="r">Lvl</th><th class="r">Ally heal</th><th class="r">Dmg taken</th><th class="r">Boss dmg</th></tr></thead><tbody class="match-team-group match-team-0" aria-label="First group of teammates">${rowsByTeam[0]}</tbody><tbody class="match-team-group match-team-1" aria-label="Second group of teammates">${rowsByTeam[1]}</tbody></table></div>`;
+}
+function matchOpenKey(playerId,matchId){return JSON.stringify([String(playerId),String(matchId)]);}
+function matchPageFor(player,total){
+  const last=Math.max(0,Math.ceil(total/MATCHES_PAGE_SIZE)-1);
+  const page=Math.max(0,Math.min(matchPages.get(player.id)||0,last));
+  matchPages.set(player.id,page);
+  return page;
+}
+function matchPagination(player,page,total){
+  const pages=Math.ceil(total/MATCHES_PAGE_SIZE),start=page*MATCHES_PAGE_SIZE;
+  return `<nav class="match-pagination" aria-label="${chemText(player.label)} match pages">
+    <button type="button" data-match-player="${chemText(player.id)}" data-match-page="${page-1}" aria-label="Previous page for ${chemText(player.label)}" ${page===0?'disabled':''}>Previous</button>
+    <span class="match-page-status" data-match-player="${chemText(player.id)}" tabindex="-1">Showing ${start+1}–${Math.min(start+MATCHES_PAGE_SIZE,total)} of ${total} · Page ${page+1} of ${pages}</span>
+    <button type="button" data-match-player="${chemText(player.id)}" data-match-page="${page+1}" aria-label="Next page for ${chemText(player.label)}" ${page>=pages-1?'disabled':''}>Next</button>
+  </nav>`;
+}
 function tabMatches(good){
   if(!good.length)return'<div class="nd">No data yet</div>';
   return good.map(p=>{
     const ms=visibleMatches(p);
     if(!ms.length)return`<div class="card"><div class="ct" style="color:${p.color}">${chemText(p.label)}</div><div class="nd">No match history.</div></div>`;
+    const page=matchPageFor(p,ms.length),pagination=matchPagination(p,page,ms.length);
     return`<div class="card">
       <div class="ct" style="color:${p.color}">${chemText(p.label)} — ${ms.length} matches loaded (most recent first)</div>
+      <div class="note">Expand a match to see all 12 heroes, final stats and estimated placement score components. Full details load on demand.</div>
+      ${pagination}
       <div style="overflow-x:auto">
       <table class="st"><thead><tr>
         <th class="l">Hero</th><th class="l">Date / Time</th><th class="l">Mode</th><th class="r">Est. place</th><th class="r">K</th><th class="r">D</th><th class="r">A</th><th class="r">KDA</th><th class="r">Damage</th><th class="r">Souls/min</th><th class="r">Net Worth</th><th class="r">Last Hits</th><th class="r">Denies</th><th class="r">Lvl</th><th class="r">Result</th><th class="r">Duration</th>
       </tr></thead><tbody>
-      ${ms.slice(0,15).map(m=>{
+      ${ms.slice(page*MATCHES_PAGE_SIZE,(page+1)*MATCHES_PAGE_SIZE).map(m=>{
         const hid=gf(m,'hero_id');const hero=heroMeta[hid]||{};
         const k=gf(m,'player_kills');const d=gf(m,'player_deaths');const a=gf(m,'player_assists');
         const kda=d?((k+a)/d).toFixed(1):(k+a);
@@ -1464,8 +1772,10 @@ function tabMatches(good){
         const damage=gn(m,'player_damage'),netWorth=gn(m,'net_worth');
         const soulsMin=dur>0&&netWorth!=null?netWorth*60/dur:null;
         const won=isWin(m);
+        const id=String(m.match_id),open=openMatchIds.has(matchOpenKey(p.id,id));
+        const detailId=`match-roster-${p.id}-${id}`;
         return`<tr>
-          <td class="l"><div class="hico tico" title="${chemText(hero.name||hid||'Unknown hero')}">${heroImage(hid,hero,hero.name||'Hero')}</div></td>
+          <td class="l"><button type="button" class="match-toggle" data-match-id="${chemText(id)}" data-match-player="${chemText(p.id)}" aria-expanded="${open}" aria-controls="${chemText(detailId)}" aria-label="${open?'Hide':'Show'} all players for ${chemText(p.label)}'s match ${chemText(id)}">${open?'▾':'▸'} <span class="hico tico" title="${chemText(hero.name||hid||'Unknown hero')}">${heroImage(hid,hero,hero.name||'Hero')}</span></button></td>
           <td class="l" style="font-size:11px;color:var(--txt3);white-space:nowrap">${matchDate(m)}</td>
           <td class="l" style="font-size:11px;color:var(--txt3)">${gf(m,'game_mode')===2?'Ranked':'Normal'}</td>
           <td class="r" title="Experimental 1–12 lobby estimate, not a Valve award">${placementForMatch(m)==null?'—':placementOrdinal(placementForMatch(m))}</td>
@@ -1479,9 +1789,9 @@ function tabMatches(good){
           <td class="r">${gf(m,'hero_level')||'—'}</td>
           <td class="r"><span class="${won?'bwin':'bloss'}">${won?'WIN':'LOSS'}</span></td>
           <td class="r">${dur?Math.floor(dur/60)+':'+String(dur%60).padStart(2,'0'):'—'}</td>
-        </tr>`;
+        </tr>${open?`<tr class="match-expanded" id="${chemText(detailId)}"><td colspan="16">${matchBreakdownHtml(id,hid)}</td></tr>`:''}`;
       }).join('')}
-      </tbody></table></div></div>`;
+      </tbody></table></div>${pagination}</div>`;
   }).join('');
 }
 
@@ -1731,6 +2041,7 @@ function sharedMatches(a,b){
   return visibleMatches(a).flatMap(m=>{const x=other.get(String(m.match_id));return x?[[m,x]]:[];});
 }
 function chemText(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function coreWeightText(weight){return weight==null?'—':Number.isInteger(weight)?String(weight):f1(weight);}
 function chemWinColor(rate){return rate>50?`hsl(145,100%,${Math.round(54-(rate-50)*.2)}%)`:rate<50?`hsl(0,100%,${Math.round(61-(50-rate)*.16)}%)`:'var(--acc3)';}
 function chemCompareValues(av,bv,format){
   const value=(v,other)=>v==null?'—':`<span style="color:${other==null||v===other?'var(--txt)':v>other?'var(--grn)':'var(--red)'};font-weight:700">${format(v)}</span>`;
@@ -1738,7 +2049,7 @@ function chemCompareValues(av,bv,format){
 }
 // Core category weights; Support is a separate positive-only bonus, not a core weight.
 // Unavailable core categories are removed and the remaining weights normalized.
-const CHEM_WEIGHTS={Combat:30,Economy:25,'Objectives & farming':10,Aim:5,Support:0,Survivability:15};
+const CHEM_WEIGHTS={Combat:40,Economy:15,'Objectives & farming':20,Aim:5,Support:0,Survivability:20};
 function weightedMetricScore(metrics){
   const total=metrics.reduce((sum,m)=>sum+m.weight,0);
   return total?metrics.reduce((sum,m)=>sum+m.score*m.weight,0)/total:null;
@@ -1748,14 +2059,14 @@ function weightedMetricScore(metrics){
 // A direction/weight of 0 displays the metric but excludes it from scoring.
 const CHEM_STATS=[
   ['Combat','Damage and fighting output','#ff9678',[
-    ['Hero damage/min',o=>o.ext.dpm,f1,1,30],['Hero damage/game',o=>gn(o.m,'player_damage'),fk,1,10],
-    ['Kills/game',o=>gn(o.m,'player_kills'),f1,1,20],['Assists/game',o=>gn(o.m,'player_assists'),f1,1,20],
-    ['KDA/game',o=>{const k=gn(o.m,'player_kills'),d=gn(o.m,'player_deaths'),v=gn(o.m,'player_assists');return k==null||d==null||v==null?null:(k+v)/(d||1);},f2,1,20]
+    ['Hero damage/min',o=>o.ext.dpm,f1,1,35],['Hero damage/game',o=>gn(o.m,'player_damage'),fk,1,10],
+    ['Kills/game',o=>gn(o.m,'player_kills'),f1,1,25],['Assists/game',o=>gn(o.m,'player_assists'),f1,1,25],
+    ['KDA/game',o=>{const k=gn(o.m,'player_kills'),d=gn(o.m,'player_deaths'),v=gn(o.m,'player_assists');return k==null||d==null||v==null?null:(k+v)/(d||1);},f2,1,5]
   ]],
   ['Economy','Souls, farming and progression','#f0b429',[
-    ['Souls/min',o=>ratio(gn(o.m,'net_worth'),ratio(gn(o.m,'match_duration_s'),60)),f1,1,50],
+    ['Souls/min',o=>ratio(gn(o.m,'net_worth'),ratio(gn(o.m,'match_duration_s'),60)),f1,1,60],
     ['Net worth',o=>gn(o.m,'net_worth'),fk,1,15],['Last hits/game',o=>gn(o.m,'last_hits'),f1,0,0],
-    ['Denies/game',o=>gn(o.m,'denies'),f1,1,15],['Hero level',o=>gn(o.m,'hero_level'),f1,1,20]
+    ['Denies/game',o=>gn(o.m,'denies'),f1,1,5],['Hero level',o=>gn(o.m,'hero_level'),f1,1,20]
   ]],
   ['Objectives & farming','Boss, jungle and lane pressure','#79db80',[
     ['Boss damage/game',o=>o.ext.boss,fk,1,50],['Jungle creep damage/game',o=>o.ext.neutral,fk,1,20],
@@ -1770,8 +2081,8 @@ const CHEM_STATS=[
     ['Healing prevented/game',o=>o.ext.healPrevented,fk,1,30]
   ]],
   ['Survivability','Deaths and damage absorbed','#34d9c3',[
-    ['Deaths/game',o=>gn(o.m,'player_deaths'),f1,-1,55],['Damage taken/game',o=>o.ext.taken,fk,0,0],
-    ['Damage mitigated/game',o=>o.ext.mitigated,fk,1,25],['Self healing/game',o=>o.ext.selfHeal,fk,1,20]
+    ['Deaths/game',o=>gn(o.m,'player_deaths'),f1,-1,65],['Damage taken/game',o=>o.ext.taken,fk,0,0],
+    ['Damage mitigated/game',o=>o.ext.mitigated,fk,1,20],['Self healing/game',o=>o.ext.selfHeal,fk,1,15]
   ]]
 ];
 function chemObservations(matches){return matches.map(([m,x])=>[{m,ext:metrics(m)},{m:x,ext:metrics(x)}]);}
@@ -1906,7 +2217,7 @@ function tabChemistry(good){
     const stats=CHEM_STATS;
     const scoreLeader=performance.scoreA==null||performance.scoreA===performance.scoreB?null:performance.scoreA>performance.scoreB?a:b;
     h+=`<div class="card chem-comparison" style="--chem-overall:${scoreLeader?.color||'var(--txt3)'}"><div class="ct">Same-match comparison</div><p class="chem-foot">Paired-match averages for <span style="color:${a.color}">${chemText(a.label)}</span> and <span style="color:${b.color}">${chemText(b.label)}</span>. Difference = ${chemText(a.label)} minus ${chemText(b.label)}. Card accents show who does better on scored metrics; deaths favor fewer, while last hits and damage taken are shown but not scored.</p>`;
-    h+=`<div class="chem-score-card"><h4>Same-match performance score</h4><p class="chem-foot">A pair-relative score, not the Overview leaderboard or a measure of pair synergy. Stat metrics contribute 80% and estimated lobby placement 20% when both are available; otherwise the available component counts for 100%. Core category weights: Combat 30%, Economy 25%, Objectives & farming 10%, Aim 5%, Survivability 15% (renormalized across available categories). Support is not a core weight: above-neutral support earns a capped +5 stat-point bonus, and half the bonus difference shifts the zero-sum pair split. Available metrics use their within-category weights (renormalized when missing) and compare only shared matches where both players have values. Placement compares only shared matches where both have estimated ranks, with small samples and incomplete coverage discounted. Lower place is better; deaths are inverted; last hits and damage taken are displayed but not scored; win rate is excluded. Metric and placement standings are individually stretched 2.5× around 50 before blending.</p>`;
+    h+=`<div class="chem-score-card"><h4>Same-match performance score</h4><p class="chem-foot">A pair-relative score, not the Overview leaderboard or a measure of pair synergy. Stat metrics contribute 80% and estimated lobby placement 20% when both are available; otherwise the available component counts for 100%. Core category weights: Combat 40%, Economy 15%, Objectives & farming 20%, Aim 5%, Survivability 20% (renormalized across available categories). Support is not a core weight: above-neutral support earns a capped +5 stat-point bonus, and half the bonus difference shifts the zero-sum pair split. Available metrics use their within-category weights (renormalized when missing) and compare only shared matches where both players have values. Placement compares only shared matches where both have estimated ranks, with small samples and incomplete coverage discounted. Lower place is better; deaths are inverted; last hits and damage taken are displayed but not scored; win rate is excluded. Metric and placement standings are individually stretched 2.5× around 50 before blending.</p>`;
     if(performance.scoreA!=null){
       for(const [player,side] of [[a,'A'],[b,'B']]){
         const score=performance['score'+side];
@@ -2096,6 +2407,24 @@ function mountCharts(arr){
 
 // Init
 function init(){
+  document.getElementById('main').addEventListener('click',e=>{
+    const toggle=e.target.closest('.match-toggle'),retry=e.target.closest('.match-retry'),names=e.target.closest('.match-names-refresh'),pager=e.target.closest('button[data-match-page]');
+    if(pager){
+      const player=players.find(p=>p.id===pager.dataset.matchPlayer);
+      if(!player||player.loading||player.error)return;
+      const total=visibleMatches(player).length,page=Number(pager.dataset.matchPage);
+      if(!Number.isInteger(page)||page<0||page>=Math.ceil(total/MATCHES_PAGE_SIZE))return;
+      matchPages.set(player.id,page);openMatchIds.clear();renderMain();
+      [...document.querySelectorAll('.match-page-status')].find(x=>x.dataset.matchPlayer===player.id)?.focus();
+    }else if(toggle){
+      const id=toggle.dataset.matchId,playerId=toggle.dataset.matchPlayer,key=matchOpenKey(playerId,id);
+      if(openMatchIds.has(key))openMatchIds.delete(key);
+      else{openMatchIds.add(key);loadMatchBreakdown(id);void loadMatchNames(id);}
+      renderMain();
+      [...document.querySelectorAll('.match-toggle')].find(b=>b.dataset.matchId===id&&b.dataset.matchPlayer===playerId)?.focus();
+    }else if(retry)loadMatchBreakdown(retry.dataset.matchId);
+    else if(names)void loadMatchNames(names.dataset.matchId,true);
+  });
   document.getElementById('btn-add').addEventListener('click',()=>{
     const id=document.getElementById('inp-id').value.trim();
     const nm=document.getElementById('inp-nm').value.trim();
@@ -2117,7 +2446,7 @@ function init(){
   });
   document.getElementById('btn-clr').addEventListener('click',()=>{
     loadGeneration++;cancelPlacements();
-    placementRanks.clear();placementFailures.clear();placementUnsaved=0;dataNotice='';
+    placementRanks.clear();placementFailures.clear();matchBreakdowns.clear();openMatchIds.clear();matchPages.clear();matchBreakdownErrors.clear();steamNames.clear();matchNamesLoaded.clear();matchNamesErrors.clear();placementUnsaved=0;dataNotice='';
     try{localStorage.removeItem(PLACEMENT_CACHE_KEY);}catch(e){dbg('Placement cache could not be cleared: '+e,'wn');}
     players=[];Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});charts={};
     renderChips();renderMain();
@@ -2128,7 +2457,7 @@ function init(){
     renderMain();
   });
   document.querySelectorAll('.filters select').forEach(select=>select.addEventListener('change',()=>{
-    cancelPlacements();scopeMode=document.getElementById('scope-mode').value;
+    cancelPlacements();matchPages.clear();openMatchIds.clear();scopeMode=document.getElementById('scope-mode').value;
     scopeCount=+document.getElementById('scope-count').value;
     scopeUnit=document.getElementById('scope-unit').value;
     renderMain();schedulePlacements();refreshMvp();
