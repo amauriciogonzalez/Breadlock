@@ -189,10 +189,6 @@ input[type=text]::placeholder{color:var(--sub)}
 .rank-compare .chem-category{margin-top:12px}
 .rank-compare .chem-stat small{display:block;color:var(--txt3);font-size:11px;line-height:1.4;margin-top:8px}
 .rank-compare .chem-bar-fill{min-width:0}
-.rank-compare-more{margin-top:14px;border-top:1px solid var(--bdr2);padding-top:12px}
-.rank-compare-more summary{cursor:pointer;color:var(--acc3);font-size:12px;font-weight:700;width:fit-content}
-.rank-compare-more summary:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
-.rank-compare-more[open] summary{margin-bottom:12px}
 .rank-place{font-family:var(--fm);font-weight:700;color:var(--acc3)!important}
 .rank-tier{display:inline-block;min-width:27px;text-align:center;padding:2px 6px;border-radius:4px;font-weight:800;border:1px solid currentColor}
 .rank-S{color:var(--acc3)}.rank-A{color:var(--grn)}.rank-B{color:var(--blue)}.rank-C{color:var(--teal)}
@@ -384,6 +380,7 @@ input[type=text]::placeholder{color:var(--sub)}
 .chem-category .chem-compare{margin-top:12px}
 .chem-match-section{margin-top:12px}
 .match-toggle{display:inline-flex;align-items:center;gap:5px;border:0;background:none;color:var(--acc);cursor:pointer;padding:2px;font-size:15px}
+.match-hero-name{display:none}
 .match-toggle:focus-visible,.match-retry:focus-visible{outline:2px solid var(--acc)}
 .match-expanded>td{background:var(--bg3);padding:14px;white-space:normal}
 .match-roster-scroll{overflow-x:auto;margin-top:10px}
@@ -422,7 +419,114 @@ input[type=text]::placeholder{color:var(--sub)}
 .chem-foot{font-size:12px;color:var(--txt3);line-height:1.6}
 @media(max-width:800px){.chem-layout{grid-template-columns:1fr}.chem-list{height:auto;flex:none;max-height:300px}.chem-pairs-card{overflow:visible}.chem-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){.chem-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.chem-compare{grid-template-columns:1fr}.chem-result{gap:8px}}
-@media(max-width:700px){.g3{grid-template-columns:1fr}}
+@media(max-width:700px){
+  .g3{grid-template-columns:1fr}
+  .main{padding:12px 0}
+  .pbar,.filters{padding:10px 12px}
+  .pbar .row{flex-wrap:wrap;min-width:0}
+  .pbar .row:first-child{width:100%}
+  .pbar input[type=text]{flex:1 1 110px;width:auto!important;min-width:0}
+  .pbar .chips{flex-basis:100%}
+  .filters .note{flex-basis:100%}
+  .tabs{padding-inline:6px}
+  .tab{padding:12px 10px}
+  .rank-card{padding:12px 10px}
+  .rank-card>.ct{flex-wrap:wrap;gap:8px}
+  .rank-mode{flex-basis:100%}
+  .rank-mode .btn{min-height:40px}
+  .rank-scroll{overflow:visible}
+  .rank-table,.rank-table.best-heroes{display:block;min-width:0;width:100%;table-layout:auto}
+  .rank-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+  .rank-table tbody{display:block}
+  .rank-table .rank-entry{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 10px;padding:12px;margin-bottom:10px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:8px;min-width:0}
+  .rank-table .rank-entry.rank-boundary{border-top:3px solid var(--acc2)}
+  .rank-table .rank-entry>td,.rank-table.best-heroes .rank-entry>td{display:flex;align-items:baseline;justify-content:space-between;gap:5px;min-width:0;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:12px;text-align:right;overflow-wrap:anywhere}
+  .rank-table .rank-entry>td::before{content:attr(data-label);font:600 10px var(--ff);color:var(--txt3);text-align:left;white-space:normal}
+  .rank-table .rank-entry>.rank-place,.rank-table .rank-entry>.rank-tier-cell,.rank-table .rank-entry>.rank-player,.rank-table .rank-entry>.rank-hero{border:0}
+  .rank-table .rank-entry>.rank-place{grid-column:1;grid-row:1;justify-content:flex-start;font-size:14px}
+  .rank-table .rank-entry>.rank-place::before{content:'#';margin-right:2px}
+  .rank-table .rank-entry>.rank-player::before,.rank-table .rank-entry>.rank-tier-cell::before,.rank-table .rank-entry>.rank-hero::before{content:none}
+  .rank-table .rank-entry>.rank-player{grid-column:1 / -1;grid-row:2;justify-content:flex-start;text-align:left}
+  .rank-table .rank-entry>.rank-player .rank-select{max-width:100%;min-width:0;min-height:40px;white-space:normal;overflow-wrap:anywhere;padding:6px 2px;font-size:15px}
+  .rank-table .rank-entry>.rank-tier-cell{grid-column:2;grid-row:1;justify-content:flex-end;align-items:center}
+  .rank-expand{width:40px;height:40px;margin-left:3px;background:var(--bg2)}
+  .rank-table .rank-entry>.rank-hero{grid-column:1 / -1;grid-row:3;justify-content:flex-start;text-align:left}
+  .rank-table .rank-entry>.rank-hero .hcell{min-width:0;max-width:100%;white-space:normal}
+  .rank-table .rank-entry>.rank-score-cell{grid-column:1 / -1;grid-row:3;align-items:center;border-top:1px solid var(--bdr2);padding-block:10px;font-size:16px}
+  .rank-table.best-heroes .rank-entry>.rank-score-cell{grid-row:4}
+  .rank-table .rank-entry>.rank-score-cell::before{font-size:11px}
+  .rank-table .rank-entry .rank-score{gap:10px}
+  .rank-table .rank-entry .rank-track,.rank-table.best-heroes .rank-entry .rank-track{width:80px}
+  .rank-table .rank-detail:not([hidden]){display:block;margin:-10px 0 10px}
+  .rank-table .rank-detail>td{display:block;width:100%;border:1px solid var(--bdr2);border-top:0;border-radius:0 0 8px 8px}
+  .rank-explain{padding:14px 10px}
+  .rank-compare{padding:16px 4px}
+  .rank-compare-prompt .note{margin-left:0}
+}
+@media(max-width:700px){
+  .matches-card{padding:12px 10px;min-width:0}
+  .matches-card>.ct{line-height:1.5;letter-spacing:1px}
+  .matches-scroll,.match-roster-scroll{overflow:visible}
+  .matches-table,.match-roster{display:block;width:100%;min-width:0}
+  .matches-table thead,.match-roster thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+  .matches-table tbody,.match-roster tbody{display:block}
+  .matches-table .match-entry,.match-roster tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:8px;padding:10px;margin:8px 0;min-width:0}
+  .matches-table .match-entry>td,.match-roster tbody tr>td{display:flex;align-items:baseline;justify-content:space-between;gap:5px;min-width:0;padding:7px 0;border-bottom:1px solid var(--bdr);font-size:12px;text-align:right;overflow-wrap:anywhere}
+  .matches-table .match-entry>td::before,.match-roster tbody tr>td::before{color:var(--txt3);font:600 10px var(--ff);text-align:left}
+  .matches-table .match-entry>td:first-child{grid-column:1;grid-row:1;justify-content:flex-start;border:0}
+  .matches-table .match-entry>td:nth-child(2){grid-column:2;grid-row:1;align-items:center;justify-content:flex-end;border:0}
+  .match-toggle{min-height:44px;min-width:44px;text-align:left}
+  .match-hero-name{display:inline;color:var(--txt);font:700 13px var(--ff);overflow-wrap:anywhere}
+  .matches-table .match-entry>td:nth-child(3){grid-column:1 / -1;grid-row:2;justify-content:flex-start}
+  .matches-table .match-entry>td:nth-child(4)::before{content:'Mode'}
+  .matches-table .match-entry>td:nth-child(5)::before{content:'Est. place'}
+  .matches-table .match-entry>td:nth-child(6)::before{content:'Kills'}
+  .matches-table .match-entry>td:nth-child(7)::before{content:'Deaths'}
+  .matches-table .match-entry>td:nth-child(8)::before{content:'Assists'}
+  .matches-table .match-entry>td:nth-child(9)::before{content:'KDA'}
+  .matches-table .match-entry>td:nth-child(10)::before{content:'Damage'}
+  .matches-table .match-entry>td:nth-child(11)::before{content:'Obj. damage'}
+  .matches-table .match-entry>td:nth-child(12)::before{content:'Self heal'}
+  .matches-table .match-entry>td:nth-child(13)::before{content:'Ally heal'}
+  .matches-table .match-entry>td:nth-child(14)::before{content:'Souls/min'}
+  .matches-table .match-entry>td:nth-child(15)::before{content:'Net worth'}
+  .matches-table .match-entry>td:nth-child(16)::before{content:'Duration'}
+  .matches-table .match-expanded{display:block;margin:-8px 0 12px}
+  .matches-table .match-expanded>td{display:block;width:100%;padding:12px 8px;border:1px solid var(--bdr2);border-radius:0 0 8px 8px;min-width:0}
+  .match-roster .match-team-group::before{display:block;margin:16px 0 8px;padding:6px 8px;border-left:3px solid var(--acc);color:var(--txt);font-size:12px;font-weight:700}
+  .match-roster .match-team-0::before{content:'First team'}
+  .match-roster .match-team-1::before{content:'Second team';border-color:var(--blue)}
+  .match-roster .match-team-0 td,.match-roster .match-team-1 td{background:transparent}
+  .match-roster .match-team-0 tr{border-left:3px solid var(--acc)}
+  .match-roster .match-team-1 tr{border-left:3px solid var(--blue)}
+  .match-roster .match-team-0 td:first-child,.match-roster .match-team-1 td:first-child{border-left:0}
+  .match-roster .match-team-1 tr:first-child td{border-top:0}
+  .match-roster .match-selected{background:rgba(240,180,41,.18)}
+  .match-roster tbody tr>td:first-child{grid-column:1;grid-row:1;justify-content:flex-start;align-items:center;border:0;color:var(--acc3);font-size:15px;font-weight:700}
+  .match-roster tbody tr>td:nth-child(2){grid-column:2;grid-row:1;justify-content:flex-end;align-items:center;border:0}
+  .match-roster .hcell{min-width:0;max-width:100%;white-space:normal;justify-content:flex-end;text-align:right}
+  .match-roster .match-username{min-width:0;white-space:normal;overflow-wrap:anywhere}
+  .match-roster tbody tr>td.match-score{grid-column:1 / -1;grid-row:2;display:block;min-width:0;padding:10px 0;border-top:1px solid var(--bdr2);text-align:left}
+  .match-roster .match-score::before{content:'Estimated score';display:block;margin-bottom:6px}
+  .match-roster tbody tr>td:nth-child(4)::before{content:'Kills'}
+  .match-roster tbody tr>td:nth-child(5)::before{content:'Deaths'}
+  .match-roster tbody tr>td:nth-child(6)::before{content:'Assists'}
+  .match-roster tbody tr>td:nth-child(7)::before{content:'KDA'}
+  .match-roster tbody tr>td:nth-child(8)::before{content:'Damage'}
+  .match-roster tbody tr>td:nth-child(9)::before{content:'Souls'}
+  .match-roster tbody tr>td:nth-child(10)::before{content:'Objective'}
+  .match-roster tbody tr>td:nth-child(11)::before{content:'Healing'}
+  .match-pagination{justify-content:space-between}
+  .match-page-status{order:-1;flex-basis:100%}
+  .match-pagination button{min-height:40px;min-width:90px}
+}
+@media(max-width:400px){
+  .rank-table .rank-entry{gap:0 8px;padding:10px}
+  .rank-table .rank-entry>td{font-size:11px}
+  .rank-table .rank-entry>.rank-score-cell{font-size:15px}
+  .rank-trend-row{grid-template-columns:85px minmax(0,1fr) 45px;gap:5px;font-size:10px}
+  .chem-score-head strong{font-size:17px}
+}
 </style>
 </head>
 <body>
@@ -448,7 +552,7 @@ input[type=text]::placeholder{color:var(--sub)}
   </div>
 </div>
 
-<div class="filters"><label class="row"><span class="lbl">Mode</span><select id="scope-mode"><option value="normal">All Normal</option><option value="standard">Standard</option><option value="ranked">Ranked</option></select></label><div class="row"><span class="lbl">Period: Last</span><select id="scope-count" aria-label="Period amount"><option value="0">All</option><option value="30">30</option><option value="90">90</option></select><select id="scope-unit" aria-label="Period unit"><option value="matches">Matches</option><option value="days">Days</option></select></div><span class="note">All comparisons use the same selected mode and period.</span></div>
+<div class="filters"><label class="row"><span class="lbl">Mode</span><select id="scope-mode"><option value="normal">All Normal</option><option value="standard">Standard</option><option value="ranked">Ranked</option></select></label><div class="row"><span class="lbl">Period: Last</span><select id="scope-count" aria-label="Period amount"><option value="0">All</option><option value="30">30</option><option value="90">90</option></select><select id="scope-unit" aria-label="Period unit"><option value="matches">Matches</option><option value="days">Days</option></select></div></div>
 
 <div class="tabs" id="tabs" role="tablist" aria-label="Sections">
   <button type="button" role="tab" aria-selected="true" class="tab on" data-t="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Overview</button>
@@ -651,7 +755,7 @@ function placementStatusHtml(){
     const reason=placementStoppedReason?'Match metadata requests kept failing; automatic retries stopped for this session.':
       placementFailures.size?'Some matches had missing or unusable metadata; they are excluded from averages.':
       'Some selected games do not have calculable match metadata.';
-    return `<div id="placement-status" class="note" role="status">Estimated placements: ${covered}/${total} selected player-games calculated. ${reason} Placement averages and most-common places use only calculated games; change the selection or reload to try again.</div>`;
+    return `<div id="placement-status" class="note" role="status">Estimated placements: ${covered}/${total} calculated. ${reason}</div>`;
   }
   const pct=Math.min(covered===total?100:99,Math.floor(100*covered/total));
   const remaining=placementTargets.filter(id=>!placementRanks.has(id)&&!placementFailures.has(id)).length;
@@ -667,7 +771,7 @@ function placementStatusHtml(){
   return `<div id="placement-status" class="load-status" role="status" aria-live="polite">
     <div class="load-summary"><strong>Estimated placements: ${state}</strong><span>${covered}/${total} selected player-games calculated (${pct}%)</span></div>
     <div class="load-track" role="progressbar" aria-label="Estimated placement selected-history coverage" aria-valuenow="${covered}" aria-valuemin="0" aria-valuemax="${total}"><div class="load-fill" style="width:${pct}%"></div></div>
-    <div class="note">Placement averages and most-common places are provisional while coverage is incomplete; damage/support rankings may also update. ${detail}</div>
+    <div class="note">${detail}</div>
   </div>`;
 }
 function renderPlacementStatus(){
@@ -1093,7 +1197,6 @@ function renderMain(){
   const el=document.getElementById('main');if(!el)return;
   const expandedRankIds=activeTab==='overview'?new Set([...el.querySelectorAll('.rank-expand[aria-expanded="true"]')].map(b=>b.dataset.rankPerson)):new Set();
   const openRankCats=activeTab==='overview'?new Set([...el.querySelectorAll('.rank-cat-toggle[aria-expanded="true"]')].map(b=>b.dataset.rankCatToggle)):new Set();
-  const openCompareMore=activeTab==='overview'&&!!el.querySelector('.rank-compare-more[open]');
   const chemScroll=activeTab==='chemistry'?{page:window.scrollY,list:el.querySelector('.chem-list')?.scrollTop||0,
     focus:document.activeElement?.dataset.chemPerson?document.activeElement.dataset.chemPerson:document.activeElement?.dataset.chemPair?'pair':document.activeElement?.id==='chem-sort'?'sort':null}:null;
   Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});charts={};
@@ -1123,7 +1226,6 @@ function renderMain(){
   else if(activeTab==='matches')html+=tabMatches(good);
   else if(activeTab==='debug')html+=tabDebug();
   el.innerHTML=html;
-  if(openCompareMore&&el.querySelector('.rank-compare-more'))el.querySelector('.rank-compare-more').open=true;
   const setCategoryOpen=(button,open)=>{
     const panel=document.getElementById(button.getAttribute('aria-controls'));
     if(!panel)return;
@@ -1197,7 +1299,7 @@ function tabOverview(arr){
   const ranked=assignRankingTiers(bestHeroes?bestHeroRankings(arr.map(x=>x.p)):rankPlayers(arr.map(x=>x.p)));
   comparedRankIds=comparedRankIds.filter(id=>ranked.some(r=>String(r.p.id)===id));
   const statsByPlayer=new Map(bestHeroes?ranked.map(r=>[r.p,derive(r.p,r.matches)]):arr.map(x=>[x.p,x.s]));
-  h+=`<div class="card"><div class="ct">Leaderboard <span class="rank-mode" role="group" aria-label="Leaderboard view"><button type="button" class="btn btnsm ${bestHeroes?'':'btna'}" data-leaderboard-mode="overall" aria-pressed="${!bestHeroes}">Overall</button><button type="button" class="btn btnsm ${bestHeroes?'btna':''}" data-leaderboard-mode="heroes" aria-pressed="${bestHeroes}">Best Heroes</button></span></div><div class="rank-scroll">
+  h+=`<div class="card rank-card"><div class="ct">Leaderboard <span class="rank-mode" role="group" aria-label="Leaderboard view"><button type="button" class="btn btnsm ${bestHeroes?'':'btna'}" data-leaderboard-mode="overall" aria-pressed="${!bestHeroes}">Overall</button><button type="button" class="btn btnsm ${bestHeroes?'btna':''}" data-leaderboard-mode="heroes" aria-pressed="${bestHeroes}">Best Heroes</button></span></div><div class="rank-scroll">
   <table class="st rank-table${bestHeroes?' best-heroes':''}"><thead><tr>
     <th class="l">#</th><th class="l">Tier</th><th class="l">Player</th>${bestHeroes?'<th class="l">Hero</th>':''}<th class="r">Score</th>
     <th class="r">Games</th><th class="r">W</th><th class="r">L</th><th class="r">Win% (10%)</th>
@@ -1206,26 +1308,26 @@ function tabOverview(arr){
   </tr></thead><tbody>`;
   ranked.forEach((r,i)=>{const s=statsByPlayer.get(r.p),placement=r.placement;
     const place=r.score==null?'—':ranked.findIndex(other=>other.score===r.score)+1;
-    h+=`<tr${i&&r.tier&&r.tier!==ranked[i-1].tier?' class="rank-boundary"':''}>
-    <td class="rank-place">${place}</td>
+    h+=`<tr class="rank-entry${i&&r.tier&&r.tier!==ranked[i-1].tier?' rank-boundary':''}">
+    <td class="rank-place" data-label="Rank">${place}</td>
     <td class="rank-tier-cell">${r.tier==null?'—':`<span class="rank-tier rank-${r.tier}">${r.tier}</span>`}<button type="button" class="rank-expand" data-rank-expand="${i}" data-rank-person="${chemText(r.p.id)}" aria-expanded="false" aria-controls="rank-detail-${i}" aria-label="Show score breakdown for ${chemText(r.p.label)}" title="Show score breakdown"></button></td>
     <td class="rank-player"><button type="button" class="rank-select" data-rank-select="${chemText(String(r.p.id))}" aria-pressed="${comparedRankIds.includes(String(r.p.id))}" aria-label="${comparedRankIds.includes(String(r.p.id))?'Remove':'Select'} ${chemText(r.p.label)} for comparison" title="Select two players to compare"><span class="pdot" style="display:inline-block;background:${r.p.color};margin-right:8px"></span>${chemText(r.p.label)}</button></td>
     ${bestHeroes?`<td class="rank-hero">${r.heroId!=null?`<span class="hcell"><span class="hico tico">${heroImage(r.heroId,heroMeta[r.heroId]||{},chemText(heroName(r.heroId)))}</span>${chemText(heroName(r.heroId))}</span>`:'Hero unavailable'}</td>`:''}
-    <td class="r"><div class="rank-score"><div class="rank-track"><div class="rank-fill" style="width:${r.score==null?0:r.score.toFixed(1)}%;background:${r.p.color}"></div></div>${f1(r.score)}</div></td>
-    <td class="r">${s.n}</td>
-    <td class="r" style="color:var(--grn)">${r.wins??'—'}</td>
-    <td class="r" style="color:var(--red)">${r.losses??'—'}</td>
-    <td class="r" style="color:${r.winRate>=50?'var(--grn)':'var(--red)'};font-weight:700">${r.winRate==null?'—':f1(r.winRate)+'%'}</td>
-    <td class="r" style="color:var(--acc3)">${f1(r.metricPerformance)}</td>
-    <td class="r" style="color:var(--acc3)">${f2(r.kda)}</td>
-    <td class="r">${s.kills}</td>
-    <td class="r">${s.deaths}</td>
-    <td class="r">${s.assists}</td>
-    <td class="r">${fk(r.damageGame)}</td>
-    <td class="r">${fk(r.soulsMin)}</td>
-    <td class="r">${f1(placement.average)}</td><td class="r">${placementModes(placement)}</td><td class="r">${placement.count}/${placement.selected}</td>
+    <td class="r rank-score-cell" data-label="Score"><div class="rank-score"><div class="rank-track"><div class="rank-fill" style="width:${r.score==null?0:r.score.toFixed(1)}%;background:${r.p.color}"></div></div>${f1(r.score)}</div></td>
+    <td class="r" data-label="Games">${s.n}</td>
+    <td class="r" data-label="Wins" style="color:var(--grn)">${r.wins??'—'}</td>
+    <td class="r" data-label="Losses" style="color:var(--red)">${r.losses??'—'}</td>
+    <td class="r" data-label="Win% · 10%">${r.winRate==null?'—':f1(r.winRate)+'%'}</td>
+    <td class="r" data-label="Performance · 70%" style="color:var(--acc3)">${f1(r.metricPerformance)}</td>
+    <td class="r" data-label="KDA" style="color:var(--acc3)">${f2(r.kda)}</td>
+    <td class="r" data-label="Kills/game">${s.kills}</td>
+    <td class="r" data-label="Deaths/game">${s.deaths}</td>
+    <td class="r" data-label="Assists/game">${s.assists}</td>
+    <td class="r" data-label="Damage/game">${fk(r.damageGame)}</td>
+    <td class="r" data-label="Souls/min">${fk(r.soulsMin)}</td>
+    <td class="r" data-label="Avg place · 20%">${f1(placement.average)}</td><td class="r" data-label="Most common">${placementModes(placement)}</td><td class="r" data-label="Est. coverage">${placement.count}/${placement.selected}</td>
   </tr><tr id="rank-detail-${i}" class="rank-detail" hidden><td colspan="${bestHeroes?19:18}">${rankingExplanation(r)}</td></tr>`;});
-  h+=`</tbody></table></div>${comparedRankIds.length===2?rankingComparison(...comparedRankIds.map(id=>ranked.find(r=>String(r.p.id)===id)).sort((a,b)=>ranked.indexOf(a)-ranked.indexOf(b))):`<div class="rank-compare rank-compare-prompt"><span class="rank-compare-step">${comparedRankIds.length?'1 / 2':'0 / 2'}</span><strong>${comparedRankIds.length?`${chemText(ranked.find(r=>String(r.p.id)===comparedRankIds[0]).p.label)} selected`:'Compare two players'}</strong><span class="note">${comparedRankIds.length?'Select another name in the table to see the breakdown.':'Click two player names in the table to see what separates their scores.'}</span></div>`}</div>`;
+  h+=`</tbody></table></div>${comparedRankIds.length===2?rankingComparison(...comparedRankIds.map(id=>ranked.find(r=>String(r.p.id)===id)).sort((a,b)=>ranked.indexOf(a)-ranked.indexOf(b))):`<div class="rank-compare rank-compare-prompt"><span class="rank-compare-step">${comparedRankIds.length?'1 / 2':'0 / 2'}</span><strong>${comparedRankIds.length?`${chemText(ranked.find(r=>String(r.p.id)===comparedRankIds[0]).p.label)} selected`:'Compare two players'}</strong></div>`}</div>`;
   // Keep the overview about results and match context; specialist comparisons live in their tabs.
   h+=`<div class="slbl">Results and match context${bestHeroes?' · all heroes':''}</div><div class="g3">`;
   h+=statCard('Win Rate','winRate',arr,v=>v+'%');
@@ -1286,11 +1388,10 @@ function rankingComparison(a,b){
   const sameWeights=[a,b].every(r=>r.metricPerformance!=null&&r.placementScore!=null&&r.winStanding!=null);
   return `<section class="rank-compare chem-comparison" style="--chem-overall:${scoreLeader?.p.color||'var(--txt3)'}" aria-label="Leaderboard player comparison"><div class="ct">Leaderboard comparison</div><h3>${chemText(a.p.label)} vs ${chemText(b.p.label)}</h3>
     <div class="chem-summary">${summary(f1(a.score),chemText(a.p.label)+' · tier '+(a.tier||'—'),a.p.color)}${summary(f1(b.score),chemText(b.p.label)+' · tier '+(b.tier||'—'),b.p.color)}${summary(bothScored?f2(a.score-b.score):'—',bothScored?'Overall score gap · pts':'No comparable gap')}${summary(`${a.n} / ${b.n}`,'Selected games')}</div>
-    <p class="chem-foot">Scores are relative to the original ${leaderboardMode==='heroes'?'Best Heroes candidate-hero':'Overall player'} peer pool, not recalculated between these two players. Tiers group gaps across the leaderboard, not head-to-head results.</p>
-    <div class="chem-score-card"><h4>Overall score · full breakdown</h4><p class="chem-foot">One bar per player · segments add up to the overall score (out of 100). Stats 70% · estimated place 20% · win standing 10% when available. Use the legend to identify each component.</p>${scoreRow(a,piecesA)}${scoreRow(b,piecesB)}<div class="chem-score-legend">${legend}</div><p class="chem-foot" style="margin-top:10px">Avg estimated place (lower is better): ${f1(a.placement.average)} / ${f1(b.placement.average)} · calculated ${a.placement.count}/${a.placement.selected} / ${b.placement.count}/${b.placement.selected} games · win rate ${f1(a.winRate)}% / ${f1(b.winRate)}%.</p>${sameWeights?`<p class="chem-foot" style="margin-top:7px">Score gap: ${signed(.7*(a.metricPerformance-b.metricPerformance))} stat pts + ${signed(.2*(a.placementScore-b.placementScore))} place pts + ${signed(.1*(a.winStanding-b.winStanding))} win pts = ${signed(a.score-b.score)} pts (${chemText(a.p.label)} minus ${chemText(b.p.label)}).</p>`:''}</div>
-    <div class="ct">Category & metric breakdown</div><p class="chem-foot">Like Chemistry, cards show player averages with side-by-side bars. Unlike Chemistry, these are separate selected histories, not shared matches: the large number is the difference in peer-relative metric scores (first player minus second), <strong>not</strong> a direct contribution to the overall gap. Each metric is compared with the original scoring pool.</p>
+    <div class="chem-score-card"><h4>Overall score · full breakdown</h4>${scoreRow(a,piecesA)}${scoreRow(b,piecesB)}<div class="chem-score-legend">${legend}</div><p class="chem-foot" style="margin-top:10px">Avg estimated place (lower is better): ${f1(a.placement.average)} / ${f1(b.placement.average)} · calculated ${a.placement.count}/${a.placement.selected} / ${b.placement.count}/${b.placement.selected} games · win rate ${f1(a.winRate)}% / ${f1(b.winRate)}%.</p>${sameWeights?`<p class="chem-foot" style="margin-top:7px">Score gap: ${signed(.7*(a.metricPerformance-b.metricPerformance))} stat pts + ${signed(.2*(a.placementScore-b.placementScore))} place pts + ${signed(.1*(a.winStanding-b.winStanding))} win pts = ${signed(a.score-b.score)} pts (${chemText(a.p.label)} minus ${chemText(b.p.label)}).</p>`:''}</div>
+    <div class="ct">Category & metric breakdown</div>
     ${categories||'<p class="chem-foot">No scored categories are available.</p>'}
-    <details class="rank-compare-more"><summary>How to read this comparison</summary><p class="chem-foot">Scores retain the original ${leaderboardMode==='heroes'?'Best Heroes candidate-hero':'Overall player'} peer pool; selecting two names does not recalculate them. In Best Heroes the pool includes candidates not displayed. Category and metric scores compare each player with that pool, not just each other. Their gaps do not add directly to the overall score gap. Overall bar category slices proportionally allocate the stretched core stat score using weighted category standings: they sum to the actual core component, but are not independent category grades. Support is only the applied bonus after the stat-score cap; incomplete placement coverage shrinks its standing toward 50 without changing the other weights. The Overview score weighs stat performance 70%, estimated place 20%, and win-rate standing 10% when available; missing components cause remaining weights to be rescaled. Chemistry's same-match pair score is separate and unchanged. Bars in metric cards are raw per-game averages, not score contributions; a lower raw value can be better for inverse metrics. Missing data is excluded, not zero. Expand either player’s chevron for the full personal breakdown.</p></details></section>`;
+    </section>`;
 }
 
 function rankingExplanation(r){
@@ -1319,7 +1420,7 @@ function rankingExplanation(r){
       <p class="note">${best?`${chemText(best.label)}: ${f1(best.mean)} vs ${f1(best.peerMean)} peer avg · ${best.count}/${c.games} games`:''}</p>
       <p class="note">Coverage: ${low===high?low:low+'–'+high}/${c.games} games across ${category.metrics.length} ${category.metrics.length===1?'metric':'metrics'}</p>
       <button type="button" class="rank-cat-toggle" data-rank-cat-toggle="${key}" aria-expanded="false" aria-controls="rank-cat-panel-${key}">Show ${category.metrics.length} scored ${category.metrics.length===1?'metric':'metrics'}</button></div>`,
-      panel:`<div class="rank-cat-drill" id="rank-cat-panel-${key}" data-rank-cat-panel="${key}" hidden><h4>${chemText(category.name)} · ${category.metrics.length} scored ${category.metrics.length===1?'metric':'metrics'}</h4><p class="note">Available metrics use the displayed within-category weights (renormalized when missing). Core raw-point swings add up to their category's sway; support instead supplies only a capped positive bonus.</p><div class="rank-metric-grid">${metrics}</div></div>`};
+      panel:`<div class="rank-cat-drill" id="rank-cat-panel-${key}" data-rank-cat-panel="${key}" hidden><h4>${chemText(category.name)} · ${category.metrics.length} scored ${category.metrics.length===1?'metric':'metrics'}</h4><div class="rank-metric-grid">${metrics}</div></div>`};
   });
   const allMetrics=r.categoryDetails.filter(category=>category.name!=='Support').flatMap(category=>category.metrics.map(m=>({...m,category:category.name,
     impact:(m.score-50)*category.effectiveWeight*m.effectiveWeight/10000})));
@@ -1335,16 +1436,12 @@ function rankingExplanation(r){
       ${[['Older',t.prev,t.old],['Newer',t.now,t.recent]].map(([label,value,n],i)=>`<div class="rank-trend-row"><span>${label} ${n} games</span><div class="rank-bar" aria-hidden="true"><div class="rank-bar-fill" style="width:${Math.max(0,Math.min(100,value/max*100))}%;background:${!i?'var(--txt3)':!notable?'var(--blue)':t.good?'var(--grn)':'var(--red)'}"></div></div><span>${f1(value)}</span></div>`).join('')}</div>`;
   }).join('');
   return `<div class="rank-explain"><div class="rank-explain-head"><strong>${chemText(r.p.label)}</strong><span>${f1(r.score)} / 100</span><small>Relative to loaded players</small></div>
-    <h4>Overall score · ${f1(metricWeight)}% stats + ${f1(placeWeight)}% estimated place + ${f1(winWeight)}% win standing</h4><div class="rank-components">${component('Stat performance',r.metricPerformance,metricWeight,'',`Core categories ${f1(r.metricCorePerformance)} + support bonus ${f1(r.supportBonus)} (capped at 100).`)}${component('Estimated avg place',r.placementScore,placeWeight,'',`Avg place ${f1(r.placement.average)} · ${r.placement.count}/${r.placement.selected} selected games calculated. Lower is better; compared with loaded peers. Coverage shrinks the placement standing toward 50, not its weight.`)}${component('Win-rate standing',r.winStanding,winWeight,'win','Peer percentile, shrunk toward 50 for fewer games.')}</div>
-    <p class="note">When all components are available, stat performance is 70% of the overall score, estimated place 20%, and win-rate standing 10%. Missing components are excluded and the remaining weights rescaled. Incomplete placement coverage shrinks its score toward 50, without reducing the stat-performance weight. These are experimental lobby estimates, not official Valve awards. Scores and tiers may change as calculations finish.</p>
+    <h4>Overall score · ${f1(metricWeight)}% stats + ${f1(placeWeight)}% estimated place + ${f1(winWeight)}% win standing</h4><div class="rank-components">${component('Stat performance',r.metricPerformance,metricWeight,'',`Core categories ${f1(r.metricCorePerformance)} + support bonus ${f1(r.supportBonus)} (capped at 100).`)}${component('Estimated avg place',r.placementScore,placeWeight,'',`Avg place ${f1(r.placement.average)} · ${r.placement.count}/${r.placement.selected} games`)}${component('Win-rate standing',r.winStanding,winWeight,'win','Peer percentile, shrunk toward 50 for fewer games.')}</div>
     <h4>Core categories + additive support bonus · stat metrics only</h4><div class="rank-cat-grid">${categories.map(x=>x.card).join('')||'<p class="note">No comparable performance metrics.</p>'}</div>${categories.map(x=>x.panel).join('')}
-    <p class="note">Expand a category to see every scored metric. Core-category sway contributes to the raw core average relative to 50: available metrics are weighted within each category, then available core categories are weighted. Support never subtracts points; its above-neutral score adds up to 5 stat-performance points after the 2.5× stretch. Core swings are not direct changes to the final leaderboard score. Bars show metric/category scores versus 50 (even with peers), not raw stat values.</p>
-    <p class="note">Top three metrics in each direction with at least ${Math.min(10,c.games)} of your selected games; expand categories to see the rest.</p>
     <div class="rank-edges"><div class="rank-edge-list"><h4>Biggest positive score sway</h4>${divergence(strongest)}</div><div class="rank-edge-list"><h4>Biggest negative score sway</h4>${divergence(weakest)}</div></div>
-    <h4>Your older vs newer games · not part of the score</h4>
-    <p class="note">Chronological halves of this player's games in the selected mode and period. Each card compares per-match averages, not early and late minutes within a match. At least 16 games and sufficient data in both halves are required; changes of at least 15% are highlighted. Heroes, matchups and patches may differ.</p>
+    <h4>Older vs newer games · not scored</h4>
     <div class="rank-trend-grid">${trendCards||'<p class="note">Not enough games with usable values in both halves for a personal trend.</p>'}</div>
-    <p class="note">${c.details}/${c.games} selected games have detailed metadata; missing metrics are not scored as zero. Tiers are relative groups, not absolute skill grades or Valve MVP ranks.</p></div>`;
+    <div class="note">${c.details}/${c.games} games with detailed stats</div></div>`;
 }
 function personalTrends(p,matches=visibleMatches(p)){
   const ms=[...matches].filter(m=>gn(m,'start_time')!=null)
@@ -1614,7 +1711,7 @@ function tabHeroes(good){
   const all=[];
   const byPlayer=good.map(p=>{const rows=heroStatsForPlayer(p);all.push(...rows);return{p,rows};});
   let h=`<div class="hsorts">${heroSortButton('played','Most Played')}${heroSortButton('winrate','Best Win%')}${heroSortButton('kda','Best KDA')}${heroSortButton('damage','Best Damage')}${heroSortButton('souls','Best Souls/min')}${heroSortButton('economy','Best Economy')}${heroSortButton('placement','Best Est. Place')}</div>
-  <div class="card hero-leaderboard"><div class="ct">Hero Leaderboard</div><p class="note">Estimated lobby place is independent of hero sorting and Valve MVP awards. Coverage is calculated / selected games for this player and hero; missing games are excluded.</p>
+  <div class="card hero-leaderboard"><div class="ct">Hero Leaderboard</div>
     <div style="overflow-x:auto"><table class="st"><thead><tr>
       <th class="l">Player</th><th class="l">Hero</th><th class="r">Games</th><th class="r">W-L</th><th class="r">Win%</th><th class="r">KDA</th><th class="r">K/D/A</th><th class="r">DMG/G</th><th class="r">Souls/min</th><th class="r">NW/G</th><th class="r">LH/G</th><th class="r">Den/G</th><th class="r">Lvl</th><th class="r">Est. avg place</th><th class="r">Most common</th><th class="r">Est. coverage</th>
     </tr></thead><tbody>`;
@@ -1776,7 +1873,7 @@ function matchBreakdownHtml(id,selectedHero){
   }).join(''));
   const legend=parts(result[0]).map(([name,,color])=>`<span><i style="background:${color}"></i>${chemText(name)}</span>`).join('');
   const missing=(row.players||[]).map(x=>typeof x==='string'?JSON.parse(x):x).some(x=>/^\d{1,10}$/.test(String(x.account_id??''))&&String(x.account_id)!=='0'&&!steamNames.has(String(x.account_id)));
-  return `<div class="note">Experimental 1–12 estimate, not Valve MVP. Teammates are grouped together, then sorted by estimated score within each team. Stacked bars show positive points; red bars below extend in the opposite direction for the death penalty. Both use the same scale across all 12 players (the largest positive total or penalty fills a track); subtract the penalty to get the final score. Hover for point values. Gold numbers mark match highs, or the fewest deaths (ties included). OBJ is boss/structure damage; HEAL is self healing + ally healing.${missing&&!matchNamesPending.has(id)?` <button type="button" class="match-names-refresh" data-match-id="${chemText(id)}">Refresh missing Steam usernames</button>`:''}${matchNamesErrors.has(id)?` <span role="status">Steam names unavailable: ${chemText(matchNamesErrors.get(id))}</span>`:''}</div><div class="match-legend">${legend}<span><i style="background:#ed6b77"></i>Deaths (subtracted)</span></div>
+  return `${missing&&!matchNamesPending.has(id)?`<button type="button" class="match-names-refresh" data-match-id="${chemText(id)}">Refresh missing Steam usernames</button>`:''}${matchNamesErrors.has(id)?`<div class="note" role="status">Steam names unavailable: ${chemText(matchNamesErrors.get(id))}</div>`:''}<div class="match-legend">${legend}<span><i style="background:#ed6b77"></i>Deaths (subtracted)</span></div>
     <div class="match-roster-scroll"><table class="st match-roster"><thead><tr><th class="r">Est. place</th><th class="l">Steam username · hero icon</th><th class="l">Estimated score breakdown</th><th class="r">K</th><th class="r">D</th><th class="r">A</th><th class="r" title="(Kills + assists) / deaths; zero deaths use 1">KDA</th><th class="r" title="Hero damage">DMG</th><th class="r">Souls</th><th class="r" title="Boss/structure damage">OBJ</th><th class="r" title="Self healing + ally healing">HEAL</th></tr></thead><tbody class="match-team-group match-team-0" aria-label="First group of teammates">${rowsByTeam[0]}</tbody><tbody class="match-team-group match-team-1" aria-label="Second group of teammates">${rowsByTeam[1]}</tbody></table></div>`;
 }
 function matchOpenKey(playerId,matchId){return JSON.stringify([String(playerId),String(matchId)]);}
@@ -1800,12 +1897,11 @@ function tabMatches(good){
     const ms=visibleMatches(p);
     if(!ms.length)return`<div class="card"><div class="ct" style="color:${p.color}">${chemText(p.label)}</div><div class="nd">No match history.</div></div>`;
     const page=matchPageFor(p,ms.length),pagination=matchPagination(p,page,ms.length);
-    return`<div class="card">
+    return`<div class="card matches-card">
       <div class="ct" style="color:${p.color}">${chemText(p.label)} — ${ms.length} matches loaded (most recent first)</div>
-      <div class="note">Expand a match to see all 12 heroes, final stats and estimated placement score components. Full details load on demand.</div>
       ${pagination}
-      <div style="overflow-x:auto">
-      <table class="st"><thead><tr>
+      <div class="matches-scroll">
+      <table class="st matches-table"><thead><tr>
         <th class="l">Hero</th><th class="r">Result</th><th class="l">Date / Time</th><th class="l">Mode</th><th class="r">Est. place</th><th class="r">K</th><th class="r">D</th><th class="r">A</th><th class="r">KDA</th><th class="r">Damage</th><th class="r">Objective damage</th><th class="r">Self healing</th><th class="r">Teammate healing</th><th class="r">Souls/min</th><th class="r">Net Worth</th><th class="r">Duration</th>
       </tr></thead><tbody>
       ${ms.slice(page*MATCHES_PAGE_SIZE,(page+1)*MATCHES_PAGE_SIZE).map(m=>{
@@ -1819,8 +1915,8 @@ function tabMatches(good){
         const won=isWin(m);
         const id=String(m.match_id),open=openMatchIds.has(matchOpenKey(p.id,id));
         const detailId=`match-roster-${p.id}-${id}`;
-        return`<tr>
-          <td class="l"><button type="button" class="match-toggle" data-match-id="${chemText(id)}" data-match-player="${chemText(p.id)}" aria-expanded="${open}" aria-controls="${chemText(detailId)}" aria-label="${open?'Hide':'Show'} all players for ${chemText(p.label)}'s match ${chemText(id)}">${open?'▾':'▸'} <span class="hico tico" title="${chemText(hero.name||hid||'Unknown hero')}">${heroImage(hid,hero,hero.name||'Hero')}</span></button></td>
+        return`<tr class="match-entry">
+          <td class="l"><button type="button" class="match-toggle" data-match-id="${chemText(id)}" data-match-player="${chemText(p.id)}" aria-expanded="${open}" aria-controls="${chemText(detailId)}" aria-label="${open?'Hide':'Show'} all players for ${chemText(p.label)}'s match ${chemText(id)}">${open?'▾':'▸'} <span class="hico tico" title="${chemText(hero.name||hid||'Unknown hero')}">${heroImage(hid,hero,hero.name||'Hero')}</span><span class="match-hero-name">${chemText(hero.name||hid||'Unknown hero')}</span></button></td>
           <td class="r"><span class="${won?'bwin':'bloss'}">${won?'WIN':'LOSS'}</span></td>
           <td class="l" style="font-size:11px;color:var(--txt3);white-space:nowrap">${matchDate(m)}</td>
           <td class="l" style="font-size:11px;color:var(--txt3)">${gf(m,'game_mode')===2?'Ranked':'Normal'}</td>
@@ -1896,11 +1992,11 @@ function tabPerformance(arr){
   mvp.sort((a,b)=>(b.weighted??-1)-(a.weighted??-1)||
     (b.first??-1)-(a.first??-1)||a.p.label.localeCompare(b.p.label));
   let h='<div class="slbl">Placement and awards</div><div class="performance-tables">';
-  h+=`<div class="card"><div class="ct">Estimated Lobby Placement</div><div class="note">Sorted by lowest average estimated place, then lowest most-common place. Most common place can tie; estimates may differ by about one place in individual matches. Coverage counts only calculated matches in the current mode/period; no place is assigned to missing games.</div><div style="overflow-x:auto"><table class="st"><thead><tr><th class="l">Player</th><th class="r">Average estimated place</th><th class="r">Most common estimated place</th><th class="r">Calculated / selected</th></tr></thead><tbody>${placementRows.map(({p,result})=>{
+  h+=`<div class="card"><div class="ct">Estimated Lobby Placement</div><div style="overflow-x:auto"><table class="st"><thead><tr><th class="l">Player</th><th class="r">Average estimated place</th><th class="r">Most common estimated place</th><th class="r">Calculated / selected</th></tr></thead><tbody>${placementRows.map(({p,result})=>{
     return `<tr><td class="l">${chemText(p.label)}</td><td class="r">${f1(result.average)}</td><td class="r">${result.modes.length?result.modes.map(placementOrdinal).join(', '):'—'}</td><td class="r">${result.count}/${result.selected}</td></tr>`;
   }).join('')}</tbody></table></div></div>`;
-  h+=`<div class="card"><div class="ct">Award breakdown</div><div class="note">Sorted by weighted award rate: (3 × firsts + 2 × seconds + thirds) / (3 × eligible matches). Only places 1–3 are awarded; unranked players receive zero award weight. Rates use MVP-eligible matches, not all historical games.</div><div style="overflow-x:auto"><table class="st"><thead><tr><th class="l">Player</th><th class="r" title="(3 × firsts + 2 × seconds + thirds) / (3 × eligible matches)">Weighted %</th><th class="r">1st</th><th class="r">2nd</th><th class="r">3rd</th><th class="r">Eligible</th></tr></thead><tbody>${mvp.map(x=>`<tr><td class="l">${chemText(x.p.label)}</td><td class="r">${x.weighted==null?'—':f1(x.weighted)+'%'}</td>${[0,1,2].map(i=>`<td class="r award-place"><span class="award-pair"><span>${x.result?.counts[i]??'—'}</span><span class="award-rate">${x.rated>0?f1(100*(x.result?.counts[i]||0)/x.rated)+'%':'—'}</span></span></td>`).join('')}<td class="r">${x.rated??'—'}</td></tr>`).join('')}</tbody></table></div></div></div>`;
-  h+='<div class="slbl">Official Valve MVP awards</div>'; 
+  h+=`<div class="card"><div class="ct">Award breakdown</div><div style="overflow-x:auto"><table class="st"><thead><tr><th class="l">Player</th><th class="r" title="(3 × firsts + 2 × seconds + thirds) / (3 × eligible matches)">Weighted %</th><th class="r">1st</th><th class="r">2nd</th><th class="r">3rd</th><th class="r">Eligible</th></tr></thead><tbody>${mvp.map(x=>`<tr><td class="l">${chemText(x.p.label)}</td><td class="r">${x.weighted==null?'—':f1(x.weighted)+'%'}</td>${[0,1,2].map(i=>`<td class="r award-place"><span class="award-pair"><span>${x.result?.counts[i]??'—'}</span><span class="award-rate">${x.rated>0?f1(100*(x.result?.counts[i]||0)/x.rated)+'%':'—'}</span></span></td>`).join('')}<td class="r">${x.rated??'—'}</td></tr>`).join('')}</tbody></table></div></div></div>`;
+  h+='<div class="slbl">Official Valve MVP awards</div>';
   if(scopeCount&&scopeUnit==='matches')h+='<div class="note">MVP awards and objective damage/min are unavailable for match-count periods: the API only provides these aggregates by date.</div>';
   h+='<div class="performance-mvp-cards">';
   h+=statCard('MVP % (1st)','first',mvp.map(x=>({p:x.p,s:x})),v=>f1(v)+'%');
@@ -1914,7 +2010,7 @@ function tabPerformance(arr){
   h+='</div><div class="slbl">Aim and survivability</div><div class="g3">';
   h+=statCard('Weapon accuracy','accuracy',arr,v=>f1(v)+'%');h+=statCard('Hero-bullet headshot share','headshot',arr,v=>f1(v)+'%');
   h+=statCard('Self healing/game','selfHeal',arr,fk);
-  h+='</div><div class="note">Team hero-damage share uses up to the 25 most recent matches per player with complete six-player stats. When available, objective damage/min comes from the Deadlock API’s hero aggregates, weighted by hero playtime; boss damage is a separate match field. Accuracy = shots hit / (hit + missed), including non-hero targets. Headshot share = critical hero bullet hits / hero bullet hits; it is not headshot kills / kills. Comparisons across different heroes and roles need context. Team share requires complete six-player final stats.</div>';
+  h+='</div>';
   return h;
 }
 // Population quantiles describe *matches*, not player-season averages. Keep the
@@ -2204,7 +2300,7 @@ function chemAssembly(good){
   const members=chemistryTeam.map(id=>good.find(p=>String(p.id)===id));
   const together=chemTeamMatches(members),wins=together.filter(row=>isWin(row[0])).length;
   const baseline=together.length?wins/together.length*100:null;
-  let h=`<div class="card chem-assembly"><div class="ct">Team Assembly · ${members.length}/6 selected</div><p class="chem-foot">Choose up to six players. Results use only games where everyone was on the same team in the current mode and period. ${members.length?'Candidate change compares their shared-team win rate with the current lineup’s win rate (different match samples); it is not a predicted boost.':'With no selection, each player shows their own win rate in the current mode and period.'} Selecting a player filters Pairs to pairs involving at least one selected player.</p><div class="chem-roster">`;
+  let h=`<div class="card chem-assembly"><div class="ct">Team Assembly · ${members.length}/6 selected</div><div class="chem-roster">`;
   for(const p of good){
     const chosen=chemistryTeam.includes(String(p.id));
     const sample=chosen?together:members.length?chemTeamMatches([...members,p]):visibleMatches(p).map(m=>[m]);
@@ -2253,16 +2349,15 @@ function tabChemistry(good){
   if(selected){
     const {a,b,matches,wins,rate,gap,performance}=selected,n=matches.length;
     h+=`<div class="card"><div class="ct">Selected pair · ${chemistryView==='team'?'teammates':'opponents'}</div><h3>${chemText(a.label)} ${chemistryView==='team'?'&':'vs'} ${chemText(b.label)}</h3>
-      <div class="chem-summary"><div class="chem-stat"><strong>${n}</strong><span>Shared ${n===1?'match':'matches'}</span></div><div class="chem-stat"><strong>${wins}–${n-wins}</strong><span>${chemistryView==='team'?'Together':'Wins–losses for '+chemText(a.label)}</span></div><div class="chem-stat"><strong style="color:${chemWinColor(rate)}">${f1(rate)}%</strong><span>${chemistryView==='team'?'Win rate together':'Win rate for '+chemText(a.label)}</span></div><div class="chem-stat"><strong>${f1(gap)}</strong><span>Same-match score gap · pts</span></div></div>
-      <div class="chem-foot">${chemistryView==='team'?'Shared win rate describes these games; it does not measure causal synergy.':'Opponent results are shown from '+chemText(a.label)+'’s perspective.'} The score gap below measures these shared matches, not the Overview leaderboard or pair synergy. The support bonus shifts this zero-sum pair split slightly; low support is not a standalone penalty. Small samples can swing sharply.</div></div>`;
+      <div class="chem-summary"><div class="chem-stat"><strong>${n}</strong><span>Shared ${n===1?'match':'matches'}</span></div><div class="chem-stat"><strong>${wins}–${n-wins}</strong><span>${chemistryView==='team'?'Together':'Wins–losses for '+chemText(a.label)}</span></div><div class="chem-stat"><strong style="color:${chemWinColor(rate)}">${f1(rate)}%</strong><span>${chemistryView==='team'?'Win rate together':'Win rate for '+chemText(a.label)}</span></div><div class="chem-stat"><strong>${f1(gap)}</strong><span>Same-match score gap · pts</span></div></div></div>`;
     const pairPlaceA=placementForMatches(matches.map(([m])=>m));
     const pairPlaceB=placementForMatches(matches.map(([,m])=>m));
-    h+=`<div class="card"><div class="ct">Estimated lobby placement · shared matches</div><p class="chem-foot">Only the ${n} selected matches in this pair are included. Lower place is better; missing metadata is excluded. These independent 1–12 estimates are not Valve MVP awards or a measure of pair synergy. Matches where both places are calculated also contribute to the same-match performance score below.</p><div style="overflow-x:auto"><table class="st"><thead><tr><th class="l">Player</th><th class="r">Average estimated place</th><th class="r">Most common place</th><th class="r">Calculated / shared</th></tr></thead><tbody>${[[a,pairPlaceA],[b,pairPlaceB]].map(([p,s])=>`<tr><td class="l" style="color:${p.color}">${chemText(p.label)}</td><td class="r">${f1(s.average)}</td><td class="r">${placementModes(s)}</td><td class="r">${s.count}/${s.selected}</td></tr>`).join('')}</tbody></table></div></div>`;
+    h+=`<div class="card"><div class="ct">Estimated lobby placement · shared matches</div><div style="overflow-x:auto"><table class="st"><thead><tr><th class="l">Player</th><th class="r">Average estimated place</th><th class="r">Most common place</th><th class="r">Calculated / shared</th></tr></thead><tbody>${[[a,pairPlaceA],[b,pairPlaceB]].map(([p,s])=>`<tr><td class="l" style="color:${p.color}">${chemText(p.label)}</td><td class="r">${f1(s.average)}</td><td class="r">${placementModes(s)}</td><td class="r">${s.count}/${s.selected}</td></tr>`).join('')}</tbody></table></div></div>`;
     const observations=chemObservations(matches);
     const stats=CHEM_STATS;
     const scoreLeader=performance.scoreA==null||performance.scoreA===performance.scoreB?null:performance.scoreA>performance.scoreB?a:b;
-    h+=`<div class="card chem-comparison" style="--chem-overall:${scoreLeader?.color||'var(--txt3)'}"><div class="ct">Same-match comparison</div><p class="chem-foot">Paired-match averages for <span style="color:${a.color}">${chemText(a.label)}</span> and <span style="color:${b.color}">${chemText(b.label)}</span>. Difference = ${chemText(a.label)} minus ${chemText(b.label)}. Card accents show who does better on scored metrics; deaths favor fewer, while last hits and damage taken are shown but not scored.</p>`;
-    h+=`<div class="chem-score-card"><h4>Same-match performance score</h4><p class="chem-foot">A pair-relative score, not the Overview leaderboard or a measure of pair synergy. Stat metrics contribute 80% and estimated lobby placement 20% when both are available; otherwise the available component counts for 100%. Core category weights: Combat 40%, Economy 15%, Objectives & farming 20%, Aim 5%, Survivability 20% (renormalized across available categories). Support is not a core weight: above-neutral support earns a capped +5 stat-point bonus, and half the bonus difference shifts the zero-sum pair split. Available metrics use their within-category weights (renormalized when missing) and compare only shared matches where both players have values. Placement compares only shared matches where both have estimated ranks, with small samples and incomplete coverage discounted. Lower place is better; deaths are inverted; last hits and damage taken are displayed but not scored; win rate is excluded. Metric and placement standings are individually stretched 2.5× around 50 before blending.</p>`;
+    h+=`<div class="card chem-comparison" style="--chem-overall:${scoreLeader?.color||'var(--txt3)'}"><div class="ct">Same-match comparison</div>`;
+    h+=`<div class="chem-score-card"><h4>Same-match performance score</h4>`;
     if(performance.scoreA!=null){
       for(const [player,side] of [[a,'A'],[b,'B']]){
         const score=performance['score'+side];
@@ -2271,7 +2366,7 @@ function tabChemistry(good){
           return `<span class="chem-score-segment" style="width:${points}%;background:${c.color}" title="${c.name}: ${f1(points)} of scaled score (${c.weight}% base weight, ${c.count} metrics)"></span>`;
         }).join('')}${performance.placeWeight?`<span class="chem-score-segment" style="width:${chemPlacementPoints(performance,side)}%;background:#d69afb" title="Estimated avg place: ${f1(chemPlacementPoints(performance,side))} of scaled score (${performance.placeWeight}% performance weight)"></span>`:''}</div></div>`;
       }
-      h+=`<div class="chem-score-legend">${performance.categories.map(c=>`<span title="${c.count} scored metrics"><i style="background:${c.color}"></i>${c.name} (${c.weight}% of metrics): ${f1(chemCategoryPoints(performance,c,'A'))} / ${f1(chemCategoryPoints(performance,c,'B'))} pts</span>`).join('')}${performance.placeWeight?`<span><i style="background:#d69afb"></i>Estimated avg place (${performance.placeWeight}% of performance): ${f1(chemPlacementPoints(performance,'A'))} / ${f1(chemPlacementPoints(performance,'B'))} pts</span>`:''}${performance.supportCategory?`<span>Support bonus: +${f1(performance.bonusA)} / +${f1(performance.bonusB)} stat pts · zero-sum shift ${f1(performance.supportAdjustment)} / ${f1(-performance.supportAdjustment)}</span>`:''}</div><p class="chem-foot" style="margin-top:12px">Stat metrics ${performance.metricWeight}%: ${f1(performance.metricScoreA)} / ${f1(performance.metricScoreA==null?null:100-performance.metricScoreA)} (core ${f1(performance.coreScoreA)} / ${f1(performance.coreScoreA==null?null:100-performance.coreScoreA)}; support bonus ${f1(performance.bonusA)} / ${f1(performance.bonusB)}, zero-sum shift ${f1(performance.supportAdjustment)} / ${f1(-performance.supportAdjustment)}). Estimated avg place ${performance.placeWeight}%: ${f1(performance.placementScoreA)} / ${f1(performance.placementScoreA==null?null:100-performance.placementScoreA)} (${performance.placeCount}/${n} shared matches with both places calculated; paired averages ${f1(performance.placeA)} / ${f1(performance.placeB)}). Colored core-category shares allocate the support-adjusted stat-metric portion; they are not separate category grades. The purple segment is placement. Gap: ${f1(gap)} points. Scores are complementary and only compare these two players in shared matches; unavailable components are omitted and remaining weights rescaled.</p>`;
+      h+=`<div class="chem-score-legend">${performance.categories.map(c=>`<span title="${c.count} scored metrics"><i style="background:${c.color}"></i>${c.name} (${c.weight}% of metrics): ${f1(chemCategoryPoints(performance,c,'A'))} / ${f1(chemCategoryPoints(performance,c,'B'))} pts</span>`).join('')}${performance.placeWeight?`<span><i style="background:#d69afb"></i>Estimated avg place (${performance.placeWeight}% of performance): ${f1(chemPlacementPoints(performance,'A'))} / ${f1(chemPlacementPoints(performance,'B'))} pts</span>`:''}${performance.supportCategory?`<span>Support bonus: +${f1(performance.bonusA)} / +${f1(performance.bonusB)} stat pts · zero-sum shift ${f1(performance.supportAdjustment)} / ${f1(-performance.supportAdjustment)}</span>`:''}</div>`;
     }else h+='<p class="chem-foot" style="margin-top:12px">No comparable match metrics to score.</p>';
     h+='</div>';
     for(const [group,description,,items] of stats){
@@ -2297,19 +2392,19 @@ function tabChemistry(good){
     const byLabel=new Map(stats.flatMap(([, , ,items])=>items).map(item=>[item[0],item]));
     const compact=['Hero damage/min','Souls/min','Kills/game','Deaths/game','Assists/game','KDA/game','Last hits/game','Net worth'].map(label=>byLabel.get(label));
     const names=`<span style="color:${a.color}">${chemText(a.label)}</span> / <span style="color:${b.color}">${chemText(b.label)}</span>`;
-    h+=`<div class="card"><div class="ct">Recent shared matches · up to 10</div><div class="chem-foot">Results are from ${chemText(a.label)}’s perspective. Paired values read ${names}. Click a match row for all stats; scroll horizontally for more columns. Green marks the larger value, red the smaller (not necessarily better).</div><div class="chem-history"><table class="st chem-match-table"><thead><tr><th class="l">Date</th><th class="l">Result</th><th class="l" title="${chemText(a.label)}’s hero">${chemText(a.label)} hero</th><th class="l" title="${chemText(b.label)}’s hero">${chemText(b.label)} hero</th>${compact.map(([label])=>`<th class="r">${label.replace('/game','')}<small class="chem-head-pair">${names}</small></th>`).join('')}</tr></thead><tbody>`;
+    h+=`<div class="card"><div class="ct">Recent shared matches · up to 10</div><div class="chem-history"><table class="st chem-match-table"><thead><tr><th class="l">Date</th><th class="l">Result</th><th class="l" title="${chemText(a.label)}’s hero">${chemText(a.label)} hero</th><th class="l" title="${chemText(b.label)}’s hero">${chemText(b.label)} hero</th>${compact.map(([label])=>`<th class="r">${label.replace('/game','')}<small class="chem-head-pair">${names}</small></th>`).join('')}</tr></thead><tbody>`;
     h+=recent.map(([m,x],i)=>{
       const left={m,ext:metrics(m)},right={m:x,ext:metrics(x)};
       const cell=([,get,format])=>chemCompareValues(get(left),get(right),format);
       const icon=match=>{const id=gn(match,'hero_id');if(id==null)return '—';const hero=heroMeta[id]||{};return `<div class="hico tico" title="${chemText(hero.name||String(id))}">${heroImage(id,hero,chemText(hero.name||String(id)))}</div>`;};
       const detailId='chem-match-'+i;
       let row=`<tr class="chem-match-row" tabindex="0" aria-label="${chemText(matchDate(m))}, ${isWin(m)?'win':'loss'}; toggle match stats" aria-expanded="false" aria-controls="${detailId}"><td>${matchDate(m)}</td><td><span class="${isWin(m)?'bwin':'bloss'}">${isWin(m)?'Win':'Loss'}</span></td><td>${icon(m)}</td><td>${icon(x)}</td>${compact.map(item=>`<td class="r">${cell(item)}</td>`).join('')}</tr>`;
-      row+=`<tr class="chem-extra" id="${detailId}" hidden><td colspan="${4+compact.length}"><div class="chem-foot">${names} · Green is the larger number, not always the better one.</div>${stats.map(([group,,,items])=>`<div class="chem-match-section"><h4>${group}</h4><div class="chem-match-grid">${items.map(item=>`<div><span class="chem-match-metric-title">${item[0]}</span><strong>${cell(item)}</strong></div>`).join('')}</div></div>`).join('')}</td></tr>`;
+      row+=`<tr class="chem-extra" id="${detailId}" hidden><td colspan="${4+compact.length}">${stats.map(([group,,,items])=>`<div class="chem-match-section"><h4>${group}</h4><div class="chem-match-grid">${items.map(item=>`<div><span class="chem-match-metric-title">${item[0]}</span><strong>${cell(item)}</strong></div>`).join('')}</div></div>`).join('')}</td></tr>`;
       return row;
     }).join('');
     h+='</tbody></table></div></div>';
   }else h+='<div class="card chem-empty">Select a pair when shared matches are available.</div>';
-  h+='</div></div><div class="chem-foot">Only matches present in both loaded histories with player-team data are included. Performance comparisons require additional match metadata and may be unavailable even when results are shown. Mode and period filters apply to each player’s history; if their last-N windows differ, some shared matches may be excluded. “—” means the metric is unavailable.</div>';
+  h+='</div></div>';
   return h;
 }
 const STAGE_KEYS=['net_worth','creep_kills','denies','player_damage','kills','deaths'];
@@ -2377,7 +2472,7 @@ function tabStages(arr){
       soulsLate:vals('late','net_worth'),lastLate:vals('late','creep_kills'),deniesLate:vals('late','denies'),damageLate:vals('late','player_damage'),killsLate:vals('late','kills'),deathsLate:vals('late','deaths')},
       earlyCount:samples.filter(v=>v.early).length,lateCount:samples.filter(v=>v.late).length,loading:bucket?.loading,error:bucket?.error};
   });
-  let h='<div class="slbl">Early game · first 10 minutes</div><div class="note">Most recent '+STAGE_MATCH_LIMIT+' eligible matches per player; snapshots bracketing 10:00 are linearly interpolated. These are early-game measures, not verified lane wins or lane-opponent matchups. Missing snapshots are excluded.</div>';
+  let h='<div class="slbl">Early game · first 10 minutes</div>';
   const pending=rows.filter(x=>x.loading);
   if(pending.length){
     const ready=rows.length-pending.length;
@@ -2385,7 +2480,7 @@ function tabStages(arr){
   }
   h+='<div class="g3">';
   for(const [title,key,fmt,higher] of [['Souls at 10:00','souls10',fk,true],['Last hits at 10:00','last10',f1,true],['Denies at 10:00','denies10',f1,true],['Hero damage at 10:00','damage10',fk,true],['Kills at 10:00','kills10',f1,true],['Deaths at 10:00','deaths10',f1,false]])h+=statCard(title,key,rows,fmt,higher);
-  h+='</div><div class="slbl">Late game · after 20 minutes</div><div class="note">Average per-minute gains from the interpolated 20:00 snapshot to the last timeline snapshot near match end. Only matches longer than 20 minutes with usable snapshots are included; late-game values are not full-match totals.</div><div class="g3">';
+  h+='</div><div class="slbl">Late game · after 20 minutes</div><div class="g3">';
   for(const [title,key,fmt,higher] of [['Souls/min after 20:00','soulsLate',f1,true],['Last hits/min after 20:00','lastLate',f1,true],['Denies/min after 20:00','deniesLate',f1,true],['Hero damage/min after 20:00','damageLate',f1,true],['Kills/min after 20:00','killsLate',f1,true],['Deaths/min after 20:00','deathsLate',f1,false]])h+=statCard(title,key,rows,fmt,higher);
   h+='</div><div class="note">Usable timelines (early / late): '+rows.map(r=>r.p.label+': '+r.earlyCount+' / '+r.lateCount+(r.error?' (some timelines unavailable)':'')).join(' · ')+'</div>';return h;
 }

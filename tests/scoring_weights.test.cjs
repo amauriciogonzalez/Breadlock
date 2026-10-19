@@ -21,7 +21,7 @@ test('Overview and Chemistry share 100% whole-number core weights; support remai
     Aim: 5, Support: 0, Survivability: 20,
   });
   assert.equal(Object.values(coreWeights).reduce((sum, weight) => sum + weight, 0), 100);
-  assert.match(html, /Core category weights: Combat 40%, Economy 15%, Objectives & farming 20%, Aim 5%, Survivability 20%/);
+  assert.doesNotMatch(html, /Core category weights: Combat 40%, Economy 15%, Objectives & farming 20%, Aim 5%, Survivability 20%/);
 });
 
 test('shared leaderboard and Chemistry economy weights prioritize souls/min over denies', () => {

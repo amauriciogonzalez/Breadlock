@@ -45,7 +45,7 @@ test('expanded roster shows all 12, scored component stacks and death deduction'
   assert.doesNotMatch(rendered, /<small>−270\.0 death pts<\/small>/);
   assert.match(rendered, /Hero damage: \+23\.0 points/);
   assert.match(rendered, /match-selected/);
-  assert.match(rendered, /not Valve MVP/);
+  assert.doesNotMatch(rendered, /Experimental 1–12 estimate|Hover for point values/);
   assert.match(rendered, /class="match-username" title="Username unavailable">Username unavailable<\/span>/);
   assert.match(rendered, /<th class="l">Steam username · hero icon<\/th><th class="l">Estimated score breakdown<\/th><th class="r">K<\/th>/);
   assert.match(rendered, /<th class="r">A<\/th><th class="r" title="\(Kills \+ assists\) \/ deaths; zero deaths use 1">KDA<\/th>/);
@@ -115,6 +115,19 @@ test('match list puts result near the front and displays objective and both heal
   context.openMatchIds.clear();
   delete match._detail;
   assert.match(context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]), /<td class="r">—<\/td>\s*<td class="r">—<\/td>\s*<td class="r">—<\/td>/);
+});
+
+test('mobile match cards keep all stats and expanded roster available without horizontal tables', () => {
+  const match={match_id:42,hero_id:1,match_duration_s:1200};
+  context.openMatchIds.add(context.matchOpenKey('1',42));
+  const rendered=context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]);
+  assert.match(rendered, /class="matches-scroll"[^]*?class="st matches-table"/);
+  assert.match(rendered, /class="match-entry"[^]*?class="match-toggle"[^]*?class="match-hero-name"/);
+  assert.match(rendered, /class="match-expanded" id="match-roster-1-42"/);
+  assert.match(html, /\.matches-table \.match-entry>td:nth-child\(16\)::before\{content:'Duration'\}/);
+  assert.match(html, /\.match-roster tbody tr>td:nth-child\(11\)::before\{content:'Healing'\}/);
+  assert.match(html, /\.matches-scroll,\.match-roster-scroll\{overflow:visible\}/);
+  context.openMatchIds.clear();
 });
 
 test('opening a shared match affects only that player row and uses distinct detail IDs', () => {

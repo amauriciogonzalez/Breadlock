@@ -38,7 +38,7 @@ test('comparison uses existing leaderboard scores and shows the actual component
   assert.match(result, /\+7\.00 stat pts \+ \+2\.00 place pts \+ \+1\.00 win pts = \+10\.00 pts/);
   assert.match(result, /chem-category-head[^]*?Combat/);
   assert.match(result, /chem-metric-title[^]*?Kills/);
-  assert.match(result, /selecting two names does not recalculate them/);
+  assert.doesNotMatch(result, /How to read this comparison|selecting two names does not recalculate them/);
 });
 
 test('comparison handles missing data and escapes player labels', () => {
@@ -50,7 +50,7 @@ test('comparison handles missing data and escapes player labels', () => {
   const result = context.rankingComparison(a, player('2', 'Bob', 50, 50));
   assert.match(result, /&lt;Alice&gt;/);
   assert.match(result, /No comparable gap/);
-  assert.match(result, /missing components cause remaining weights to be rescaled/);
+  assert.match(result, /games 0\/20 \/ 20\/20/);
   assert.doesNotMatch(result, /NaN/);
 });
 
@@ -112,7 +112,7 @@ test('Best Heroes uses the original candidate pool and shows missing metrics as 
   a.metricCorePerformance = null;
   a.scoreWeights = { metric: 0, placement: 20 / 30 * 100, win: 10 / 30 * 100 };
   const result = context.rankingComparison(a, player('2', 'Bob', 50, 48));
-  assert.match(result, /Best Heroes candidate-hero peer pool/);
+  assert.match(result, /Leaderboard comparison/);
   assert.match(result, /Peer scores — \/ 48\.0/);
   assert.match(result, /chem-category-head[^]*?Combat/);
   context.leaderboardMode = 'overall';
