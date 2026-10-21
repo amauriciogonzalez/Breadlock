@@ -49,7 +49,7 @@ test('cached details wait for histories and share metadata across players',async
   const context={players,BreadlockData:coordinator,window:{BreadlockPlacement:true},URLSearchParams,
     placementRanks:new Map([['42',{}]]),DAMAGE_BATCH_SIZE:512,loadGeneration:0,
     renderLoadStatus:()=>{},renderChips:()=>{},renderMain:()=>{},dbg:()=>{},
-    gn:(obj,key)=>obj?.[key]??null};
+    activeTab:'overview',gn:(obj,key)=>obj?.[key]??null};
   vm.createContext(context);vm.runInContext(detail,context);
   context.startMatchDetails();
   assert.equal(requests,0);
@@ -78,7 +78,7 @@ test('shared 600-match histories take two requests, not one set per player',asyn
     placementRanks:new Map(players[0].matches.map(m=>[String(m.match_id),{}])),
     DAMAGE_BATCH_SIZE:512,loadGeneration:0,
     renderLoadStatus:()=>{},renderChips:()=>{},renderMain:()=>{},dbg:()=>{},
-    gn:(obj,key)=>obj?.[key]??null};
+    activeTab:'overview',gn:(obj,key)=>obj?.[key]??null};
   vm.createContext(context);vm.runInContext(detail,context);
   await context.startMatchDetails();
   assert.equal(requested.length,600);

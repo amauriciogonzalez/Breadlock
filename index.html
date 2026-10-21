@@ -148,7 +148,7 @@ input[type=text]::placeholder{color:var(--sub)}
 .hst .hcell{min-width:140px}
 .hero-leaderboard{margin-bottom:8px}
 .hero-split{margin:26px 0 10px;padding-top:18px;border-top:1px solid var(--bdr2);color:var(--acc)}
-.hero-player-grid{margin-top:0}
+.hero-player-grid{margin-top:0;grid-template-columns:minmax(0,1fr)}
 .hrowx .wrbar{width:64px;height:5px;margin-top:15px}
 .hrowx .wrfl{height:5px}
 .hrowx .hwr{font-size:14px;min-width:44px;margin-top:10px}
@@ -157,6 +157,12 @@ input[type=text]::placeholder{color:var(--sub)}
 .rank-scroll{overflow-x:auto}
 .rank-mode{display:inline-flex;gap:6px;letter-spacing:normal;text-transform:none}
 .rank-mode .btn{padding:5px 11px;font-size:11px}
+.rank-card>.ct{flex-wrap:wrap}
+.rank-window{display:inline-flex;align-items:center;gap:7px;margin-left:auto;letter-spacing:normal;text-transform:none;white-space:nowrap}
+.rank-window select{background:var(--bg3);border:1px solid var(--bdr2);border-radius:5px;color:var(--txt);font:12px var(--ff);padding:6px 8px;cursor:pointer}
+.rank-window select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.rank-window-note{margin:0 0 10px;font-size:11px;color:var(--txt3)}
+.rank-window-warning{color:var(--acc3)}
 .rank-table .rank-hero{white-space:nowrap;color:var(--txt3);font-size:11px}
 .rank-table .rank-hero .hcell{display:inline-flex;align-items:center}
 .rank-table{min-width:1250px}
@@ -167,7 +173,7 @@ input[type=text]::placeholder{color:var(--sub)}
 .rank-table.best-heroes th:nth-child(2){width:62px}
 .rank-table.best-heroes th:nth-child(3){width:125px}
 .rank-table.best-heroes th:nth-child(4){width:115px}
-.rank-table.best-heroes th:nth-child(5){width:100px}
+.rank-table.best-heroes th:nth-child(5){width:124px}
 .rank-table.best-heroes .rank-player,.rank-table.best-heroes .rank-hero{overflow:hidden;text-overflow:ellipsis}
 .rank-table.best-heroes .rank-hero .hcell{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .rank-table.best-heroes .rank-select{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis}
@@ -197,10 +203,88 @@ input[type=text]::placeholder{color:var(--sub)}
 .rank-score{display:flex;align-items:center;justify-content:flex-end;gap:8px;font-family:var(--fm);font-weight:700;color:var(--txt)}
 .rank-track{width:75px;height:6px;background:var(--bg3);border-radius:4px;overflow:hidden}
 .rank-fill{height:100%;border-radius:4px}
+.rank-score-value{min-width:3.5ch;text-align:right}
+.rank-score-trend{display:inline-flex;align-items:center;justify-content:center;min-width:26px;min-height:26px;padding:0 3px;border:0;border-radius:4px;background:transparent;font:700 17px var(--fm);line-height:1;color:var(--txt3);cursor:pointer}
+.rank-score-trend.up{color:#a5f0bd}.rank-score-trend.up.strong{color:#23ca76}
+.rank-score-trend.down{color:#efd16e}.rank-score-trend.down.medium{color:#ffae60}.rank-score-trend.down.strong{color:var(--red)}
+.rank-score-trend:not(button){cursor:default}
+.rank-score-trend:is(:hover,[aria-expanded="true"]){background:var(--bdr)}
+.rank-score-trend:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.rank-trend-panel{padding:18px 20px;color:var(--txt2);white-space:normal}
+.rank-trend-panel h3{color:var(--txt);font-size:16px;margin-bottom:5px}
+.rank-trend-panel h4{color:var(--txt3);font-size:11px;letter-spacing:1px;text-transform:uppercase;margin:18px 0 8px}
+.rank-trend-summary{font:700 24px var(--fm);margin:12px 0 5px}
+.rank-trend-summary.up,.rank-trend-number.up{color:var(--grn)}
+.rank-trend-summary.down,.rank-trend-number.down{color:var(--red)}
+.rank-trend-panel .note{margin:5px 0 12px}
+.rank-trend-scores{background:var(--bg2);border:1px solid var(--bdr2);border-radius:6px;padding:12px}
+.rank-trend-score-row,.rank-trend-category-row{display:grid;grid-template-columns:90px minmax(0,1fr) 58px;align-items:center;gap:9px;margin:7px 0;font:12px var(--fm)}
+.rank-trend-score-row strong,.rank-trend-category-row strong{text-align:right;color:var(--txt)}
+.rank-trend-score-track{height:16px;background:var(--bdr);border-radius:4px;overflow:hidden}
+.rank-trend-score-fill{display:block;height:100%;border-radius:inherit;background:var(--txt3)}
+.rank-trend-score-fill.recent.up{background:var(--grn)}
+.rank-trend-score-fill.recent.down{background:var(--red)}
+.rank-trend-score-fill.recent.flat{background:var(--blue)}
+.rank-trend-factors{display:grid;gap:9px}
+.rank-trend-factor{min-width:0;background:var(--bg2);border:1px solid var(--bdr2);border-radius:7px;padding:13px 14px}
+.rank-trend-category{min-width:0;background:var(--bg2);border:1px solid var(--bdr2);border-left:3px solid var(--trend-category,var(--bdr2));border-radius:7px;overflow:hidden}
+.rank-trend-factor-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px;font-size:12px}
+.rank-trend-factor-head strong{color:var(--txt);font:700 13px var(--ff)}
+.rank-trend-factor-row{display:grid;grid-template-columns:90px minmax(0,1fr) 62px;align-items:center;gap:9px;margin:6px 0;font:12px var(--fm)}
+.rank-trend-factor-row strong{text-align:right;color:var(--txt)}
+.rank-trend-factor-track{height:12px;background:var(--bdr);border-radius:4px;overflow:hidden}
+.rank-trend-factor-fill{display:block;height:100%;border-radius:inherit;background:var(--txt3)}
+.rank-trend-factor-fill.recent.up{background:var(--grn)}
+.rank-trend-factor-fill.recent.down{background:var(--red)}
+.rank-trend-factor-fill.recent.flat{background:var(--blue)}
+.rank-trend-factor-detail{display:block;margin-top:7px}
+.rank-trend-factor small,.rank-trend-category small{font-size:11px;color:var(--txt3)}
+.rank-trend-categories{display:flex;flex-direction:column;gap:9px}
+.rank-trend-category .rank-bar{margin:0}
+.rank-trend-category .rank-bar-fill{display:block}
+.rank-trend-category .rank-bar-fill.old{background:var(--txt3)}
+.rank-trend-category .rank-bar-fill.new.up{background:var(--grn)}
+.rank-trend-category .rank-bar-fill.new.down{background:var(--red)}
+.rank-trend-category .rank-bar-fill.new.flat{background:var(--blue)}
+.rank-trend-cat-toggle{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:0;background:transparent;color:var(--txt);font:700 13px var(--ff);text-align:left;cursor:pointer}
+.rank-trend-cat-toggle:hover,.rank-trend-cat-toggle[aria-expanded="true"]{background:var(--bg3)}
+.rank-trend-cat-toggle::after{content:'▸';color:var(--trend-category,var(--acc3));font-size:16px;margin-left:2px;transition:transform .15s}
+.rank-trend-cat-toggle[aria-expanded="true"]::after{transform:rotate(90deg)}
+.rank-trend-cat-toggle>strong{min-width:0;margin-right:auto}
+.rank-trend-cat-toggle>small{white-space:nowrap;font-weight:400}
+.rank-trend-cat-change{padding:3px 8px;border-radius:4px;background:var(--bg3);white-space:nowrap;font:700 12px var(--fm)}
+.rank-trend-cat-toggle[aria-expanded="true"] .rank-trend-cat-change{background:var(--bg2)}
+.rank-trend-cat-toggle:focus-visible{outline:2px solid var(--acc);outline-offset:-3px}
+.rank-trend-category-scores{display:grid;gap:7px;padding:0 14px 12px}
+.rank-trend-category-scores .rank-trend-category-row{grid-template-columns:90px minmax(0,1fr) 58px;margin:0}
+.rank-trend-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;border-top:1px solid var(--bdr2);padding:14px;background:var(--bg3)}
+.rank-trend-metrics[hidden]{display:none}
+.rank-trend-metric{min-width:0;padding:11px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:5px}
+.rank-trend-metric-head{display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:12px}
+.rank-trend-metric-head strong{color:var(--txt)}
+.rank-trend-metric .rank-bar{margin:0}
+.rank-trend-metric .rank-bar-fill{display:block}
+.rank-trend-metric .rank-bar-fill.old{background:var(--txt3)}
+.rank-trend-metric .rank-bar-fill.new.up{background:var(--grn)}
+.rank-trend-metric .rank-bar-fill.new.down{background:var(--red)}
+.rank-trend-metric .rank-bar-fill.new.flat{background:var(--blue)}
+.rank-trend-metric .rank-trend-category-row{grid-template-columns:72px minmax(0,1fr) 42px}
+.rank-trend-metric small{display:block;margin-top:6px}
+.rank-trend-games-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px 14px;flex-wrap:wrap;margin-top:18px}
+.rank-trend-games-head h4{margin:0 0 8px}
+.rank-trend-games-head strong{font:700 12px var(--fm);color:var(--txt);margin-bottom:8px}
+.rank-trend-games-scroll{overflow-x:auto}
+.rank-trend-games{display:grid;grid-template-columns:repeat(10,minmax(53px,1fr));gap:5px;min-width:575px;margin:7px 0 14px}
+.rank-trend-game{padding:7px 3px;text-align:center;border-radius:5px;background:var(--bg2);border:1px solid var(--bdr2);font:700 12px var(--fm)}
+.rank-trend-game.win{border-color:var(--grn)}.rank-trend-game.loss{border-color:var(--red)}
+.rank-trend-game small{display:block;font:10px var(--ff);color:var(--txt3);margin-top:4px}
+@media(max-width:500px){.rank-trend-panel{padding:14px 10px}.rank-trend-metrics{grid-template-columns:1fr}.rank-trend-score-row,.rank-trend-category-row,.rank-trend-category-scores .rank-trend-category-row,.rank-trend-factor-row{grid-template-columns:75px minmax(0,1fr) 42px;gap:5px;font-size:11px}.rank-trend-cat-toggle{flex-wrap:wrap;gap:7px}.rank-trend-cat-toggle>small{order:1;flex-basis:100%}.rank-trend-cat-toggle::after{order:0}.rank-score-trend{min-width:40px;min-height:40px}}
 .rank-tier-cell{white-space:nowrap}
-.rank-expand{width:26px;height:26px;margin-left:7px;vertical-align:middle;border:0;border-radius:4px;background:transparent;color:var(--acc3);cursor:pointer}
-.rank-expand::before{content:'';display:inline-block;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .15s}
-.rank-expand[aria-expanded="true"]::before{transform:translateY(2px) rotate(225deg)}
+.rank-expand{width:26px;height:26px;margin-left:7px;vertical-align:middle;border:0;border-radius:4px;background:transparent;color:var(--txt3);cursor:pointer}
+.rank-expand-S{color:var(--acc3)}.rank-expand-A{color:var(--grn)}.rank-expand-B{color:var(--blue)}
+.rank-expand-C{color:var(--teal)}.rank-expand-D{color:var(--pur)}.rank-expand-F{color:var(--red)}
+.rank-expand::before{content:'i';display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center;border:1.5px solid currentColor;border-radius:50%;font:700 11px var(--ff)}
+.rank-expand[aria-expanded="true"]{background:var(--bdr)}
 .rank-expand:hover{background:var(--bdr)}
 .rank-expand:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .rank-table .rank-detail>td{padding:0;background:var(--bg3)}
@@ -434,6 +518,8 @@ input[type=text]::placeholder{color:var(--sub)}
   .rank-card>.ct{flex-wrap:wrap;gap:8px}
   .rank-mode{flex-basis:100%}
   .rank-mode .btn{min-height:40px}
+  .rank-window{margin-left:0;flex-basis:100%}
+  .rank-window select{min-height:40px}
   .rank-scroll{overflow:visible}
   .rank-table,.rank-table.best-heroes{display:block;min-width:0;width:100%;table-layout:auto}
   .rank-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
@@ -594,7 +680,7 @@ const DEFAULTS=[
   {id:'76561198170676771',label:'TragicSensei'},
 ];
 
-let players=[], heroMeta={}, heroMetaPromise=null, activeTab='overview', charts={}, logs=[], heroSort='played', leaderboardMode='overall', comparedRankIds=[];
+let players=[], heroMeta={}, heroMetaPromise=null, activeTab='overview', charts={}, logs=[], heroSort='played', leaderboardMode='overall', rankTrendMatches=10, comparedRankIds=[];
 let chemistryView='team',chemistryPair=null,chemistrySort='shared',chemistryTeam=[];
 let scopeMode='normal',scopeCount=0,scopeUnit='matches',loadGeneration=0;
 let individualId=null,individualHero='all',individualRank='all';const populationCache=new Map(),populationCountCache=new Map();
@@ -923,6 +1009,7 @@ async function calculatePlacements(){
       },0);
     }
     renderMain();
+    if(activeTab==='stages')void refreshStages();
   }
 }
 
@@ -972,7 +1059,8 @@ async function addPlayer(id,label){
     startMatchDetails();
     if(p.error)return;
     loadMvp(p);
-    if(activeTab==='stages')refreshStages();if(activeTab==='performance')refreshTeamShare();if(activeTab==='individual')refreshIndividual();
+    if(activeTab==='stages')void refreshStages();
+    if(activeTab==='performance')refreshTeamShare();if(activeTab==='individual')refreshIndividual();
   }catch(e){
     if(generation!==loadGeneration||!players.includes(p))return;
     dbg(p.label+' match-history failed: '+e,'er');
@@ -980,6 +1068,7 @@ async function addPlayer(id,label){
       e.status>=500||e.name==='TypeError'?'API temporarily unavailable. Try again shortly.':
       'Could not load match history (HTTP '+(e.status||'network error')+').';
     renderChips();renderMain();schedulePlacements(true);startMatchDetails();
+    if(activeTab==='stages')void refreshStages();
   }
 }
 
@@ -994,6 +1083,7 @@ function startMatchDetails(){
     if(generation!==loadGeneration)return;
     selected.filter(p=>players.includes(p)).forEach(p=>{p.detailsLoading=false;});
     renderChips();renderMain();
+    if(activeTab==='stages')void refreshStages();
   });
 }
 
@@ -1114,7 +1204,8 @@ function fk(n){if(n==null||isNaN(n))return'—';n=+n;return n>=1000?(n/1000).toF
 function fp(n){return n==null?'—':n+'%';}
 function f1(n){return n==null||isNaN(n)?'—':(+n).toFixed(1);}
 function f2(n){return n==null||isNaN(n)?'—':(+n).toFixed(2);}
-function pctColor(v){return v>=60?'var(--grn)':v>=50?'var(--acc)':'var(--red)';}
+function soulsK(n){return n==null||isNaN(n)?'—':(+n/1000).toFixed(1)+'K';}
+function pctColor(v){return v>50?'var(--grn)':v<50?'var(--red)':'var(--acc)';}
 
 function heroImage(hid,hero,alt){
   const img=hero?.images||{};
@@ -1196,7 +1287,9 @@ function renderChips(){
 function renderMain(){
   const el=document.getElementById('main');if(!el)return;
   const expandedRankIds=activeTab==='overview'?new Set([...el.querySelectorAll('.rank-expand[aria-expanded="true"]')].map(b=>b.dataset.rankPerson)):new Set();
+  const expandedTrendIds=activeTab==='overview'?new Set([...el.querySelectorAll('.rank-score-trend[aria-expanded="true"]')].map(b=>b.dataset.rankTrendPerson)):new Set();
   const openRankCats=activeTab==='overview'?new Set([...el.querySelectorAll('.rank-cat-toggle[aria-expanded="true"]')].map(b=>b.dataset.rankCatToggle)):new Set();
+  const openTrendCats=activeTab==='overview'?new Set([...el.querySelectorAll('.rank-trend-cat-toggle[aria-expanded="true"]')].map(b=>b.dataset.rankTrendCat)):new Set();
   const chemScroll=activeTab==='chemistry'?{page:window.scrollY,list:el.querySelector('.chem-list')?.scrollTop||0,
     focus:document.activeElement?.dataset.chemPerson?document.activeElement.dataset.chemPerson:document.activeElement?.dataset.chemPair?'pair':document.activeElement?.id==='chem-sort'?'sort':null}:null;
   Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});charts={};
@@ -1240,12 +1333,33 @@ function renderMain(){
       if(open)setCategoryOpen(button,true);
     });
   });
+  el.querySelectorAll('.rank-trend-cat-toggle').forEach(button=>{
+    const panel=document.getElementById(button.getAttribute('aria-controls'));
+    const toggle=open=>{
+      if(!panel)return;
+      panel.hidden=!open;button.setAttribute('aria-expanded',String(open));
+      button.setAttribute('aria-label',button.getAttribute('aria-label').replace(/^(Show|Hide)/,open?'Hide':'Show'));
+    };
+    if(openTrendCats.has(button.dataset.rankTrendCat))toggle(true);
+    button.addEventListener('click',()=>toggle(button.getAttribute('aria-expanded')!=='true'));
+  });
   el.querySelectorAll('[data-rank-expand]').forEach(button=>{
     const detail=document.getElementById('rank-detail-'+button.dataset.rankExpand);
     if(detail&&expandedRankIds.has(button.dataset.rankPerson)){detail.hidden=false;button.setAttribute('aria-expanded','true');}
     button.addEventListener('click',()=>{
       if(detail){detail.hidden=!detail.hidden;button.setAttribute('aria-expanded',String(!detail.hidden));}
     });
+  });
+  el.querySelectorAll('[data-rank-trend]').forEach(button=>{
+    const detail=document.getElementById(button.getAttribute('aria-controls'));
+    const toggle=open=>{
+      if(!detail)return;
+      detail.hidden=!open;button.setAttribute('aria-expanded',String(open));
+      const label=button.getAttribute('aria-label').replace(/; (show|hide) trend breakdown/,`; ${open?'hide':'show'} trend breakdown`);
+      button.setAttribute('aria-label',label);button.title=label;
+    };
+    if(expandedTrendIds.has(button.dataset.rankTrendPerson))toggle(true);
+    button.addEventListener('click',()=>toggle(button.getAttribute('aria-expanded')!=='true'));
   });
   if(chemScroll){
     const list=el.querySelector('.chem-list');if(list)list.scrollTop=chemScroll.list;
@@ -1266,6 +1380,10 @@ function renderMain(){
       if(comparedRankIds.length===2)el.querySelector('.rank-compare')?.scrollIntoView({behavior:'smooth',block:'start'});
     }));
     el.querySelectorAll('[data-leaderboard-mode]').forEach(b=>b.addEventListener('click',()=>{leaderboardMode=b.dataset.leaderboardMode;renderMain();}));
+    el.querySelector('#rank-trend-window')?.addEventListener('change',e=>{
+      rankTrendMatches=Number(e.target.value);renderMain();
+      el.querySelector('#rank-trend-window')?.focus({preventScroll:true});
+    });
     el.querySelectorAll('.rank-hero img[data-fallbacks]').forEach(img=>img.addEventListener('error',()=>rotateHeroImage(img)));
   }
   if(activeTab==='heroes'){
@@ -1299,9 +1417,10 @@ function tabOverview(arr){
   const ranked=assignRankingTiers(bestHeroes?bestHeroRankings(arr.map(x=>x.p)):rankPlayers(arr.map(x=>x.p)));
   comparedRankIds=comparedRankIds.filter(id=>ranked.some(r=>String(r.p.id)===id));
   const statsByPlayer=new Map(bestHeroes?ranked.map(r=>[r.p,derive(r.p,r.matches)]):arr.map(x=>[x.p,x.s]));
-  h+=`<div class="card rank-card"><div class="ct">Leaderboard <span class="rank-mode" role="group" aria-label="Leaderboard view"><button type="button" class="btn btnsm ${bestHeroes?'':'btna'}" data-leaderboard-mode="overall" aria-pressed="${!bestHeroes}">Overall</button><button type="button" class="btn btnsm ${bestHeroes?'btna':''}" data-leaderboard-mode="heroes" aria-pressed="${bestHeroes}">Best Heroes</button></span></div><div class="rank-scroll">
+  const trends=rankingScoreTrends(ranked,bestHeroes?bestHeroCandidates(arr.map(x=>x.p)):arr.map(x=>x.p));
+  h+=`<div class="card rank-card"><div class="ct">Leaderboard <span class="rank-mode" role="group" aria-label="Leaderboard view"><button type="button" class="btn btnsm ${bestHeroes?'':'btna'}" data-leaderboard-mode="overall" aria-pressed="${!bestHeroes}">Overall</button><button type="button" class="btn btnsm ${bestHeroes?'btna':''}" data-leaderboard-mode="heroes" aria-pressed="${bestHeroes}">Best Heroes</button></span><label class="rank-window">Trend window <select id="rank-trend-window" aria-label="Trend matches per window">${RANK_TREND_MATCH_OPTIONS.map(n=>`<option value="${n}"${rankTrendMatches===n?' selected':''}>${n} matches</option>`).join('')}</select></label></div><p class="rank-window-note">Compares the latest ${rankTrendMatches} matches to the preceding ${rankTrendMatches} within the selected period.${scopeCount&&scopeUnit==='matches'&&scopeCount<2*rankTrendMatches?` <span class="rank-window-warning">The Period filter allows only ${scopeCount} matches; trends need ${2*rankTrendMatches}. Increase Period or choose a shorter window.</span>`:''}</p><div class="rank-scroll">
   <table class="st rank-table${bestHeroes?' best-heroes':''}"><thead><tr>
-    <th class="l">#</th><th class="l">Tier</th><th class="l">Player</th>${bestHeroes?'<th class="l">Hero</th>':''}<th class="r">Score</th>
+    <th class="l">#</th><th class="l">Tier</th><th class="l">Player</th>${bestHeroes?'<th class="l">Hero</th>':''}<th class="r" title="Trend: latest ${rankTrendMatches} vs previous ${rankTrendMatches} matches with fixed peers. Down: 1–&lt;3 pts yellow, 3–&lt;6 orange, 6+ red. Up: 1–&lt;6 light green, 6+ deep green. Changes under 1 pt are flat. Displayed score uses full history.">Score</th>
     <th class="r">Games</th><th class="r">W</th><th class="r">L</th><th class="r">Win% (10%)</th>
     <th class="r">Performance (70%)</th><th class="r">KDA</th><th class="r">K/G</th><th class="r">D/G</th><th class="r">A/G</th>
     <th class="r">DMG/G</th><th class="r">Souls/min</th><th class="r" title="Estimated lobby placement contributes 20% of the overall score when available. Its peer-relative score is adjusted toward neutral 50 for incomplete calculated-game coverage; lower place is better. Missing components cause remaining weights to be rescaled.">Avg place (20%)</th><th class="r">Most common</th><th class="r">Est. coverage</th>
@@ -1310,23 +1429,23 @@ function tabOverview(arr){
     const place=r.score==null?'—':ranked.findIndex(other=>other.score===r.score)+1;
     h+=`<tr class="rank-entry${i&&r.tier&&r.tier!==ranked[i-1].tier?' rank-boundary':''}">
     <td class="rank-place" data-label="Rank">${place}</td>
-    <td class="rank-tier-cell">${r.tier==null?'—':`<span class="rank-tier rank-${r.tier}">${r.tier}</span>`}<button type="button" class="rank-expand" data-rank-expand="${i}" data-rank-person="${chemText(r.p.id)}" aria-expanded="false" aria-controls="rank-detail-${i}" aria-label="Show score breakdown for ${chemText(r.p.label)}" title="Show score breakdown"></button></td>
+    <td class="rank-tier-cell">${r.tier==null?'—':`<span class="rank-tier rank-${r.tier}">${r.tier}</span>`}<button type="button" class="rank-expand rank-expand-${r.tier||'none'}" data-rank-expand="${i}" data-rank-person="${chemText(r.p.id)}" aria-expanded="false" aria-controls="rank-detail-${i}" aria-label="Show score breakdown for ${chemText(r.p.label)}" title="Show score breakdown"></button></td>
     <td class="rank-player"><button type="button" class="rank-select" data-rank-select="${chemText(String(r.p.id))}" aria-pressed="${comparedRankIds.includes(String(r.p.id))}" aria-label="${comparedRankIds.includes(String(r.p.id))?'Remove':'Select'} ${chemText(r.p.label)} for comparison" title="Select two players to compare"><span class="pdot" style="display:inline-block;background:${r.p.color};margin-right:8px"></span>${chemText(r.p.label)}</button></td>
     ${bestHeroes?`<td class="rank-hero">${r.heroId!=null?`<span class="hcell"><span class="hico tico">${heroImage(r.heroId,heroMeta[r.heroId]||{},chemText(heroName(r.heroId)))}</span>${chemText(heroName(r.heroId))}</span>`:'Hero unavailable'}</td>`:''}
-    <td class="r rank-score-cell" data-label="Score"><div class="rank-score"><div class="rank-track"><div class="rank-fill" style="width:${r.score==null?0:r.score.toFixed(1)}%;background:${r.p.color}"></div></div>${f1(r.score)}</div></td>
+    <td class="r rank-score-cell" data-label="Score"><div class="rank-score"><div class="rank-track"><div class="rank-fill" style="width:${r.score==null?0:r.score.toFixed(1)}%;background:${r.p.color}"></div></div><span class="rank-score-value">${f1(r.score)}</span>${scoreTrendHtml(trends.get(r.p),i,r.p)}</div></td>
     <td class="r" data-label="Games">${s.n}</td>
     <td class="r" data-label="Wins" style="color:var(--grn)">${r.wins??'—'}</td>
     <td class="r" data-label="Losses" style="color:var(--red)">${r.losses??'—'}</td>
-    <td class="r" data-label="Win% · 10%">${r.winRate==null?'—':f1(r.winRate)+'%'}</td>
+    <td class="r" data-label="Win% · 10%" ${r.winRate==null?'':`style="color:${pctColor(r.winRate)};font-weight:700"`}>${r.winRate==null?'—':f1(r.winRate)+'%'}</td>
     <td class="r" data-label="Performance · 70%" style="color:var(--acc3)">${f1(r.metricPerformance)}</td>
-    <td class="r" data-label="KDA" style="color:var(--acc3)">${f2(r.kda)}</td>
-    <td class="r" data-label="Kills/game">${s.kills}</td>
-    <td class="r" data-label="Deaths/game">${s.deaths}</td>
-    <td class="r" data-label="Assists/game">${s.assists}</td>
+    <td class="r" data-label="KDA" style="color:var(--acc3)">${f1(r.kda)}</td>
+    <td class="r" data-label="Kills/game">${f1(s.kills)}</td>
+    <td class="r" data-label="Deaths/game">${f1(s.deaths)}</td>
+    <td class="r" data-label="Assists/game">${f1(s.assists)}</td>
     <td class="r" data-label="Damage/game">${fk(r.damageGame)}</td>
-    <td class="r" data-label="Souls/min">${fk(r.soulsMin)}</td>
+    <td class="r" data-label="Souls/min">${soulsK(r.soulsMin)}</td>
     <td class="r" data-label="Avg place · 20%">${f1(placement.average)}</td><td class="r" data-label="Most common">${placementModes(placement)}</td><td class="r" data-label="Est. coverage">${placement.count}/${placement.selected}</td>
-  </tr><tr id="rank-detail-${i}" class="rank-detail" hidden><td colspan="${bestHeroes?19:18}">${rankingExplanation(r)}</td></tr>`;});
+  </tr><tr id="rank-detail-${i}" class="rank-detail" hidden><td colspan="${bestHeroes?19:18}">${rankingExplanation(r)}</td></tr>${trends.has(r.p)?`<tr id="rank-trend-detail-${i}" class="rank-detail rank-trend-detail" hidden><td colspan="${bestHeroes?19:18}">${rankingTrendExplanation(trends.get(r.p),i)}</td></tr>`:''}`;});
   h+=`</tbody></table></div>${comparedRankIds.length===2?rankingComparison(...comparedRankIds.map(id=>ranked.find(r=>String(r.p.id)===id)).sort((a,b)=>ranked.indexOf(a)-ranked.indexOf(b))):`<div class="rank-compare rank-compare-prompt"><span class="rank-compare-step">${comparedRankIds.length?'1 / 2':'0 / 2'}</span><strong>${comparedRankIds.length?`${chemText(ranked.find(r=>String(r.p.id)===comparedRankIds[0]).p.label)} selected`:'Compare two players'}</strong></div>`}</div>`;
   // Keep the overview about results and match context; specialist comparisons live in their tabs.
   h+=`<div class="slbl">Results and match context${bestHeroes?' · all heroes':''}</div><div class="g3">`;
@@ -1409,7 +1528,7 @@ function rankingExplanation(r){
     const metrics=category.metrics.map(m=>{
       const impact=(m.score-50)*category.effectiveWeight*m.effectiveWeight/10000;
       return `<div class="rank-metric"><div class="rank-metric-head"><span>${chemText(m.label)} · ${f1(m.effectiveWeight)}% of category${m.direction<0?' · lower is better':''}</span><strong>${f1(m.score)}</strong></div>${bar(m.score)}
-        <p class="note">Your avg ${f1(m.mean)} · peer avg ${f1(m.peerMean)} (${m.peers} peers)</p>
+        <p class="note">Your avg ${m.label==='Souls/min'?soulsK(m.mean):f1(m.mean)} · peer avg ${m.label==='Souls/min'?soulsK(m.peerMean):f1(m.peerMean)} (${m.peers} peers)</p>
         <p class="note">${m.count}/${c.games} of your games · peer minimum ${m.peerCount} games</p>
         <div class="rank-sway${impact>0?' positive':impact<0?' negative':''}">${isSupport?'Part of the capped support bonus':sway(impact)+' raw core pts'}</div></div>`;
     }).join('');
@@ -1417,7 +1536,7 @@ function rankingExplanation(r){
     return {card:`<div class="rank-cat"><div class="rank-cat-head"><span>${chemText(category.name)} <small>· ${isSupport?'additive bonus (up to +5)':coreWeightText(category.effectiveWeight)+'% core weight'}</small></span><strong>${f1(score)}</strong></div>
       ${bar(score)}<div class="rank-cat-foot"><span>Below peers</span><span>50 · even</span><span>Above peers</span></div>
       <div class="rank-sway${contribution>0?' positive':contribution<0?' negative':''}">${isSupport?'+'+f2(contribution)+' bonus stat pts':sway(contribution)+' raw core pts'}</div>
-      <p class="note">${best?`${chemText(best.label)}: ${f1(best.mean)} vs ${f1(best.peerMean)} peer avg · ${best.count}/${c.games} games`:''}</p>
+      <p class="note">${best?`${chemText(best.label)}: ${best.label==='Souls/min'?soulsK(best.mean):f1(best.mean)} vs ${best.label==='Souls/min'?soulsK(best.peerMean):f1(best.peerMean)} peer avg · ${best.count}/${c.games} games`:''}</p>
       <p class="note">Coverage: ${low===high?low:low+'–'+high}/${c.games} games across ${category.metrics.length} ${category.metrics.length===1?'metric':'metrics'}</p>
       <button type="button" class="rank-cat-toggle" data-rank-cat-toggle="${key}" aria-expanded="false" aria-controls="rank-cat-panel-${key}">Show ${category.metrics.length} scored ${category.metrics.length===1?'metric':'metrics'}</button></div>`,
       panel:`<div class="rank-cat-drill" id="rank-cat-panel-${key}" data-rank-cat-panel="${key}" hidden><h4>${chemText(category.name)} · ${category.metrics.length} scored ${category.metrics.length===1?'metric':'metrics'}</h4><div class="rank-metric-grid">${metrics}</div></div>`};
@@ -1425,7 +1544,7 @@ function rankingExplanation(r){
   const allMetrics=r.categoryDetails.filter(category=>category.name!=='Support').flatMap(category=>category.metrics.map(m=>({...m,category:category.name,
     impact:(m.score-50)*category.effectiveWeight*m.effectiveWeight/10000})));
   const eligible=allMetrics.filter(m=>m.count>=Math.min(10,c.games));
-  const divergence=(items)=>items.length?items.map(m=>`<div class="rank-edge"><strong>${chemText(m.label)}</strong><small>${chemText(m.category)} · ${f1(m.score)} raw metric score · your avg ${f1(m.mean)} vs peer avg ${f1(m.peerMean)} · ${m.count}/${c.games} games</small><span class="rank-sway${m.impact>0?' positive':' negative'}">${sway(m.impact)} raw performance pts</span></div>`).join(''):'<p class="note">No qualifying divergences.</p>';
+  const divergence=(items)=>items.length?items.map(m=>`<div class="rank-edge"><strong>${chemText(m.label)}</strong><small>${chemText(m.category)} · ${f1(m.score)} raw metric score · your avg ${m.label==='Souls/min'?soulsK(m.mean):f1(m.mean)} vs peer avg ${m.label==='Souls/min'?soulsK(m.peerMean):f1(m.peerMean)} · ${m.count}/${c.games} games</small><span class="rank-sway${m.impact>0?' positive':' negative'}">${sway(m.impact)} raw performance pts</span></div>`).join(''):'<p class="note">No qualifying divergences.</p>';
   const strongest=[...eligible].filter(m=>m.impact>0).sort((a,b)=>b.impact-a.impact).slice(0,3);
   const weakest=[...eligible].filter(m=>m.impact<0).sort((a,b)=>a.impact-b.impact).slice(0,3);
   const component=(name,value,weight,kind,detail)=>value==null?'':`<div class="rank-component"><div class="rank-component-head"><span>${name} · ${f1(weight)}%</span><strong>${f1(value)}</strong></div><div class="rank-bar" aria-hidden="true"><div class="rank-bar-fill ${kind}" style="width:${Math.max(0,Math.min(100,value))}%"></div></div><p class="note">${detail}</p></div>`;
@@ -1433,7 +1552,7 @@ function rankingExplanation(r){
   const trendCards=trends.map(t=>{
     const notable=Math.abs(t.change)>=.15,max=Math.max(t.prev,t.now,1);
     return `<div class="rank-trend"><div class="rank-trend-head"><strong>Average ${chemText(t.name.toLowerCase())}</strong><span>${notable?(t.good?'Favorable':'Less favorable')+' change':'Small change'}${leadingTrend===t?' · largest shift':''}</span></div>
-      ${[['Older',t.prev,t.old],['Newer',t.now,t.recent]].map(([label,value,n],i)=>`<div class="rank-trend-row"><span>${label} ${n} games</span><div class="rank-bar" aria-hidden="true"><div class="rank-bar-fill" style="width:${Math.max(0,Math.min(100,value/max*100))}%;background:${!i?'var(--txt3)':!notable?'var(--blue)':t.good?'var(--grn)':'var(--red)'}"></div></div><span>${f1(value)}</span></div>`).join('')}</div>`;
+      ${[['Older',t.prev,t.old],['Newer',t.now,t.recent]].map(([label,value,n],i)=>`<div class="rank-trend-row"><span>${label} ${n} games</span><div class="rank-bar" aria-hidden="true"><div class="rank-bar-fill" style="width:${Math.max(0,Math.min(100,value/max*100))}%;background:${!i?'var(--txt3)':!notable?'var(--blue)':t.good?'var(--grn)':'var(--red)'}"></div></div><span>${t.name==='Souls/min'?soulsK(value):f1(value)}</span></div>`).join('')}</div>`;
   }).join('');
   return `<div class="rank-explain"><div class="rank-explain-head"><strong>${chemText(r.p.label)}</strong><span>${f1(r.score)} / 100</span><small>Relative to loaded players</small></div>
     <h4>Overall score · ${f1(metricWeight)}% stats + ${f1(placeWeight)}% estimated place + ${f1(winWeight)}% win standing</h4><div class="rank-components">${component('Stat performance',r.metricPerformance,metricWeight,'',`Core categories ${f1(r.metricCorePerformance)} + support bonus ${f1(r.supportBonus)} (capped at 100).`)}${component('Estimated avg place',r.placementScore,placeWeight,'',`Avg place ${f1(r.placement.average)} · ${r.placement.count}/${r.placement.selected} games`)}${component('Win-rate standing',r.winStanding,winWeight,'win','Peer percentile, shrunk toward 50 for fewer games.')}</div>
@@ -1501,14 +1620,17 @@ function rankingStats(p,ms=visibleMatches(p)){
     damageGame:avg(damage),soulsMin:avg(souls),categories,
     counts:{winRate:results.length}};
 }
-function rankPlayers(good){
-  const rows=good.map(item=>{
+function rankPlayers(good,referenceGood=null){
+  const prepare=item=>{
     const scoped=item.p!=null;
     const row=scoped?rankingStats(item.p,item.matches):rankingStats(item);
     if(scoped)row.heroId=item.heroId;
     row.placement=scoped?placementForMatches(item.matches):placementForPlayer(item);
     return row;
-  });
+  };
+  const rows=good.map(prepare);
+  // Trend windows use the same full-history peers rather than moving benchmarks.
+  const referenceRows=referenceGood?referenceGood.map(prepare):rows;
   rows.forEach(row=>{
     let performanceTotal=0,performanceWeight=0;
     row.categoryDetails=[];
@@ -1517,8 +1639,8 @@ function rankPlayers(good){
         if(!direction||!weight)return[];
         const x=row.categories[categoryIndex].values[metricIndex];
         if(!x)return[];
-        const comparisons=rows.flatMap(other=>{
-          if(other===row)return[];
+        const comparisons=referenceRows.flatMap(other=>{
+          if(other===row||(referenceGood&&other.p===row.p&&other.heroId===row.heroId))return[];
           const y=other.categories[categoryIndex].values[metricIndex];
           if(!y)return[];
           const confidence=Math.min(x.count,y.count)/(Math.min(x.count,y.count)+10);
@@ -1548,9 +1670,9 @@ function rankPlayers(good){
     row.supportBonus=row.metricCorePerformance==null?0:supportBonus(row.supportScore);
     row.metricPerformance=row.metricCorePerformance==null?null:Math.min(100,row.metricCorePerformance+row.supportBonus);
     const x=row.placement;
-    const placementComparisons=rows.flatMap(other=>{
+    const placementComparisons=referenceRows.flatMap(other=>{
       const y=other.placement;
-      if(other===row||!x.count||!y.count)return [];
+      if(other===row||(referenceGood&&other.p===row.p&&other.heroId===row.heroId)||!x.count||!y.count)return [];
       const confidence=Math.min(x.count,y.count)/(Math.min(x.count,y.count)+10);
       return [50+25*(y.average-x.average)/Math.max(Math.abs(x.average),Math.abs(y.average),1)*confidence];
     });
@@ -1559,7 +1681,7 @@ function rankPlayers(good){
     // its 20% overall weight or the 70% weight of available stat metrics.
     row.placementScore=placementRaw==null?null:50+(scalePerformanceScore(placementRaw)-50)*x.count/x.selected;
     if(row.winRate!=null){
-      const peers=rows.filter(other=>other.winRate!=null);
+      const peers=referenceRows.filter(other=>other.winRate!=null);
       const below=peers.filter(other=>other.winRate<row.winRate).length;
       const tied=peers.filter(other=>other.winRate===row.winRate).length;
       const percentile=peers.length===1?50:(below+(tied-1)/2)/(peers.length-1)*100;
@@ -1572,8 +1694,8 @@ function rankPlayers(good){
   });
   return rows.sort((a,b)=>(b.score??-1)-(a.score??-1)||b.n-a.n||a.p.label.localeCompare(b.p.label));
 }
-function bestHeroRankings(players){
-  const candidates=players.flatMap(p=>{
+function bestHeroCandidates(players){
+  return players.flatMap(p=>{
     const byHero=new Map();
     visibleMatches(p).forEach(m=>{
       const id=gn(m,'hero_id');
@@ -1591,11 +1713,106 @@ function bestHeroRankings(players){
     const most=Math.max(...heroes.map(hero=>hero.matches.length));
     return eligible.length?eligible:heroes.filter(hero=>hero.matches.length===most);
   });
-  const scored=rankPlayers(candidates),best=new Map();
+}
+function bestHeroRankings(players){
+  const scored=rankPlayers(bestHeroCandidates(players)),best=new Map();
   // One common peer pool gives every hero a comparable end score. Never choose
   // by raw win rate or by re-scoring an already-selected (circular) shortlist.
   scored.forEach(row=>{if(!best.has(row.p))best.set(row.p,row);});
   return [...best.values()];
+}
+const RANK_TREND_MATCH_OPTIONS=[5,10,15,20,30],RANK_TREND_FLAT=1;
+function rankingScoreTrends(ranked,referenceGood,windowSize=rankTrendMatches){
+  const windows=ranked.map(r=>{
+    const matches=[...r.matches].filter(m=>gn(m,'start_time')!=null)
+      .sort((a,b)=>gn(b,'start_time')-gn(a,'start_time'));
+    if(matches.length<2*windowSize)return null;
+    const scoped=r.heroId!==undefined;
+    const item=ms=>scoped?{p:r.p,heroId:r.heroId,matches:ms}: {p:r.p,matches:ms};
+    return {recent:item(matches.slice(0,windowSize)),older:item(matches.slice(windowSize,2*windowSize))};
+  });
+  const eligible=windows.filter(Boolean);
+  const trends=new Map();
+  if(!eligible.length)return trends;
+  const recent=rankPlayers(eligible.map(w=>w.recent),referenceGood);
+  const older=rankPlayers(eligible.map(w=>w.older),referenceGood);
+  const byPlayer=rows=>new Map(rows.map(row=>[row.p,row]));
+  const latest=byPlayer(recent),previous=byPlayer(older);
+  ranked.forEach((r,i)=>{
+    if(!windows[i])return;
+    const a=latest.get(r.p),b=previous.get(r.p),minCoverage=Math.ceil(windowSize*.8);
+    // Avoid implying precision when the detailed stat sample or estimated
+    // placement coverage is sparse, or a component exists in only one window.
+    if([a,b].some(row=>row.score==null||row.metricPerformance==null||row.winStanding==null||
+      row.performanceCoverage.details<minCoverage||row.placement.count>0&&row.placement.count<minCoverage)||
+      (a.placementScore==null)!==(b.placementScore==null))return;
+    trends.set(r.p,{recent:a.score,older:b.score,delta:a.score-b.score,matches:windowSize,
+      recentRow:a,olderRow:b,recentMatches:windows[i].recent.matches,olderMatches:windows[i].older.matches});
+  });
+  return trends;
+}
+function scoreTrendHtml(trend,index,p){
+  if(!trend){
+    const label=`Trend unavailable: need ${2*rankTrendMatches} matches in the selected period with sufficient data`;
+    return `<span class="rank-score-trend" role="img" aria-label="${label}" title="${label}">—</span>`;
+  }
+  const direction=trend.delta>=RANK_TREND_FLAT?'up':trend.delta<=-RANK_TREND_FLAT?'down':'flat';
+  const magnitude=Math.abs(trend.delta),strength=magnitude>=6?'strong':magnitude>=3?'medium':'soft';
+  const label=`Score trend ${trend.delta>=0?'+':''}${f1(trend.delta)} points (${direction==='flat'?'flat':strength==='strong'?'large':strength==='medium'?'moderate':'small'} ${direction==='flat'?'change':direction==='up'?'increase':'decrease'}): last ${trend.matches??rankTrendMatches} matches ${f1(trend.recent)} vs previous ${trend.matches??rankTrendMatches} ${f1(trend.older)}; show trend breakdown for ${p.label}`;
+  return `<button type="button" class="rank-score-trend ${direction} ${strength}" data-rank-trend="${index}" data-rank-trend-person="${chemText(String(p.id))}" aria-expanded="false" aria-controls="rank-trend-detail-${index}" aria-label="${chemText(label)}" title="${chemText(label)}">${direction==='up'?'↑':direction==='down'?'↓':'→'}</button>`;
+}
+function rankingTrendExplanation(trend,index=0){
+  const {olderRow:old,recentRow:now,olderMatches,recentMatches}=trend,windowSize=trend.matches??rankTrendMatches;
+  const signed=n=>`${n>=0?'+':'−'}${f1(Math.abs(n))}`;
+  const kind=n=>n>=RANK_TREND_FLAT?'up':n<=-RANK_TREND_FLAT?'down':'';
+  const components=[
+    {name:'Stat performance',old:old.metricPerformance,now:now.metricPerformance,weight:now.scoreWeights.metric,
+      detail:`Support bonus ${f1(old.supportBonus)} → ${f1(now.supportBonus)} stat pts`},
+    {name:'Estimated placement',old:old.placementScore,now:now.placementScore,weight:now.scoreWeights.placement,
+      detail:`Avg place ${f1(old.placement.average)} → ${f1(now.placement.average)} (lower is better) · coverage ${old.placement.count}/${windowSize} → ${now.placement.count}/${windowSize}`},
+    {name:'Win standing',old:old.winStanding,now:now.winStanding,weight:now.scoreWeights.win,
+      detail:`Win rate ${f1(old.winRate)}% → ${f1(now.winRate)}%`},
+  ].filter(c=>c.old!=null&&c.now!=null&&c.weight>0)
+    .map(c=>({...c,points:c.weight*(c.now-c.old)/100}));
+  const factors=components.map(c=>{
+    const comparison=c.points>=RANK_TREND_FLAT?'up':c.points<=-RANK_TREND_FLAT?'down':'flat';
+    // Each bar's full width is this component's actual possible score points,
+    // not the largest observed change or a separately normalized delta.
+    const row=(label,standing,style)=>{
+      const points=c.weight*standing/100;
+      return `<div class="rank-trend-factor-row"><span>${label}</span><div class="rank-trend-factor-track" role="img" aria-label="${c.name} ${label.toLowerCase()}: ${f1(points)} of ${f1(c.weight)} possible score points"><span class="rank-trend-factor-fill ${style}" style="width:${Math.max(0,Math.min(100,points/c.weight*100))}%"></span></div><strong>${f1(points)}</strong></div>`;
+    };
+    return `<div class="rank-trend-factor"><div class="rank-trend-factor-head"><strong>${c.name} · ${f1(c.weight)}% of score</strong><span class="rank-trend-number ${kind(c.points)}">${signed(c.points)} pts</span></div>${row('Previous',c.old,'previous')}${row('Latest',c.now,'recent '+comparison)}<small class="rank-trend-factor-detail">Bars: 0–${f1(c.weight)} possible score pts · standing ${f1(c.old)} → ${f1(c.now)} · ${c.detail}</small></div>`;
+  }).join('');
+  const oldCategories=new Map(old.categoryDetails.map(c=>[c.name,c]));
+  const nowCategories=new Map(now.categoryDetails.map(c=>[c.name,c]));
+  const categoryCards=CHEM_STATS.map(([name,,color],categoryIndex)=>{
+    const a=oldCategories.get(name),b=nowCategories.get(name);
+    if(!a&&!b)return null;
+    const delta=a&&b?b.rawScore-a.rawScore:null;
+    const bar=(label,value,style)=>`<div class="rank-trend-category-row"><span>${label}</span><div class="rank-bar" role="img" aria-label="${chemText(name)} ${label.toLowerCase()} peer score ${f1(value)}"><span class="rank-bar-fill ${style}" style="width:${Math.max(0,Math.min(100,value??0))}%"></span></div><strong>${f1(value)}</strong></div>`;
+    const metricNames=[...new Set([...(a?.metrics||[]),...(b?.metrics||[])].map(m=>m.label))];
+    const metricCards=metricNames.map(label=>{
+      const before=a?.metrics.find(m=>m.label===label),after=b?.metrics.find(m=>m.label===label);
+      const shift=before&&after?after.score-before.score:null;
+      const metricBar=(period,m,style)=>`<div class="rank-trend-category-row"><span>${period}</span><div class="rank-bar" role="img" aria-label="${chemText(label)} ${period.toLowerCase()} peer score ${f1(m?.score)}"><span class="rank-bar-fill ${style}" style="width:${Math.max(0,Math.min(100,m?.score??0))}%"></span></div><strong>${f1(m?.score)}</strong></div>`;
+      const avg=m=>m?label==='Souls/min'?soulsK(m.mean):f1(m.mean):'—';
+      return `<div class="rank-trend-metric"><div class="rank-trend-metric-head"><strong>${chemText(label)}</strong><span class="rank-trend-number ${shift==null?'':kind(shift)}">${shift==null?'—':signed(shift)+' peer pts'}</span></div>${metricBar('Previous',before,'old')}${metricBar('Latest',after,'new '+(shift==null?'flat':kind(shift)||'flat'))}<small>Avg ${avg(before)} → ${avg(after)}${(before||after)?.direction<0?' · lower is better':''} · coverage ${before?.count??0}/${windowSize} → ${after?.count??0}/${windowSize}</small></div>`;
+    }).join('');
+    const panelId=`rank-trend-cat-panel-${index}-${categoryIndex}`;
+    const key=chemText(String(now.p.id)+':'+String(now.heroId??'overall')+':'+name);
+    return {delta,html:`<div class="rank-trend-category" style="--trend-category:${color||'var(--acc3)'}"><button type="button" class="rank-trend-cat-toggle" data-rank-trend-cat="${key}" aria-expanded="false" aria-controls="${panelId}" aria-label="Show ${chemText(name)} score trend metrics"><strong>${chemText(name)}</strong><small>${name==='Support'?'Bonus · ':''}${metricNames.length} ${metricNames.length===1?'metric':'metrics'}</small><span class="rank-trend-cat-change rank-trend-number ${delta==null?'':kind(delta)}">${delta==null?'—':signed(delta)}${delta==null?'':' peer pts'}</span></button><div class="rank-trend-category-scores">${bar('Previous',a?.rawScore,'old')}${bar('Latest',b?.rawScore,'new '+(delta==null?'flat':kind(delta)||'flat'))}</div><div id="${panelId}" class="rank-trend-metrics" hidden>${metricCards}</div></div>`};
+  }).filter(Boolean).sort((a,b)=>Math.abs(b.delta??0)-Math.abs(a.delta??0)).map(c=>c.html).join('');
+  const scoreBar=(name,score,style)=>`<div class="rank-trend-score-row"><span>${name}</span><div class="rank-trend-score-track" role="img" aria-label="${name} score ${f1(score)} out of 100"><span class="rank-trend-score-fill ${style}" style="width:${Math.max(0,Math.min(100,score))}%"></span></div><strong>${f1(score)}</strong></div>`;
+  const gameHeading=(label,row)=>`<div class="rank-trend-games-head"><h4>${label} games · oldest → newest</h4><strong>Win rate ${row.winRate==null?'—':f1(row.winRate)+'%'}${row.counts?.winRate!=null&&row.counts.winRate<windowSize?` · ${row.counts.winRate}/${windowSize} results`:''}</strong></div>`;
+  const gameStrip=(matches,label)=>`<div class="rank-trend-games-scroll"><div class="rank-trend-games" role="list" aria-label="${label} matches, oldest to newest">${[...matches].reverse().map((m,i)=>{
+    const result=gn(m,'match_result'),team=gn(m,'player_team');
+    const outcome=result==null||team==null?'?':result===team?'W':'L';
+    const place=placementForMatch(m),k=gn(m,'player_kills'),d=gn(m,'player_deaths'),a=gn(m,'player_assists');
+    const details=`${label} match ${i+1}: ${outcome==='?'?'result unavailable':outcome==='W'?'win':'loss'}, estimated place ${place??'unavailable'}, K/D/A ${k??'—'}/${d??'—'}/${a??'—'}`;
+    return `<div class="rank-trend-game ${outcome==='W'?'win':outcome==='L'?'loss':''}" role="listitem" aria-label="${details}" title="${details}">${outcome}<small>#${i+1} · ${place==null?'—':'#'+place}</small></div>`;
+  }).join('')}</div></div>`;
+  return `<section class="rank-trend-panel" aria-label="Score trend breakdown for ${chemText(now.p.label)}"><h3>${chemText(now.p.label)} · last ${windowSize} vs previous ${windowSize} matches</h3><div class="rank-trend-summary ${kind(trend.delta)}">${signed(trend.delta)} score points</div><p class="note">Both ${windowSize}-game windows use the same full-history peer reference. This is a comparison of window scores, not a change to the full-history leaderboard score.</p><div class="rank-trend-scores">${scoreBar('Previous '+windowSize,trend.older,'previous')}${scoreBar('Latest '+windowSize,trend.recent,'recent '+(kind(trend.delta)||'flat'))}</div><h4>What changed the score</h4><p class="note">Each pair shows its actual contribution to the overall score. The end of a bar is that component’s maximum weighted points; the difference between its bars is the score change shown at right.</p><div class="rank-trend-factors">${factors}</div><h4>Stat categories · peer-relative scores</h4><p class="note">Category changes explain the stat component; peer-score shifts are not additional score points.</p><div class="rank-trend-categories">${categoryCards||'<p class="note">No scored categories available.</p>'}</div>${gameHeading('Previous '+windowSize,old)}${gameStrip(olderMatches,'Previous '+windowSize)}${gameHeading('Latest '+windowSize,now)}${gameStrip(recentMatches,'Latest '+windowSize)}<p class="note">W/L is match result; # is estimated lobby placement (— if unavailable). Match strips provide context, not individual game scores.</p></section>`;
 }
 function assignRankingTiers(rows){
   const graded=rows.filter(r=>r.score!=null);
@@ -1639,7 +1856,7 @@ function tabCombat(arr){
 function tabEcon(arr){
   if(!arr.length)return'<div class="nd">No data yet</div>';
   let h=`<div class="slbl">Economy Stats</div><div class="g3">`;
-  h+=statCard('Souls per Minute','soulsMin',arr,fk);
+  h+=statCard('Souls per Minute','soulsMin',arr,soulsK);
   h+=statCard('Avg Net Worth','avgNw',arr,fk);
   h+=statCard('Last Hits per Game','avgLh',arr);
   h+=statCard('Denies per Game','avgDen',arr);
@@ -1721,10 +1938,10 @@ function tabHeroes(good){
       <td class="l"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${hr.player.color};margin-right:6px;vertical-align:middle"></span>${chemText(hr.player.label)}</td>
       <td class="l"><div class="hcell"><div class="hico tico">${heroImage(hr.hid,hero,hero.name||String(hr.hid))}</div><span>${chemText(hero.name||hr.hid)}</span></div></td>
       <td class="r">${hr.m}</td><td class="r"><span style="color:var(--grn)">${hr.w}</span>-<span style="color:var(--red)">${hr.l}</span></td>
-      <td class="r" style="color:${pctColor(hr.wr)};font-weight:700">${hr.wr.toFixed(0)}%</td>
-      <td class="r" style="color:var(--acc3)">${f2(hr.kda)}</td>
+      <td class="r" style="color:${pctColor(hr.wr)};font-weight:700">${f1(hr.wr)}%</td>
+      <td class="r" style="color:var(--acc3)">${f1(hr.kda)}</td>
       <td class="r">${f1(hr.kg)} / ${f1(hr.dg)} / ${f1(hr.ag)}</td>
-      <td class="r">${hr.dmgGame==null?'—':fk(hr.dmgGame)}</td><td class="r">${hr.soulsMin==null?'—':fk(hr.soulsMin)}</td>
+      <td class="r">${hr.dmgGame==null?'—':fk(hr.dmgGame)}</td><td class="r">${soulsK(hr.soulsMin)}</td>
       <td class="r">${fk(hr.nwg)}</td><td class="r">${f1(hr.lhg)}</td><td class="r">${f1(hr.dng)}</td><td class="r">${f1(hr.lvlg)}</td>
       <td class="r">${f1(hr.placement.average)}</td><td class="r">${placementModes(hr.placement)}</td><td class="r">${hr.placement.count}/${hr.placement.selected}</td>
     </tr>`;
@@ -1746,11 +1963,11 @@ function tabHeroes(good){
         <td class="l"><div class="hcell"><div class="hico tico">${heroImage(hr.hid,hero,hero.name||String(hr.hid))}</div><span>${chemText(hero.name||hr.hid)}</span></div></td>
         <td class="r">${hr.m}</td>
         <td class="r"><span style="color:var(--grn)">${hr.w}</span>-<span style="color:var(--red)">${hr.l}</span></td>
-        <td class="r" style="color:${pctColor(hr.wr)};font-weight:700">${hr.wr.toFixed(0)}%</td>
-        <td class="r" style="color:var(--acc3)">${f2(hr.kda)}</td>
+        <td class="r" style="color:${pctColor(hr.wr)};font-weight:700">${f1(hr.wr)}%</td>
+        <td class="r" style="color:var(--acc3)">${f1(hr.kda)}</td>
         <td class="r">${f1(hr.kg)} / ${f1(hr.dg)} / ${f1(hr.ag)}</td>
         <td class="r">${hr.dmgGame==null?'—':fk(hr.dmgGame)}</td>
-        <td class="r">${hr.soulsMin==null?'—':fk(hr.soulsMin)}</td>
+        <td class="r">${soulsK(hr.soulsMin)}</td>
         <td class="r">${fk(hr.nwg)}</td>
         <td class="r">${f1(hr.lhg)}</td>
         <td class="r">${f1(hr.placement.average)}</td><td class="r">${placementModes(hr.placement)}</td><td class="r">${hr.placement.count}/${hr.placement.selected}</td>
@@ -1927,7 +2144,7 @@ function tabMatches(good){
           <td class="r">${objective==null?'—':fk(objective)}</td>
           <td class="r">${selfHealing==null?'—':fk(selfHealing)}</td>
           <td class="r">${teammateHealing==null?'—':fk(teammateHealing)}</td>
-          <td class="r">${soulsMin==null?'—':fk(soulsMin)}</td>
+          <td class="r">${soulsK(soulsMin)}</td>
           <td class="r">${fk(gf(m,'net_worth'))}</td>
           <td class="r">${dur?Math.floor(dur/60)+':'+String(dur%60).padStart(2,'0'):'—'}</td>
         </tr>${open?`<tr class="match-expanded" id="${chemText(detailId)}"><td colspan="16">${matchBreakdownHtml(id,hid)}</td></tr>`:''}`;
@@ -2023,7 +2240,7 @@ const IND_METRICS=[
   ['KDA','kda',m=>ratio((gn(m,'player_kills')??0)+(gn(m,'player_assists')??0),gn(m,'player_deaths'))??(gn(m,'player_deaths')===0?(gn(m,'player_kills')??0)+(gn(m,'player_assists')??0):null),f2],
   ['Hero damage/min','player_damage_per_min',m=>metrics(m).dpm,f1],
   ['Hero damage/game','player_damage',m=>gn(m,'player_damage'),fk],
-  ['Souls/min','net_worth_per_min',m=>ratio(gn(m,'net_worth'),ratio(gn(m,'match_duration_s'),60)),f1],
+  ['Souls/min','net_worth_per_min',m=>ratio(gn(m,'net_worth'),ratio(gn(m,'match_duration_s'),60)),soulsK],
   ['Last hits','last_hits',m=>gn(m,'last_hits'),f1],
   ['Denies','denies',m=>gn(m,'denies'),f1],
   ['Boss damage/min','boss_damage_per_min',m=>ratio(metrics(m).boss,ratio(gn(m,'match_duration_s'),60)),f1],
@@ -2205,7 +2422,7 @@ const CHEM_STATS=[
     ['KDA/game',o=>{const k=gn(o.m,'player_kills'),d=gn(o.m,'player_deaths'),v=gn(o.m,'player_assists');return k==null||d==null||v==null?null:(k+v)/(d||1);},f2,1,5]
   ]],
   ['Economy','Souls, farming and progression','#f0b429',[
-    ['Souls/min',o=>ratio(gn(o.m,'net_worth'),ratio(gn(o.m,'match_duration_s'),60)),f1,1,60],
+    ['Souls/min',o=>ratio(gn(o.m,'net_worth'),ratio(gn(o.m,'match_duration_s'),60)),soulsK,1,60],
     ['Net worth',o=>gn(o.m,'net_worth'),fk,1,15],['Last hits/game',o=>gn(o.m,'last_hits'),f1,0,0],
     ['Denies/game',o=>gn(o.m,'denies'),f1,1,5],['Hero level',o=>gn(o.m,'hero_level'),f1,1,20]
   ]],
@@ -2408,6 +2625,17 @@ function tabChemistry(good){
   return h;
 }
 const STAGE_KEYS=['net_worth','creep_kills','denies','player_damage','kills','deaths'];
+const STAGE_COLUMNS=['time_stamp_s',...STAGE_KEYS];
+const STAGE_METADATA_OPTIONS={only_filtered_players:'true',include_info:'false',
+  extra_player_columns:STAGE_COLUMNS.map(field=>'stats.'+field).join(',')};
+function stageTimeline(player){
+  if(Array.isArray(player.stats))return player.stats;
+  const times=player.stats_time_stamp_s;
+  if(!Array.isArray(times)||!times.length||STAGE_KEYS.some(key=>
+    !Array.isArray(player['stats_'+key])||player['stats_'+key].length!==times.length))return [];
+  return times.map((time,i)=>Object.fromEntries(STAGE_COLUMNS.map(key=>
+    [key,key==='time_stamp_s'?time:player['stats_'+key][i]])));
+}
 function stageSnapshot(stats,time){
   const before=[...stats].reverse().find(x=>x.time_stamp_s<=time),after=stats.find(x=>x.time_stamp_s>=time);
   if(!before||!after||after.time_stamp_s-before.time_stamp_s>360)return null;
@@ -2434,33 +2662,42 @@ function matchStages(stats,duration){
   }
   return early||late?{early,late}:null;
 }
+function stagesWaitingForOverview(){
+  return players.some(p=>p.loading||p.detailsLoading)||placementLoading||
+    !!placementRetryTimer||!!placementNextTimer;
+}
 async function refreshStages(){
+  // Timelines are optional: never queue them ahead of leaderboard histories,
+  // placement rankings, or the overview's final-stat enrichment.
+  if(activeTab!=='stages'||stagesWaitingForOverview())return;
   const key=scopeKey();await Promise.all(players.filter(p=>!p.loading&&!p.error).map(async p=>{
     p.stages=p.stages||{};if(Object.hasOwn(p.stages,key))return;
-    const ms=visibleMatches(p).filter(m=>gn(m,'match_duration_s')>=600).slice(0,STAGE_MATCH_LIMIT);
+    const ms=[...visibleMatches(p)].filter(m=>gn(m,'match_duration_s')>=600)
+      .sort((a,b)=>(gn(b,'start_time')||0)-(gn(a,'start_time')||0)).slice(0,STAGE_MATCH_LIMIT);
     p.stages[key]={loading:true,values:new Map(),done:0,total:ms.length};
-    const bucket=p.stages[key];renderMain();
+    const bucket=p.stages[key];if(activeTab==='stages')renderMain();
     const byId=new Map(ms.map(m=>[String(m.match_id),m]));
     // Metadata filters use account32, even when the player was added by Steam64.
     const accountId=String(p.matches?.find(m=>m.account_id!=null)?.account_id??p.id);
     try{
       for(let i=0;i<ms.length;i+=25){
-        const slice=ms.slice(i,i+25),q=new URLSearchParams({match_ids:slice.map(m=>m.match_id).join(','),account_ids:accountId,
-          only_filtered_players:'true',include_info:'false',include_player_stats:'true',limit:String(slice.length)});
+        const slice=ms.slice(i,i+25);
         if(p.stages[key]!==bucket||!players.includes(p))return;
-        const data=await BreadlockData.metadata(slice.map(m=>m.match_id),Object.fromEntries(q),{priority:0});
+        const data=await BreadlockData.metadata(slice.map(m=>m.match_id),
+          {...STAGE_METADATA_OPTIONS,account_ids:accountId},{priority:2});
         if(p.stages[key]!==bucket||!players.includes(p))return;
         for(const row of Array.isArray(data)?data:[]){
           const player=(row.players||[]).map(x=>{if(typeof x!=='string')return x;try{return JSON.parse(x);}catch(e){return null;}})
             .find(x=>x&&String(x.account_id)===accountId);
-          if(player?.stats?.length){const v=matchStages(player.stats,gn(byId.get(String(row.match_id)),'match_duration_s'));if(v)bucket.values.set(String(row.match_id),v);}
+          const stats=player&&stageTimeline(player);
+          if(stats?.length){const v=matchStages(stats,gn(byId.get(String(row.match_id)),'match_duration_s'));if(v)bucket.values.set(String(row.match_id),v);}
         }
         bucket.done=Math.min(ms.length,i+slice.length);
         if(activeTab==='stages')renderMain();
       }
     }catch(e){dbg(p.label+' match-stage data unavailable: '+e,'wn');bucket.error=true;dataNotice='Match-stage data is incomplete: '+e.message;}
     if(p.stages[key]!==bucket||!players.includes(p))return;
-    bucket.loading=false;renderMain();
+    bucket.loading=false;if(activeTab==='stages')renderMain();
   }));
 }
 function tabStages(arr){
@@ -2472,7 +2709,8 @@ function tabStages(arr){
       soulsLate:vals('late','net_worth'),lastLate:vals('late','creep_kills'),deniesLate:vals('late','denies'),damageLate:vals('late','player_damage'),killsLate:vals('late','kills'),deathsLate:vals('late','deaths')},
       earlyCount:samples.filter(v=>v.early).length,lateCount:samples.filter(v=>v.late).length,loading:bucket?.loading,error:bucket?.error};
   });
-  let h='<div class="slbl">Early game · first 10 minutes</div>';
+  let h=stagesWaitingForOverview()?'<div class="note" role="status">Match-stage timelines will load after the leaderboard data finishes loading.</div>':'';
+  h+='<div class="slbl">Early game · first 10 minutes</div>';
   const pending=rows.filter(x=>x.loading);
   if(pending.length){
     const ready=rows.length-pending.length;
@@ -2481,7 +2719,7 @@ function tabStages(arr){
   h+='<div class="g3">';
   for(const [title,key,fmt,higher] of [['Souls at 10:00','souls10',fk,true],['Last hits at 10:00','last10',f1,true],['Denies at 10:00','denies10',f1,true],['Hero damage at 10:00','damage10',fk,true],['Kills at 10:00','kills10',f1,true],['Deaths at 10:00','deaths10',f1,false]])h+=statCard(title,key,rows,fmt,higher);
   h+='</div><div class="slbl">Late game · after 20 minutes</div><div class="g3">';
-  for(const [title,key,fmt,higher] of [['Souls/min after 20:00','soulsLate',f1,true],['Last hits/min after 20:00','lastLate',f1,true],['Denies/min after 20:00','deniesLate',f1,true],['Hero damage/min after 20:00','damageLate',f1,true],['Kills/min after 20:00','killsLate',f1,true],['Deaths/min after 20:00','deathsLate',f1,false]])h+=statCard(title,key,rows,fmt,higher);
+  for(const [title,key,fmt,higher] of [['Souls/min after 20:00','soulsLate',soulsK,true],['Last hits/min after 20:00','lastLate',f1,true],['Denies/min after 20:00','deniesLate',f1,true],['Hero damage/min after 20:00','damageLate',f1,true],['Kills/min after 20:00','killsLate',f1,true],['Deaths/min after 20:00','deathsLate',f1,false]])h+=statCard(title,key,rows,fmt,higher);
   h+='</div><div class="note">Usable timelines (early / late): '+rows.map(r=>r.p.label+': '+r.earlyCount+' / '+r.lateCount+(r.error?' (some timelines unavailable)':'')).join(' · ')+'</div>';return h;
 }
 
@@ -2599,7 +2837,7 @@ function init(){
     scopeCount=+document.getElementById('scope-count').value;
     scopeUnit=document.getElementById('scope-unit').value;
     renderMain();schedulePlacements();refreshMvp();
-    if(activeTab==='stages')refreshStages();
+    if(activeTab==='stages')void refreshStages();
     if(activeTab==='performance')refreshTeamShare();
     if(activeTab==='individual')refreshIndividual();
   }));
@@ -2609,7 +2847,7 @@ function init(){
       x.classList.toggle('on',x===t);
       x.setAttribute('aria-selected',String(x===t));
     });
-    renderMain();if(activeTab==='stages')refreshStages();if(activeTab==='performance')refreshTeamShare();if(activeTab==='individual')refreshIndividual();
+    renderMain();if(activeTab==='stages')void refreshStages();if(activeTab==='performance')refreshTeamShare();if(activeTab==='individual')refreshIndividual();
   }));
   dbg('Breadlock Stats ready','ok');
 }

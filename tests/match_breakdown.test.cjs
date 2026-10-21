@@ -12,6 +12,7 @@ const context = {
   placementFinalStats: p => p.final_stats || p.stats?.at(-1) || null,
   chemText: value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
   f1: n => Number(n).toFixed(1), fk: n => String(n),
+  soulsK: n => n == null ? '—' : (n / 1000).toFixed(1) + 'K',
   placementOrdinal: n => n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'),
   gn: (obj, ...keys) => { for (const key of keys) if (obj?.[key] != null && Number.isFinite(+obj[key])) return +obj[key]; return null; },
   heroImage: () => 'icon', visibleMatches: p => p.matches, gf: (obj, key) => Number(obj?.[key] || 0),

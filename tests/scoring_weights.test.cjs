@@ -8,7 +8,7 @@ const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const definition = html.slice(html.indexOf('const CHEM_STATS=['), html.indexOf('function chemObservations('));
 
 const stats = vm.runInNewContext(`${definition}\nCHEM_STATS`, {
-  f1: () => {}, f2: () => {}, fk: () => {},
+  f1: () => {}, f2: () => {}, fk: () => {}, soulsK: () => {},
 });
 const weightsFor = name => Object.fromEntries(stats.find(([group]) => group === name)[3]
   .map(([label, , , , weight]) => [label, weight]));
