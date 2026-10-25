@@ -92,6 +92,22 @@ input[type=text]::placeholder{color:var(--sub)}
 /* Charts */
 .cw{position:relative;width:100%;height:220px}
 .cwl{position:relative;width:100%;height:300px}
+.progress-controls{display:flex;align-items:center;gap:8px;margin:0 0 12px;color:var(--txt2);font-size:13px}
+.progress-controls select{background:var(--bg3);border:1px solid var(--bdr2);border-radius:5px;color:var(--txt);font:12px var(--ff);padding:6px 8px;cursor:pointer}
+.progress-controls select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.progress-legend{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.progress-legend-label{font-size:12px;color:var(--txt3);margin-right:4px}
+.progress-person{display:inline-flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:5px;color:var(--txt);padding:6px 9px;cursor:pointer;font:12px var(--ff)}
+.progress-person[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
+.progress-person:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.progress-dot{width:10px;height:10px;border-radius:50%;flex:none}
+.progress-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.progress-grid>.card{min-width:0}
+.progress-rank-section{margin-bottom:32px;padding-bottom:26px;border-bottom:1px solid var(--bdr2)}
+.progress-rank-section>.note{margin:0 0 12px}
+.progress-rank-section>.slbl,.progress-individual-section>.slbl{margin:0 0 14px}
+.progress-chart{position:relative;height:275px}
+@media(max-width:850px){.progress-grid{grid-template-columns:1fr}}
 /* Tables */
 .st{width:100%;border-collapse:collapse;font-size:13px}
 .st th{color:var(--txt3);padding:6px 9px;font-size:10px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--bdr2);white-space:nowrap;font-weight:700}
@@ -660,6 +676,7 @@ input[type=text]::placeholder{color:var(--sub)}
   <button type="button" role="tab" aria-selected="false" class="tab" data-t="heroes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>Heroes</button>
   <button type="button" role="tab" aria-selected="false" class="tab" data-t="chemistry"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c.5-3.5 3.5-6 7-6s6.5 2.5 7 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.2.8 3.6 2.8 4 6"/></svg>Chemistry</button>
   <button type="button" role="tab" aria-selected="false" class="tab" data-t="individual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4.2 4-7 8-7s7.3 2.8 8 7"/></svg>Individual</button>
+  <button type="button" role="tab" aria-selected="false" class="tab" data-t="progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19V5M3 19h18M5 15l5-5 4 3 6-8"/></svg>Progress</button>
   <button type="button" role="tab" aria-selected="false" class="tab" data-t="matches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Matches</button>
   <button type="button" role="tab" aria-selected="false" class="tab" data-t="debug"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l6-5-6-5M12 19h8"/></svg>Console</button>
 </div>
@@ -683,8 +700,8 @@ const DEFAULTS=[
   {id:'106307673',label:'Ten'},
   {id:'890958554',label:'Yamson'},
   {id:'43890963',label:'Def'},
-  {id:'889764276',label:'Horse Hormones'},
-  {id:'235976077',label:'Datkrazystoner'},
+  {id:'889764276',label:'Horse Hormones',color:'#5aee8a'},
+  {id:'235976077',label:'Datkrazystoner',color:'#a78bfa'},
   {id:'1008807965',label:'Master JahBlu'},
   {id:'855208374',label:'Wiggly'},
   {id:'890674989',label:'Como se dice arroz'},
@@ -1142,9 +1159,9 @@ function loadTrackedRanks(){
   if(players.some(p=>p.loading))return;
   void loadRanks(players.filter(p=>!p.error).map(rankAccount));
 }
-async function addPlayer(id,label){
+async function addPlayer(id,label,colorOverride){
   if(!id||players.find(p=>p.id===id))return;
-  const color=COLS[players.length%COLS.length];
+  const color=colorOverride||COLS[players.length%COLS.length];
   const p={id,label:label||id,color,loading:true,detailsLoading:false,error:null,matches:null,mvp:{},phase:'Fetching match history',progressDone:0,progressTotal:null};
   const generation=loadGeneration;
   players.push(p);
@@ -1391,13 +1408,16 @@ function renderChips(){
     <span class="crm" data-id="${chemText(p.id)}">×</span>
   </div>`).join('');
   el.querySelectorAll('.crm').forEach(x=>x.addEventListener('click',()=>{
-    cancelPlacements();matchPages.delete(x.dataset.id);players=players.filter(p=>p.id!==x.dataset.id);
+    cancelPlacements();matchPages.delete(x.dataset.id);progressHiddenIds.delete(x.dataset.id);
+    progressLocalHidden.forEach(ids=>ids.delete(x.dataset.id));players=players.filter(p=>p.id!==x.dataset.id);
     renderChips();renderMain();schedulePlacements();startMatchDetails();
   }));
 }
 
+let chartRenderId=0;
 function renderMain(){
   const el=document.getElementById('main');if(!el)return;
+  const renderId=++chartRenderId;
   const expandedRankIds=activeTab==='overview'?new Set([...el.querySelectorAll('.rank-expand[aria-expanded="true"]')].map(b=>b.dataset.rankPerson)):new Set();
   const expandedTrendIds=activeTab==='overview'?new Set([...el.querySelectorAll('.rank-score-trend[aria-expanded="true"]')].map(b=>b.dataset.rankTrendPerson)):new Set();
   const openRankCats=activeTab==='overview'?new Set([...el.querySelectorAll('.rank-cat-toggle[aria-expanded="true"]')].map(b=>b.dataset.rankCatToggle)):new Set();
@@ -1426,6 +1446,7 @@ function renderMain(){
   else if(activeTab==='heroes')html+=tabHeroes(good);
   else if(activeTab==='performance')html+=tabPerformance(arr);
   else if(activeTab==='individual')html+=tabIndividual(good);
+  else if(activeTab==='progress')html+=tabProgress(good);
   else if(activeTab==='stages')html+=tabStages(arr);
   else if(activeTab==='chemistry')html+=tabChemistry(good);
   else if(activeTab==='matches')html+=tabMatches(good);
@@ -1507,6 +1528,31 @@ function renderMain(){
     el.querySelectorAll('[data-ind-rank]').forEach(b=>b.addEventListener('click',()=>{individualRank=b.dataset.indRank;renderMain();refreshIndividual();}));
     el.querySelectorAll('.ind-picker img[data-fallbacks]').forEach(img=>img.addEventListener('error',()=>rotateHeroImage(img)));
   }
+  if(activeTab==='progress'){
+    el.querySelectorAll('[data-progress-player]').forEach(button=>button.addEventListener('click',()=>{
+      const id=button.dataset.progressPlayer;
+      if(progressHiddenIds.has(id))progressHiddenIds.delete(id);else progressHiddenIds.add(id);
+      button.setAttribute('aria-pressed',String(!progressHiddenIds.has(id)));
+      Object.entries(charts).filter(([key])=>key.startsWith('progress-')).forEach(([,chart])=>syncProgressChart(chart));
+    }));
+    el.querySelector('#progress-show-all')?.addEventListener('click',()=>{
+      progressHiddenIds.clear();
+      el.querySelectorAll('[data-progress-player]').forEach(button=>button.setAttribute('aria-pressed','true'));
+      Object.entries(charts).filter(([key])=>key.startsWith('progress-')).forEach(([,chart])=>syncProgressChart(chart));
+    });
+    el.querySelector('#rank-progress-window')?.addEventListener('change',e=>{
+      rankProgressWindow=Number(e.target.value);renderMain();
+      el.querySelector('#rank-progress-window')?.focus({preventScroll:true});
+    });
+    el.querySelector('#rank-progress-season')?.addEventListener('change',e=>{
+      rankProgressSeason=e.target.value;renderMain();
+      el.querySelector('#rank-progress-season')?.focus({preventScroll:true});
+    });
+    el.querySelector('#progress-window')?.addEventListener('change',e=>{
+      progressWindow=Number(e.target.value);renderMain();
+      el.querySelector('#progress-window')?.focus({preventScroll:true});
+    });
+  }
   if(activeTab==='chemistry'){
     el.querySelectorAll('[data-chem-person]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.chemPerson;chemistryTeam=chemistryTeam.includes(id)?chemistryTeam.filter(x=>x!==id):chemistryTeam.length<6?[...chemistryTeam,id]:chemistryTeam;renderMain();}));
     el.querySelectorAll('[data-chem-view]').forEach(b=>b.addEventListener('click',()=>{chemistryView=b.dataset.chemView;chemistryPair=null;renderMain();}));
@@ -1518,7 +1564,7 @@ function renderMain(){
       row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}});
     });
   }
-  setTimeout(()=>mountCharts(arr),80);
+  setTimeout(()=>{if(renderId===chartRenderId)mountCharts(arr);},80);
 }
 
 function tabOverview(arr){
@@ -2844,6 +2890,149 @@ function tabDebug(){
   }</div></div>`;
 }
 
+// ---- PROGRESS ----
+// Each point averages one non-overlapping block of matches per player.
+// The x position is the last match number in that block within the selected scope.
+const PROGRESS_WINDOWS=[0,10,25,50,100,250]; // 0 = no averaging (one point per match)
+const RANK_PROGRESS_SEASONS=[{id:'beta1',name:'Beta Season 1',start:Date.parse('2026-07-30T00:00:00Z')/1000,end:Infinity}];
+let progressWindow=100,rankProgressWindow=0,rankProgressSeason='beta1';
+const progressHiddenIds=new Set();
+const progressLocalHidden=new Map(); // chart stat key -> hidden player IDs
+const PROGRESS_STATS=[
+  {key:'rank',title:'Official rank progression',series:progressRankSeries},
+  {key:'win',title:'Win rate',unit:'%',value:m=>isWin(m)?100:0},
+  {key:'kills',title:'Kills / match',value:m=>gn(m,'player_kills')},
+  {key:'deaths',title:'Deaths / match',value:m=>gn(m,'player_deaths')},
+  {key:'assists',title:'Assists / match',value:m=>gn(m,'player_assists')},
+  {key:'kda',title:'KDA ratio',aggregate:ms=>{
+    const valid=ms.filter(m=>['player_kills','player_deaths','player_assists'].every(key=>gn(m,key)!=null));
+    if(!valid.length)return null;
+    const kills=valid.reduce((sum,m)=>sum+gn(m,'player_kills')+gn(m,'player_assists'),0);
+    const deaths=valid.reduce((sum,m)=>sum+gn(m,'player_deaths'),0);
+    return kills/(deaths||1);
+  }},
+  {key:'souls',title:'Souls / min',value:m=>ratio(gn(m,'net_worth'),ratio(gn(m,'match_duration_s'),60))},
+  {key:'damage',title:'Damage / min',value:m=>metrics(m).dpm},
+  {key:'objective',title:'Boss damage / min',value:m=>ratio(metrics(m).boss,ratio(gn(m,'match_duration_s'),60))},
+  {key:'placement',title:'Avg estimated placement (lower is better)',value:m=>placementForMatch(m)},
+  {key:'creepDamage',title:'Lane creep damage / match',value:m=>metrics(m).creep},
+  {key:'denies',title:'Denies / match',value:m=>gn(m,'denies')},
+  {key:'allyHeal',title:'Teammate healing / match',value:m=>metrics(m).allyHeal}
+];
+function rankLabel(badge){
+  const tier=Math.floor(badge/10),sub=badge%10;
+  return `${IND_RANKS[tier]} ${['','I','II','III','IV','V','VI'][sub]}`;
+}
+function rankAxisLabel(value){
+  if(!Number.isInteger(value)||value<1||value>66)return '';
+  const tier=Math.floor((value-1)/6)+1,sub=(value-1)%6+1;
+  return rankLabel(tier*10+sub);
+}
+function rankSymbolUrl(value){
+  const tier=Math.floor((value-1)/6)+1,sub=(value-1)%6+1;
+  const images=rankAssets.find(r=>r.tier===tier)?.images;
+  return images?.['large_subrank'+sub]||images?.small||null;
+}
+const progressRankImages=new Map();
+const progressRankSymbols={id:'progressRankSymbols',afterDraw(chart){
+  const scale=chart.scales.y,ctx=chart.ctx;
+  if(!scale)return;
+  ctx.save();ctx.font='11px Inter, sans-serif';
+  for(let i=0;i<scale.ticks.length;i++){
+    const tick=scale.ticks[i],label=rankAxisLabel(tick.value);
+    if(!label)continue;
+    const x=scale.right-(scale.options.ticks.padding??3)-ctx.measureText(label).width-21;
+    const y=scale.getPixelForTick(i)-8;
+    const url=rankSymbolUrl(tick.value);
+    if(url){
+      let icon=progressRankImages.get(url);
+      if(!icon){
+        icon={image:new Image(),ready:false};progressRankImages.set(url,icon);
+        icon.image.onload=()=>{icon.ready=true;if(charts['progress-rank']===chart)chart.draw();};
+        icon.image.onerror=()=>{icon.ready=false;};
+        icon.image.src=url;
+      }
+      if(icon.ready){ctx.drawImage(icon.image,x,y,16,16);continue;}
+    }
+    ctx.fillStyle=TICK;ctx.fillText('◆',x+2,y+12);
+  }
+  ctx.restore();
+}};
+function progressRankSeries(p){
+  const season=RANK_PROGRESS_SEASONS.find(s=>s.id===rankProgressSeason);
+  if(!season)return [];
+  const ranked=(p.matches||[]).filter(m=>{
+    const time=gn(m,'start_time');
+    return gn(m,'game_mode')===1&&gn(m,'match_mode')===4&&time!=null&&time>=season.start&&time<season.end;
+  }).sort((a,b)=>gn(a,'start_time')-gn(b,'start_time'));
+  const points=[],size=rankProgressWindow||1;
+  for(let i=0;i<ranked.length;i+=size){
+    const end=Math.min(i+size,ranked.length);
+    const values=ranked.slice(i,end).map(m=>{
+      const badge=gn(m,'ranked_display_badge'),tier=Math.floor(badge/10),sub=badge%10;
+      return Number.isInteger(badge)&&tier>=1&&tier<=11&&sub>=1&&sub<=6?(tier-1)*6+sub:null;
+    }).filter(v=>v!=null);
+    points.push({x:end,start:i+1,y:values.length?+(values.reduce((a,b)=>a+b,0)/values.length).toFixed(1):null});
+  }
+  return points;
+}
+function progressSeries(p,stat){
+  if(stat.series)return stat.series(p);
+  const ms=visibleMatches(p).map(m=>({m,time:gn(m,'start_time')}))
+    .filter(row=>row.time!=null&&row.time>0&&Number.isFinite(row.time))
+    .sort((a,b)=>a.time-b.time);
+  const points=[];
+  const size=progressWindow||1;
+  for(let i=0;i<ms.length;i+=size){
+    const end=Math.min(i+size,ms.length);
+    const block=ms.slice(i,end).map(row=>row.m);
+    const values=stat.aggregate?null:block.map(stat.value).filter(v=>v!=null&&Number.isFinite(v));
+    const average=stat.aggregate?stat.aggregate(block):values.length?values.reduce((a,b)=>a+b,0)/values.length:null;
+    points.push({x:end,start:i+1,y:average!=null&&Number.isFinite(average)?+average.toFixed(1):null});
+  }
+  return points;
+}
+function progressBounds(datasets){
+  const bounds={xMin:Infinity,xMax:-Infinity,yMin:Infinity,yMax:-Infinity};
+  for(const dataset of datasets)for(const point of dataset.hidden?[]:dataset.data){
+    if(point.y==null||!Number.isFinite(point.y))continue;
+    bounds.xMin=Math.min(bounds.xMin,point.x);bounds.xMax=Math.max(bounds.xMax,point.x);
+    bounds.yMin=Math.min(bounds.yMin,point.y);bounds.yMax=Math.max(bounds.yMax,point.y);
+  }
+  if(bounds.xMin===Infinity)return null;
+  // A single distinct value needs a small span so Chart.js can draw its axis.
+  return {
+    x:bounds.xMin===bounds.xMax?{min:Math.max(0,bounds.xMin-1),max:bounds.xMax+1}:{min:bounds.xMin,max:bounds.xMax},
+    y:bounds.yMin===bounds.yMax?{min:bounds.yMin-1,max:bounds.yMax+1}:{min:bounds.yMin,max:bounds.yMax}
+  };
+}
+function syncProgressChart(chart){
+  const local=progressLocalHidden.get(chart.canvas.id.slice('progress-'.length));
+  chart.data.datasets.forEach((dataset,i)=>chart.setDatasetVisibility(i,
+    !progressHiddenIds.has(dataset.playerId)&&!local?.has(dataset.playerId)));
+  const visible=chart.data.datasets.map((dataset,i)=>({...dataset,hidden:!chart.isDatasetVisible(i)}));
+  const bounds=progressBounds(visible)||progressBounds(chart.data.datasets.map(dataset=>({...dataset,hidden:false})));
+  if(bounds){
+    Object.assign(chart.options.scales.x,bounds.x);
+    Object.assign(chart.options.scales.y,bounds.y);
+  }
+  chart.update();
+}
+function tabProgress(good){
+  if(!good.length)return '<div class="nd">No player data yet.</div>';
+  const visible=good.filter(p=>!progressHiddenIds.has(String(p.id)));
+  const card=stat=>{
+    const available=good.some(p=>progressSeries(p,stat).some(point=>point.y!=null));
+    return `<div class="card"><div class="ct">${stat.title}</div>${available?`<div class="progress-chart"><canvas id="progress-${stat.key}" role="img" aria-label="${stat.title} by matches played for loaded players"></canvas></div>`:`<div class="nd">${stat.key==='rank'?'No ranked badge data in this season.':visible.length?'No dated match data available.':'Select a player above.'}</div>`}</div>`;
+  };
+  const windowOptions=selected=>PROGRESS_WINDOWS.map(n=>`<option value="${n}"${selected===n?' selected':''}>${n?n+' matches':'No averaging'}</option>`).join('');
+  return `<div class="progress-legend" role="group" aria-label="Players shown in all Progress graphs"><span class="progress-legend-label">Players</span>${good.map(p=>`<button type="button" class="progress-person" data-progress-player="${chemText(String(p.id))}" aria-pressed="${!progressHiddenIds.has(String(p.id))}"><span class="progress-dot" style="background:${p.color}"></span>${chemText(p.label)}</button>`).join('')}<button type="button" class="btn btnsm" id="progress-show-all">Show all globally</button></div>
+    <section class="progress-rank-section" aria-label="Official rank progression"><div class="slbl">Official Rank Progression</div>
+      <div class="progress-controls"><label for="rank-progress-season">Season <select id="rank-progress-season" aria-label="Rank season">${RANK_PROGRESS_SEASONS.map(s=>`<option value="${s.id}"${rankProgressSeason===s.id?' selected':''}>${s.name}</option>`).join('')}</select></label><label for="rank-progress-window">Average per block <select id="rank-progress-window" aria-label="Ranked matches per rank average">${windowOptions(rankProgressWindow)}</select></label></div>
+      <p class="note">Rank uses only ranked matches from the selected season, independently of the global Mode and Period filters. ${rankProgressWindow?`Each point averages available official rank subdivisions in a separate block of ${rankProgressWindow} ranked matches.`:'No averaging: each ranked match has its own point showing its reported badge.'} Blocks without badges are omitted. Match number counts ranked games even when a badge is missing. Rank averages are approximate positions, not official badges (Eternus subdivision may reflect the entering badge).</p>${card(PROGRESS_STATS[0])}</section>
+    <section class="progress-individual-section" aria-label="Individual stat progress"><div class="slbl">Individual Stats</div><label class="progress-controls" for="progress-window">Average per block <select id="progress-window" aria-label="Matches per average">${windowOptions(progressWindow)}</select></label><p class="note">${progressWindow?`Each point averages a separate block of ${progressWindow} matches (the last block may be shorter).`:'No averaging: each visible match has its own point.'} The x-axis shows the last match number in each block within the selected Mode and Period; match #1 is each player's oldest visible match. KDA uses total kills + assists divided by total deaths in the block. Boss damage, lane creep damage, and healing require detailed stats; estimated placement is an experimental 1–12 lobby estimate, not an official award. Missing values are excluded rather than treated as zero. Use the legend above to filter every graph, or a graph's own legend to filter just that graph.</p><div class="progress-grid">${PROGRESS_STATS.slice(1).map(card).join('')}</div></section>`;
+}
+
 // ---- CHARTS ----
 const GRID='#22263a', TICK='#8892aa';
 const baseOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
@@ -2852,12 +3041,39 @@ const baseOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{displ
 function mountCharts(arr){
   if(!arr.length)return;
 
-  function mk(id,type,data,opts){
+  function mk(id,type,data,opts,plugins=[]){
     const el=document.getElementById(id);if(!el)return;
-    try{charts[id]=new Chart(el,{type,data,options:{...baseOpts,...opts}});}catch(e){dbg('Chart err '+id+': '+e,'er');}
+    try{charts[id]=new Chart(el,{type,data,options:{...baseOpts,...opts},plugins});}catch(e){dbg('Chart err '+id+': '+e,'er');}
   }
 
-  if(activeTab==='combat'){
+  if(activeTab==='progress'){
+    for(const stat of PROGRESS_STATS){
+      const datasets=players.filter(p=>!p.loading&&!p.error).map(p=>({
+        playerId:String(p.id),label:p.label,data:progressSeries(p,stat),borderColor:p.color,backgroundColor:p.color,
+        hidden:progressHiddenIds.has(String(p.id))||progressLocalHidden.get(stat.key)?.has(String(p.id))||false,
+        showLine:true,spanGaps:false,borderWidth:2,pointRadius:(stat.key==='rank'?rankProgressWindow:progressWindow)===0?2:3,pointHoverRadius:6,tension:0
+      })).filter(d=>d.data.some(point=>point.y!=null));
+      if(!datasets.length)continue;
+      const bounds=progressBounds(datasets)||progressBounds(datasets.map(d=>({...d,hidden:false})));
+      mk('progress-'+stat.key,'scatter',{datasets},{
+        plugins:{legend:{display:true,labels:{color:TICK,boxWidth:12,font:{size:11}},onClick:(_,item)=>{
+          const id=datasets[item.datasetIndex]?.playerId;
+          if(!id)return;
+          if(!progressLocalHidden.has(stat.key))progressLocalHidden.set(stat.key,new Set());
+          const hidden=progressLocalHidden.get(stat.key);
+          if(hidden.has(id))hidden.delete(id);else hidden.add(id);
+          syncProgressChart(legend.chart);
+        }},
+          tooltip:{callbacks:{title:items=>items.length?stat.key==='rank'?items[0].raw.start===items[0].parsed.x?`Ranked match #${items[0].parsed.x}`:`Ranked matches #${items[0].raw.start}–${items[0].parsed.x}`:items[0].raw.start===items[0].parsed.x?`Match #${items[0].parsed.x}`:`Matches #${items[0].raw.start}–${items[0].parsed.x}`:'',
+            label:item=>`${item.dataset.label}: ${stat.key==='rank'?rankProgressWindow===0?rankAxisLabel(item.parsed.y):`${rankAxisLabel(Math.round(item.parsed.y))} (avg ${item.parsed.y.toFixed(1)} subdivisions)`:item.parsed.y.toFixed(1)+(stat.unit||'')}`}}},
+        scales:{x:{type:'linear',...bounds.x,title:{display:true,text:stat.key==='rank'?'Ranked matches played':'Matches played',color:TICK},grid:{color:GRID},ticks:{color:TICK,maxTicksLimit:7,precision:0,callback:value=>Number.isInteger(value)?value:''}},
+          y:{...bounds.y,grid:{color:GRID},ticks:{color:TICK,maxTicksLimit:stat.key==='rank'?7:11,...(stat.key==='rank'?{precision:0,font:{size:11}}:{}),
+            callback:value=>stat.key==='rank'?rankAxisLabel(value):value+(stat.unit||'')}}},
+        ...(stat.key==='rank'?{layout:{padding:{left:22}}}:{})
+      },stat.key==='rank'?[progressRankSymbols]:[]);
+    }
+  }
+  else if(activeTab==='combat'){
     const mK=Math.max(...arr.map(x=>x.s.kills))||1,mD=Math.max(...arr.map(x=>x.s.deaths))||1,
           minD=Math.min(...arr.map(x=>x.s.deaths)),dRange=mD-minD,
           mA=Math.max(...arr.map(x=>x.s.assists))||1,mSouls=Math.max(...arr.map(x=>x.s.soulsMin??0))||1,
@@ -2935,13 +3151,13 @@ function init(){
   });
   document.getElementById('inp-id').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-add').click();});
   document.getElementById('btn-def').addEventListener('click',()=>{
-    loadHeroMeta();DEFAULTS.forEach(d=>{if(!players.find(p=>p.id===d.id))addPlayer(d.id,d.label);});
+    loadHeroMeta();DEFAULTS.forEach(d=>{if(!players.find(p=>p.id===d.id))addPlayer(d.id,d.label,d.color);});
   });
   document.getElementById('btn-clr').addEventListener('click',()=>{
     loadGeneration++;cancelPlacements();
     placementRanks.clear();placementFailures.clear();playerRanks.clear();rankPending.clear();matchAvgBadges.clear();matchAvgPending.clear();matchBreakdowns.clear();openMatchIds.clear();matchPages.clear();matchBreakdownErrors.clear();steamNames.clear();matchNamesLoaded.clear();matchNamesErrors.clear();placementUnsaved=0;dataNotice='';
     try{localStorage.removeItem(PLACEMENT_CACHE_KEY);}catch(e){dbg('Placement cache could not be cleared: '+e,'wn');}
-    players=[];Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});charts={};
+    players=[];progressHiddenIds.clear();progressLocalHidden.clear();Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});charts={};
     renderChips();renderMain();
   });
   document.getElementById('btn-dbg').addEventListener('click',()=>{
@@ -2963,6 +3179,7 @@ function init(){
       x.setAttribute('aria-selected',String(x===t));
     });
     renderMain();if(activeTab==='matches')void refreshMatchAvgBadges();if(activeTab==='stages')void refreshStages();if(activeTab==='performance')refreshTeamShare();if(activeTab==='individual')refreshIndividual();
+    if(activeTab==='progress')void loadRankAssets().then(()=>{if(activeTab==='progress')charts['progress-rank']?.draw();});
   }));
   dbg('Breadlock Stats ready','ok');
 }
