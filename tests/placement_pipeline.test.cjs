@@ -48,6 +48,7 @@ test('cached details wait for histories and share metadata across players',async
   }});
   const context={players,BreadlockData:coordinator,window:{BreadlockPlacement:true},URLSearchParams,
     placementRanks:new Map([['42',{}]]),DAMAGE_BATCH_SIZE:512,loadGeneration:0,
+    placementLoading:false,placementNextTimer:null,
     renderLoadStatus:()=>{},renderChips:()=>{},renderMain:()=>{},dbg:()=>{},
     activeTab:'overview',gn:(obj,key)=>obj?.[key]??null};
   vm.createContext(context);vm.runInContext(detail,context);
@@ -60,6 +61,48 @@ test('cached details wait for histories and share metadata across players',async
   assert.equal(players[1].matches[0].player_damage,102);
   assert.equal(players[0].detailsLoading,false);
   assert.equal(players[1].detailsLoading,false);
+});
+
+test('optional details wait for placement projection and only fetch remaining matches',async()=>{
+  const detail=html.slice(html.indexOf('function startMatchDetails(){'),html.indexOf('// Accessors — gf'));
+  const players=[1,2].map(n=>({id:String(n),label:'P'+n,loading:false,detailsLoading:true,
+    matches:[{match_id:42,account_id:n,hero_id:n},{match_id:43,account_id:n,hero_id:n}]}));
+  let requests=0;
+  const context={players,placementLoading:true,placementNextTimer:null,
+    BreadlockData:{metadata:async ids=>{requests++;assert.deepEqual([...ids],['43']);
+      return [{match_id:43,players:[1,2].map(n=>({account_id:n,final_stats:{player_damage:200+n}}))}];}},
+    window:{BreadlockPlacement:true},URLSearchParams,placementRanks:new Map([['42',{}],['43',{}]]),
+    DAMAGE_BATCH_SIZE:512,loadGeneration:0,renderLoadStatus:()=>{},renderChips:()=>{},
+    renderMain:()=>{},dbg:()=>{},activeTab:'overview',gn:(obj,key)=>obj?.[key]??null};
+  vm.createContext(context);vm.runInContext(detail,context);
+  context.startMatchDetails();
+  assert.equal(requests,0);
+  // Simulate the projected full-roster response being applied to both players.
+  for(const p of players){p.matches[0]._detail={final_stats:{player_damage:101}};p.matches[0].player_damage=101;}
+  context.placementLoading=false;
+  await context.startMatchDetails();
+  assert.equal(requests,1);
+  assert.deepEqual(players.map(p=>[p.detailCoverage.found,p.detailCoverage.total]),[[2,2],[2,2]]);
+});
+
+test('example-sized projected histories avoid four redundant final-stat batches',async()=>{
+  const detail=html.slice(html.indexOf('function startMatchDetails(){'),html.indexOf('// Accessors — gf'));
+  const players=Array.from({length:10},(_,n)=>({id:String(n+1),label:'P'+n,
+    loading:false,detailsLoading:true,matches:Array.from({length:313},(_,i)=>({
+      match_id:1000+(n*313+i)%1672,account_id:n+1,hero_id:n+1,
+      _detail:{final_stats:{player_damage:100}},player_damage:100}))}));
+  let requests=0;
+  const context={players,placementLoading:false,placementNextTimer:null,
+    BreadlockData:{metadata:async()=>{requests++;return [];}},window:{BreadlockPlacement:true},
+    URLSearchParams,placementRanks:new Map(Array.from({length:1672},(_,i)=>[String(1000+i),{}])),
+    DAMAGE_BATCH_SIZE:512,loadGeneration:0,renderLoadStatus:()=>{},renderChips:()=>{},
+    renderMain:()=>{},dbg:()=>{},activeTab:'overview',gn:(obj,key)=>obj?.[key]??null};
+  vm.createContext(context);vm.runInContext(detail,context);
+  await context.startMatchDetails();
+  assert.equal(requests,0);
+  assert.ok(players.every(p=>p.detailCoverage.found===313&&p.detailCoverage.total===313));
+  // 1672 unique games would otherwise need ceil(1672/512) = 4 extra paced requests.
+  assert.equal(Math.ceil(1672/context.DAMAGE_BATCH_SIZE),4);
 });
 
 test('shared 600-match histories take two requests, not one set per player',async()=>{
@@ -76,7 +119,7 @@ test('shared 600-match histories take two requests, not one set per player',asyn
   }});
   const context={players,BreadlockData:coordinator,window:{BreadlockPlacement:true},URLSearchParams,
     placementRanks:new Map(players[0].matches.map(m=>[String(m.match_id),{}])),
-    DAMAGE_BATCH_SIZE:512,loadGeneration:0,
+    DAMAGE_BATCH_SIZE:512,loadGeneration:0,placementLoading:false,placementNextTimer:null,
     renderLoadStatus:()=>{},renderChips:()=>{},renderMain:()=>{},dbg:()=>{},
     activeTab:'overview',gn:(obj,key)=>obj?.[key]??null};
   vm.createContext(context);vm.runInContext(detail,context);
@@ -101,10 +144,10 @@ function setup(total){
     placementBackoffMs:15000,placementRetryDelay:0,placementRetryTimer:null,
     placementNextTimer:null,placementStoppedReason:'',placementUnsaved:0,
     heroMeta:{},activeTab:'overview',window:{BreadlockPlacement:true},
-    BreadlockPlacement:{fromBulkMetadata:row=>row,scoreMatch:()=>Array.from({length:12},(_,i)=>({heroId:i+1,rank:i+1}))},
+    BreadlockPlacement:{fromBulkMetadata:row=>({...row,players:Array.from({length:12},(_,i)=>({heroId:i+1,team:i<6?0:1}))}),scoreMatch:()=>Array.from({length:12},(_,i)=>({heroId:i+1,rank:i+1}))},
     BreadlockData:{metadata(batch){calls.push([...batch]);return new Promise((resolve,reject)=>pending.push({resolve,reject,batch}));}},
     renderMain:()=>{renders++;},renderPlacementStatus:()=>{},flushPlacementRanks:()=>{context.placementUnsaved=0;},
-    rememberMatchBreakdown:()=>{},applyBulkMatchDetails:()=>{},dbg:()=>{},
+    rememberMatchBreakdown:()=>{},applyBulkMatchDetails:()=>{},startMatchDetails:()=>{},dbg:()=>{},
     setTimeout:(fn,ms)=>{timers.push({fn,ms});return timers.length;}
   };
   vm.createContext(context);vm.runInContext(source,context);

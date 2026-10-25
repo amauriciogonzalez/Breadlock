@@ -58,6 +58,7 @@ test('arrow colors use explicit point-magnitude bands', () => {
 });
 
 test('configurable window uses two equal match groups and proportional coverage requirements', () => {
+  assert.match(html, /rankTrendMatches=5, comparedRankIds/);
   assert.match(html, /id="rank-trend-window"/);
   assert.match(source, /RANK_TREND_MATCH_OPTIONS=\[5,10,15,20,30\]/);
   assert.match(html, /RANK_TREND_MATCH_OPTIONS\.map\(n=>/);

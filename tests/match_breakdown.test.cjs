@@ -18,7 +18,9 @@ const context = {
   heroImage: () => 'icon', visibleMatches: p => p.matches, gf: (obj, key) => Number(obj?.[key] || 0),
   matchMetric: (m,key) => m._detail?.final_stats?.[key] ?? null,
   isWin: () => true, matchDate: () => 'Today', placementForMatch: () => 1,
+  prestigeForMatch: () => '-',
   players: [], matchPages: new Map(), MATCHES_PAGE_SIZE: 20,
+  matchAvgBadgeHtml: m => `<span class="api-rank">Avg ${m.match_id}</span>`,
 };
 vm.createContext(context);
 vm.runInContext(source, context);
@@ -107,15 +109,27 @@ test('match list puts result near the front and displays objective and both heal
     _detail:{final_stats:{boss_damage:345,self_healing:123,teammate_healing:0}}};
   const rendered=context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]);
   const headings=[...rendered.matchAll(/<th class="[lr]"[^>]*>(.*?)<\/th>/g)].map(m=>m[1]);
-  assert.deepEqual(headings.slice(0,5),['Hero','Result','Date / Time','Mode','Est. place']);
-  assert.deepEqual(headings.slice(10,13),['Objective damage','Self healing','Teammate healing']);
+  assert.deepEqual(headings.slice(0,6),['Hero','Result','Date / Time','Mode','AVG RANK','Est. place']);
+  assert.deepEqual(headings.slice(0,8),['Hero','Result','Date / Time','Mode','AVG RANK','Est. place','Prestige','K']);
+  assert.deepEqual(headings.slice(12,15),['Objective damage','Self healing','Teammate healing']);
   assert.ok(!headings.some(h=>['Last Hits','Denies','Lvl'].includes(h)));
   assert.match(rendered, /<td class="r">345<\/td>\s*<td class="r">123<\/td>\s*<td class="r">0<\/td>/);
   context.openMatchIds.add(JSON.stringify(['1','42']));
-  assert.match(context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]), /<td colspan="16">/);
+  assert.match(context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]), /<td colspan="18">/);
   context.openMatchIds.clear();
   delete match._detail;
   assert.match(context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]), /<td class="r">—<\/td>\s*<td class="r">—<\/td>\s*<td class="r">—<\/td>/);
+});
+
+test('match list labels ranked by match_mode, not game_mode', () => {
+  const matches=[
+    {match_id:1,hero_id:1,game_mode:1,match_mode:4},
+    {match_id:2,hero_id:1,game_mode:1,match_mode:1},
+  ];
+  const rendered=context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches}]);
+  const modes=[...rendered.matchAll(/<td class="l match-mode( match-mode-ranked)?">(Ranked|Normal)<\/td>\s*<td class="l">(<span class="api-rank">Avg 1<\/span>|—)<\/td>/g)];
+  assert.deepEqual(modes.map(match=>[match[1]||'',match[2],match[3]]),[[' match-mode-ranked','Ranked','<span class="api-rank">Avg 1</span>'],['','Normal','—']]);
+  assert.match(html, /\.matches-table \.match-entry>td\.match-mode-ranked\{color:var\(--acc3\);font-weight:700\}/);
 });
 
 test('mobile match cards keep all stats and expanded roster available without horizontal tables', () => {
@@ -125,7 +139,7 @@ test('mobile match cards keep all stats and expanded roster available without ho
   assert.match(rendered, /class="matches-scroll"[^]*?class="st matches-table"/);
   assert.match(rendered, /class="match-entry"[^]*?class="match-toggle"[^]*?class="match-hero-name"/);
   assert.match(rendered, /class="match-expanded" id="match-roster-1-42"/);
-  assert.match(html, /\.matches-table \.match-entry>td:nth-child\(16\)::before\{content:'Duration'\}/);
+  assert.match(html, /\.matches-table \.match-entry>td:nth-child\(18\)::before\{content:'Duration'\}/);
   assert.match(html, /\.match-roster tbody tr>td:nth-child\(11\)::before\{content:'Healing'\}/);
   assert.match(html, /\.matches-scroll,\.match-roster-scroll\{overflow:visible\}/);
   context.openMatchIds.clear();
