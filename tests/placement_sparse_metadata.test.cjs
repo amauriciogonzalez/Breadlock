@@ -33,15 +33,16 @@ test('sparse timeline preserves match scoring and rejects truncated arrays', () 
   assert.throws(() => model.fromBulkMetadata(sparse),/Missing bulk player timeline/);
 });
 
-test('placement query projects scoring and display fields without bulky final_stats', () => {
+test('placement query projects only scoring fields without bulky final_stats', () => {
   const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
   const options=html.slice(html.indexOf('const PLACEMENT_TIMELINE_FIELDS='),html.indexOf('const PLACEMENT_CACHE_LIMIT='));
   for(const field of fields.slice(0,12))assert.ok(options.includes(field),field);
   assert.match(options,/\['lane_creeps','neutrals','treasure','breakable'\]\.flatMap/);
   assert.match(options,/\['gold','gold_orbs'\]\.map/);
+  assert.ok(options.includes("'self_healing'"),'match breakdown healing');
   for(const field of ['shots_hit','shots_missed','hero_bullets_hit_crit','hero_bullets_hit',
-    'self_healing','neutral_damage','creep_damage','denies','level','deaths'])
-    assert.ok(options.includes(field),field);
+    'neutral_damage','creep_damage','denies','level','deaths'])
+    assert.ok(!options.includes("'"+field+"'"),field);
   assert.doesNotMatch(options,/include_player_final_stats:'true'|include_player_stats:'true'/);
   assert.match(html,/metadata\(batch,PLACEMENT_METADATA_OPTIONS/);
   assert.match(html,/metadata\(\[id\],PLACEMENT_METADATA_OPTIONS/);
@@ -52,12 +53,14 @@ test('placement query projects scoring and display fields without bulky final_st
   const player={stats_time_stamp_s:[180,360]};
   for(const field of list)player['stats_'+field]=[10,20];
   assert.equal(context.placementFinalStats(player).player_damage,20);
-  assert.equal(context.placementFinalStats(player).hero_bullets_hit_crit,20);
+  assert.equal(context.placementFinalStats(player).hero_bullets_hit_crit,undefined);
+  player.stats_hero_bullets_hit_crit=[5,25];
+  assert.equal(context.placementFinalStats(player).hero_bullets_hit_crit,25);
   assert.equal(context.placementFinalStats(player).custom_user_stats,undefined);
   assert.equal(context.placementFinalStats({final_stats:{player_damage:42}}).player_damage,42);
 });
 
-test('projected batch enriches every loaded teammate with final metrics',()=>{
+test('scoring-only batch enriches damage and flags displayed stats for compact detail fetch',()=>{
   const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
   const options=html.slice(html.indexOf('const PLACEMENT_TIMELINE_FIELDS='),html.indexOf('const PLACEMENT_CACHE_LIMIT='));
   const functions=html.slice(html.indexOf('function placementFinalStats('),html.indexOf('async function calculatePlacements(){'));
@@ -74,5 +77,6 @@ test('projected batch enriches every loaded teammate with final metrics',()=>{
   assert.equal(players[0].matches[0].player_damage,100);
   assert.equal(players[1].matches[0].player_damage,101);
   assert.equal(players[0].matches[0]._roster.length,12);
-  assert.equal(players[1].matches[0]._detail.final_stats.hero_bullets_hit_crit,20);
+  assert.equal(players[1].matches[0]._detail.final_stats.hero_bullets_hit_crit,undefined);
+  assert.equal(players[0].matches[0]._detailPartial,true);
 });

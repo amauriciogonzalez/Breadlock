@@ -72,6 +72,73 @@ test('metadata caches individual matches and fetches only missing IDs', async ()
   assert.equal(new URLSearchParams(paths[1]).get('match_ids'), '3');
 });
 
+test('pruning keeps compact projected match rows longer than bulky responses', async () => {
+  const coordinator = new DataCoordinator();
+  const entries = [
+    ...Array.from({ length: 2600 }, (_, i) => ({ key: `match:account_ids=1&extra_player_columns=stats.player_damage&only_filtered_players=true:${i}`, time: i })),
+    ...Array.from({ length: 800 }, (_, i) => ({ key: `match:include_info=true:${i}`, time: i })),
+  ];
+  const removed = [];
+  let finished;
+  const done = new Promise(resolve => { finished = resolve; });
+  const store = {
+    delete: key => removed.push(key),
+    openCursor(){
+      const request = {};
+      let i = 0;
+      const advance = () => {
+        const entry = entries[i++];
+        request.onsuccess({ target: { result: entry ? {
+          key: entry.key, value: { time: entry.time },
+          continue: () => setImmediate(advance),
+        } : null } });
+        if(!entry)finished();
+      };
+      setImmediate(advance);
+      return request;
+    },
+  };
+  coordinator.prune({ transaction: () => ({ objectStore: () => store }) });
+  await done;
+  assert.equal(removed.filter(key => key.includes('only_filtered_players=true')).length, 100);
+  assert.equal(removed.filter(key => !key.includes('only_filtered_players=true')).length, 100);
+});
+
+test('metadata 429 cools only its lane; player histories can still load', async () => {
+  const paths = [];
+  const coordinator = new DataCoordinator({
+    delay: () => new Promise(() => {}),
+    fetchImpl: async url => {
+      const path = new URL(url).pathname;
+      paths.push(path);
+      if (path.includes('/matches/metadata')) return {
+        ok: false, status: 429, headers: { get: () => null },
+      };
+      return { ok: true, json: async () => ['history'] };
+    },
+  });
+  void coordinator.schedule('/matches/metadata?match_ids=1');
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(await coordinator.request('/players/1/match-history'), ['history']);
+  assert.deepEqual(paths, ['/v1/matches/metadata', '/v1/players/1/match-history']);
+  assert.ok(coordinator.blockedUntil.metadata > coordinator.now());
+  assert.equal(coordinator.blockedUntil.other, 0);
+});
+
+test('upstream 504 respects Retry-After and reports the failing endpoint', async () => {
+  let notice = '';
+  const coordinator = new DataCoordinator({
+    delay: () => new Promise(() => {}),
+    fetchImpl: async () => ({ ok: false, status: 504, headers: { get: key => key === 'Retry-After' ? '120' : null } }),
+  });
+  coordinator.onStatus = message => { notice = message; };
+  void coordinator.schedule('/matches/metadata?match_ids=1');
+  await new Promise(resolve => setImmediate(resolve));
+  assert.match(notice, /HTTP 504 at \/matches\/metadata; retrying in 120s/);
+  assert.ok(coordinator.blockedUntil.metadata - coordinator.now() > 119000);
+  assert.equal(coordinator.blockedUntil.other, 0);
+});
+
 test('overlapping placement batches still obey start spacing and concurrency limits', async () => {
   const starts = [];
   let active = 0, maxActive = 0;

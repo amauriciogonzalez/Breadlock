@@ -4,12 +4,13 @@
 const API='https://api.deadlock-api.com/v1';
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 class DataCoordinator{
-  constructor({fetchImpl=root.fetch?.bind(root),now=Date.now,delay=sleep,spacingMs=2100}={}){
+  constructor({fetchImpl=root.fetch?.bind(root),now=Date.now,delay=sleep,spacingMs=2500}={}){
     this.fetchImpl=fetchImpl;this.now=now;this.delay=delay;this.spacingMs=spacingMs;
     // Separate lanes keep slow bulk responses from blocking player histories.
-    // Bulk starts stay below the documented 30/minute limit.
+    // Keep a margin below the documented 30/minute metadata IP limit.
     this.queues={metadata:[],other:[]};this.active={metadata:0,other:0};
-    this.wake={metadata:null,other:null};this.nextStart={metadata:0,other:0};this.blockedUntil=0;
+    this.wake={metadata:null,other:null};this.nextStart={metadata:0,other:0};
+    this.blockedUntil={metadata:0,other:0};
     this.pending=new Map();this.memory=new Map();this.database=null;this.writes=0;
     this.onStatus=()=>{};
   }
@@ -78,7 +79,16 @@ class DataCoordinator{
       const entries=[];store.openCursor().onsuccess=e=>{
         const cursor=e.target.result;
         if(cursor){entries.push({key:cursor.key,time:cursor.value.time});cursor.continue();}
-        else if(entries.length>700){entries.sort((a,b)=>a.time-b.time);entries.slice(0,entries.length-700).forEach(x=>store.delete(x.key));}
+        else{
+          const compact=[],other=[];
+          for(const x of entries)(String(x.key).startsWith('match:')&&
+            String(x.key).includes('only_filtered_players=true')&&
+            String(x.key).includes('extra_player_columns=')?compact:other).push(x);
+          for(const [group,limit] of [[compact,2500],[other,700]])if(group.length>limit){
+            group.sort((a,b)=>a.time-b.time);
+            group.slice(0,group.length-limit).forEach(x=>store.delete(x.key));
+          }
+        }
       };
     }catch(e){}
   }
@@ -110,7 +120,7 @@ class DataCoordinator{
   pump(lane){
     const limit=lane==='metadata'?2:3;
     while(this.active[lane]<limit&&this.queues[lane].length){
-      const wait=Math.max(0,this.blockedUntil-this.now(),this.nextStart[lane]-this.now());
+      const wait=Math.max(0,this.blockedUntil[lane]-this.now(),this.nextStart[lane]-this.now());
       if(wait){
         if(!this.wake[lane])this.wake[lane]=this.delay(wait).then(()=>{
           this.wake[lane]=null;this.pump(lane);
@@ -142,9 +152,12 @@ class DataCoordinator{
     }catch(e){
       if(!job.signal?.aborted&&e.name!=='AbortError'&&job.attempt<2&&
         (e.status===429||e.status>=500||e instanceof TypeError)){
-        const backoff=Math.max(e.retryMs||0,1500*2**job.attempt++);
-        if(e.status===429)this.blockedUntil=Math.max(this.blockedUntil,this.now()+backoff);
-        this.onStatus('API '+(e.status===429?'rate-limited':'temporarily unavailable')+'; retrying in '+Math.ceil(backoff/1000)+'s',true);
+        const backoff=Math.max(e.retryMs||0,(e.status===429?15000:5000)*2**job.attempt++);
+        if(e.status===429||e.status>=500)
+          this.blockedUntil[lane]=Math.max(this.blockedUntil[lane],this.now()+backoff);
+        const endpoint=job.path.split('?')[0];
+        const reason=e.status===429?'rate-limited':e.status?'HTTP '+e.status:'network/response error';
+        this.onStatus('API '+reason+' at '+endpoint+'; retrying in '+Math.ceil(backoff/1000)+'s',true);
         // Do not occupy a network slot while waiting; visible work may pass it.
         this.delay(backoff).then(()=>this.enqueue(lane,job));
       }else job.reject(e);

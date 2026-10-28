@@ -15,6 +15,7 @@ const context = {
     requests.push({ids,options});return [{match_id:'1',average_badge:43},{match_id:'3',average_badge:null}];
   }},
   chemText: x => String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
+  gn: (obj,key) => obj?.[key] == null || obj[key] === '' ? null : Number(obj[key]),
   apiFetch: async path => {
     requests.push(path);
     if(path==='/assets/ranks')return [{tier:1,name:'Initiate',images:{small:'https://example.com/tier.png',large_subrank2:'https://example.com/division.png'}}];
@@ -42,6 +43,36 @@ test('leaderboard renders a dedicated current-rank column in both layouts',()=>{
   assert.match(html, /<th class="l" title="Rank from the player's latest ranked match">Current rank<\/th>/);
   assert.match(html, /<\/button><\/td><td class="rank-api-badge" data-label="Current rank">\$\{rankBadgeHtml\(rankAccount\(r\.p\)\)\}/);
   assert.match(html, /\.rank-table \.rank-entry>\.rank-api-badge\{grid-column:2;grid-row:2/);
+});
+
+test('matches show historical badges and the unranked symbol when no badge was reported',()=>{
+  context.rankAssets=[{tier:0,name:'Obscurus',images:{small:'https://example.com/unranked.png'}},
+    {tier:4,name:'Mystic',images:{large_subrank3:'https://example.com/mystic.png'}}];
+  const badge=context.matchPlayerBadgeHtml({match_mode:4,ranked_display_badge:43});
+  assert.match(badge,/Mystic III/);
+  assert.match(badge,/mystic\.png/);
+  assert.match(badge,/Your displayed rank after this match/);
+  for(const value of [0,null,undefined,'']){
+    const unranked=context.matchPlayerBadgeHtml({match_mode:4,ranked_display_badge:value});
+    assert.match(unranked,/Unranked/);
+    assert.match(unranked,/unranked\.png/);
+    assert.match(unranked,/No displayed rank reported/);
+  }
+  for(const value of [40,47,120,'bad'])
+    assert.equal(context.matchPlayerBadgeHtml({match_mode:4,ranked_display_badge:value}),'—');
+  assert.equal(context.matchPlayerBadgeHtml({match_mode:1,ranked_display_badge:43}),'—');
+  assert.equal(context.matchPlayerBadgeHtml({match_mode:1}),'—');
+  assert.doesNotMatch(context.matchPlayerBadgeHtml({match_mode:4}),/Current rank/);
+});
+
+test('ranked progress uses per-match reported delta, never claims hidden MMR',()=>{
+  assert.match(context.matchRankDeltaHtml({match_mode:4,ranked_delta:120}),/class="match-rank-delta positive"[^>]*>\+120<\/span>/);
+  assert.match(context.matchRankDeltaHtml({match_mode:4,ranked_delta:-80}),/class="match-rank-delta negative"[^>]*>-80<\/span>/);
+  assert.match(context.matchRankDeltaHtml({match_mode:4,ranked_delta:0}),/>0<\/span>/);
+  assert.match(context.matchRankDeltaHtml({match_mode:4,ranked_delta:120}),/not hidden MMR/);
+  for(const delta of [null,undefined,'',1.5,'invalid'])
+    assert.equal(context.matchRankDeltaHtml({match_mode:4,ranked_delta:delta}),'—');
+  assert.equal(context.matchRankDeltaHtml({match_mode:1,ranked_delta:120}),'—');
 });
 
 test('matches use historical lobby averages, not the current player rank',async()=>{

@@ -3,24 +3,30 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const html = fs.readFileSync(require('node:path').join(__dirname, '..', 'index.html'), 'utf8');
-const source = html.slice(html.indexOf('function matchBreakdownHtml('), html.indexOf('async function refreshTeamShare('));
+const source = html.slice(html.indexOf('function matchTimelineHtml('), html.indexOf('async function refreshTeamShare('));
 const model = require('../backend/statlocker_placement_core.js');
 const context = {
   matchBreakdowns: new Map(), matchBreakdownErrors: new Map(), matchBreakdownPending: new Set(),
   steamNames: new Map(), matchNamesPending: new Set(), matchNamesErrors: new Map(),
-  BreadlockPlacement: model, heroMeta: {}, openMatchIds: new Set(),
+  BreadlockPlacement: model, heroMeta: {}, openMatchIds: new Set(), matchTimelineMetrics: new Map(),
+  MATCH_TIMELINE_METRICS: [['player_damage','Hero damage'],['kills','Kills'],['deaths','Deaths'],['net_worth','Souls'],['boss_damage','Objective damage'],['assists','Assists'],['creep_kills','Creep kills'],['teammate_healing','Teammate healing'],['self_healing','Self healing'],['player_damage_taken','Damage taken']],
   placementFinalStats: p => p.final_stats || p.stats?.at(-1) || null,
   chemText: value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
   f1: n => Number(n).toFixed(1), fk: n => String(n),
   soulsK: n => n == null ? '—' : (n / 1000).toFixed(1) + 'K',
   placementOrdinal: n => n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'),
   gn: (obj, ...keys) => { for (const key of keys) if (obj?.[key] != null && Number.isFinite(+obj[key])) return +obj[key]; return null; },
-  heroImage: () => 'icon', visibleMatches: p => p.matches, gf: (obj, key) => Number(obj?.[key] || 0),
+  heroImage: () => 'icon', indHeroIcon: id => `<span class="hico">${id==='all'?'★':`<img src="${context.heroMeta[id]?.images?.icon_image_small_webp||'fallback'}" alt="">`}</span>`,
+  visibleMatches: p => p.matches, gf: (obj, key) => Number(obj?.[key] || 0),
   matchMetric: (m,key) => m._detail?.final_stats?.[key] ?? null,
   isWin: () => true, matchDate: () => 'Today', placementForMatch: () => 1,
   prestigeForMatch: () => '-',
   players: [], matchPages: new Map(), MATCHES_PAGE_SIZE: 20,
+  matchHistoryFilters:{hero:'all',result:'all',patch:'all'}, matchPatchDays:null,matchPatchPending:false,matchPatchError:'',
+  activeTab:'matches',apiFetch:async()=>[],renderMain:()=>{},
   matchAvgBadgeHtml: m => `<span class="api-rank">Avg ${m.match_id}</span>`,
+  matchPlayerBadgeHtml: m => m.ranked_display_badge ? `<span class="api-rank">Player ${m.ranked_display_badge}</span>` : '—',
+  matchRankDeltaHtml: m => m.ranked_delta == null ? '—' : `<span class="match-rank-delta">${m.ranked_delta}</span>`,
 };
 vm.createContext(context);
 vm.runInContext(source, context);
@@ -70,6 +76,13 @@ test('expanded roster shows all 12, scored component stacks and death deduction'
   assert.ok(rendered.indexOf('Hero 5') < rendered.indexOf('&lt;Player&gt;'));
   assert.ok(rendered.indexOf('&lt;Player&gt;') < rendered.indexOf('Hero 7'));
   assert.match(rendered, /Refresh missing Steam usernames/);
+  assert.doesNotMatch(rendered, /Show stat timeline|match-timeline-toggle/);
+  assert.match(context.matchBreakdownHtml('42', 1, '1'), /value="player_damage" selected/);
+  assert.match(context.matchBreakdownHtml('42', 1, '1'), /value="kills">Kills<\/option>/);
+  assert.match(context.matchBreakdownHtml('42', 1, '1'), /value="deaths">Deaths<\/option>/);
+  assert.match(context.matchBreakdownHtml('42', 1, '1'), /<canvas data-timeline-id="42" data-timeline-player="1" data-timeline-hero="1"/);
+  context.matchTimelineMetrics.set(JSON.stringify(['1','42']), 'kills');
+  assert.match(context.matchBreakdownHtml('42', 1, '1'), /value="kills" selected/);
   context.steamNames.set('1', '<Steam & Name>');
   assert.match(context.matchBreakdownHtml('42', 1), /class="match-username" title="&lt;Steam &amp; Name&gt;">&lt;Steam &amp; Name&gt;<\/span>/);
   context.steamNames.clear();
@@ -86,6 +99,142 @@ test('expanded roster shows all 12, scored component stacks and death deduction'
   assert.ok([...heavyPenalty.matchAll(/(?:match-penalty-fill|match-score-segment)[^>]*style="width:([\d.]+)%/g)]
     .every(([,width]) => +width <= 100));
   assert.doesNotMatch(rendered, /NaN|undefined/);
+});
+
+test('timeline charts use real match timestamps, omit missing samples and isolate shared matches', () => {
+  const chartSource = html.slice(html.indexOf('function mountMatchTimelines('), html.indexOf('function mountCharts('));
+  const canvases = ['1','2','3','4'].map(player => ({dataset:{timelineId:'42',timelinePlayer:player,timelineHero:'1'},parentElement:{innerHTML:''}}));
+  const created = [];
+  const graphContext = {
+    document:{querySelectorAll:()=>canvases},matchBreakdowns:new Map([['42',{result:[{heroId:1,rank:1},{heroId:2,rank:7}],match:{duration:120,players:[
+      {heroId:1,team:0,killEvents:[{time:35},{time:90}]},{heroId:2,team:1,killEvents:[]}
+    ]},row:{players:[
+      {hero_id:1,team:'Team0',account_id:1,stats_time_stamp_s:[0,60,120],stats_net_worth:[0,300,null],stats_player_damage:[0,120,350],stats_deaths:[0,1,2]},
+      {hero_id:2,team:'Team1',account_id:2,stats:[{time_stamp_s:0,net_worth:0},{time_stamp_s:90,net_worth:400}]}
+    ]}}]]),matchTimelineMetrics:new Map([[JSON.stringify(['1','42']),'net_worth'],[JSON.stringify(['2','42']),'kills'],[JSON.stringify(['4','42']),'deaths']]),matchTimelineIncluded:new Map(),
+    matchOpenKey:(p,id)=>JSON.stringify([String(p),String(id)]),steamNames:new Map([['1','<Username>']]),heroMeta:{2:{name:'Hero 2'}},
+    charts:{},Chart:class{constructor(canvas,config){created.push({canvas,config})}},
+    TICK:'#aaa',GRID:'#333',fk:String,dbg:()=>{},MATCH_TIMELINE_METRICS:context.MATCH_TIMELINE_METRICS
+  };
+  vm.createContext(graphContext);vm.runInContext(chartSource,graphContext);
+  graphContext.mountMatchTimelines();
+  assert.equal(created.length,4);
+  assert.equal(created[0].config.data.datasets.length,2);
+  assert.deepEqual(JSON.parse(JSON.stringify(created[0].config.data.datasets[0].data)),[{x:0,y:0},{x:1,y:300}]);
+  assert.deepEqual(JSON.parse(JSON.stringify(created[0].config.data.datasets[1].data)),[{x:0,y:0},{x:1.5,y:400}]);
+  assert.equal(created[0].config.data.datasets[0].label,'<Username>');
+  assert.equal(created[0].config.data.datasets[0].borderWidth,3);
+  assert.equal(created[1].config.data.datasets.length,2);
+  assert.deepEqual(JSON.parse(JSON.stringify(created[1].config.data.datasets[0].data)),
+    [{x:0,y:0},{x:35/60,y:1},{x:1.5,y:2},{x:2,y:2}]);
+  assert.deepEqual(JSON.parse(JSON.stringify(created[1].config.data.datasets[1].data)),[{x:0,y:0},{x:2,y:0}]);
+  assert.equal(created[1].config.data.datasets[0].stepped,'after');
+  assert.equal(created[1].config.options.scales.y.title.text,'Kills');
+  assert.equal(created[2].config.options.scales.y.title.text,'Hero damage');
+  assert.deepEqual(JSON.parse(JSON.stringify(created[2].config.data.datasets[0].data)),
+    [{x:0,y:0},{x:1,y:120},{x:2,y:350}]);
+  assert.equal(created[3].config.options.scales.y.title.text,'Deaths');
+  assert.deepEqual(JSON.parse(JSON.stringify(created[3].config.data.datasets[0].data)),
+    [{x:0,y:0},{x:1,y:1},{x:2,y:2}]);
+  assert.equal(created[3].config.data.datasets.length,1); // Missing death samples are not treated as zero.
+  assert.equal(Object.keys(graphContext.charts).length,4);
+});
+
+test('timeline legend follows team/placement order and first click solos, later clicks include', () => {
+  const chartSource = html.slice(html.indexOf('function mountMatchTimelines('), html.indexOf('function mountCharts('));
+  const key=JSON.stringify(['alice','42']),created=[];
+  const graphContext={
+    document:{querySelectorAll:()=>[{dataset:{timelineId:'42',timelinePlayer:'alice',timelineHero:'1'},parentElement:{innerHTML:''}}]},
+    matchBreakdowns:new Map([['42',{result:[{heroId:1,rank:2},{heroId:2,rank:7},{heroId:3,rank:1}],
+      match:{players:[{heroId:1,team:0},{heroId:2,team:1},{heroId:3,team:0}]},
+      row:{players:[2,1,3].map(hero_id=>({hero_id,account_id:hero_id,stats_time_stamp_s:[0,60],stats_player_damage:[0,hero_id*100]}))}}]]),
+    matchTimelineMetrics:new Map(),matchTimelineIncluded:new Map(),matchOpenKey:(p,id)=>JSON.stringify([String(p),String(id)]),
+    steamNames:new Map(),heroMeta:{},charts:{},Chart:class{
+      constructor(canvas,config){this.data=config.data;this.options=config.options;this.visibility=[];this.setDatasetVisibility=(i,on)=>{this.visibility[i]=on};this.update=()=>{};created.push(this)}
+    },TICK:'#aaa',GRID:'#333',fk:String,dbg:()=>{},MATCH_TIMELINE_METRICS:context.MATCH_TIMELINE_METRICS
+  };
+  vm.createContext(graphContext);vm.runInContext(chartSource,graphContext);
+  graphContext.mountMatchTimelines();
+  const chart=created[0],click=index=>chart.options.plugins.legend.onClick(null,{datasetIndex:index},{chart});
+  assert.deepEqual([...chart.data.datasets.map(d=>d.heroId)],['3','1','2']);
+  assert.deepEqual([...chart.data.datasets.map(d=>d.hidden)],[false,false,false]);
+  click(1); // First click solos hero 1, regardless of its index in the sorted legend.
+  assert.deepEqual(chart.visibility,[false,true,false]);
+  click(2);
+  assert.deepEqual(chart.visibility,[false,true,true]);
+  graphContext.mountMatchTimelines(); // Changing stat or rerendering keeps the inclusion set.
+  assert.deepEqual([...created[1].data.datasets.map(d=>d.hidden)],[true,false,false]);
+  click(1);
+  assert.deepEqual(chart.visibility,[false,false,true]);
+  assert.deepEqual([...graphContext.matchTimelineIncluded.get(key)],['2']);
+  click(2); // Removing the last included player restores everyone.
+  assert.equal(graphContext.matchTimelineIncluded.has(key),false);
+  assert.deepEqual(chart.visibility,[true,true,true]);
+  graphContext.mountMatchTimelines();
+  assert.deepEqual([...created[2].data.datasets.map(d=>d.hidden)],[false,false,false]);
+  click(0); // The next click solos again, as it does from the initial state.
+  assert.deepEqual(chart.visibility,[true,false,false]);
+});
+
+test('match history filters apply hero, result, and major patch after shared scope', () => {
+  const savedWin=context.isWin;
+  context.isWin=m=>m.win;
+  context.heroMeta={1:{name:'Alpha',images:{icon_image_small_webp:'https://example.com/alpha.webp'}},2:{name:'Bravo'}};
+  context.matchPatchDays=[200,100];
+  const a={id:'1',label:'Alice',color:'#fff',matches:[
+    {match_id:1,hero_id:1,start_time:205,win:true},{match_id:2,hero_id:1,start_time:200,win:false},
+    {match_id:3,hero_id:2,start_time:150,win:true},{match_id:4,hero_id:1,start_time:99,win:true}]};
+  const b={id:'2',label:'Bob',color:'#fff',matches:[{match_id:5,hero_id:1,start_time:210,win:true}]};
+  const controls=context.matchHistoryFiltersHtml([a,b]);
+  assert.match(controls,/All heroes/);
+  assert.match(controls,/Alpha/);
+  assert.match(controls,/data-match-filter-hero="1"[^>]*><span class="hico"><img src="https:\/\/example.com\/alpha.webp"/);
+  assert.match(controls,/All results/);
+  assert.match(controls,/Before Jan 1, 1970/);
+  assert.equal(context.matchPatchFor(a.matches[0]),'200');
+  assert.equal(context.matchPatchFor(a.matches[1]),'200'); // Boundary is inclusive.
+  assert.equal(context.matchPatchFor(a.matches[2]),'100');
+  assert.equal(context.matchPatchFor(a.matches[3]),'before');
+  Object.assign(context.matchHistoryFilters,{hero:'1',result:'win',patch:'200'});
+  assert.deepEqual(context.matchHistoryMatches(a).map(m=>m.match_id),[1]);
+  assert.deepEqual(context.matchHistoryMatches(b).map(m=>m.match_id),[5]);
+  context.matchPages.set('1',1);
+  const rendered=context.tabMatches([a,b]);
+  assert.match(rendered,/Alice — 1 matches loaded/);
+  assert.match(rendered,/Showing 1–1 of 1/);
+  assert.equal((rendered.match(/class="match-toggle"/g)||[]).length,2);
+  assert.match(rendered,/value="200" selected/);
+  const limited=context.matchHistoryFiltersHtml([{...a,matches:[a.matches[2]]}]);
+  assert.match(limited,/data-match-filter-hero="1" aria-current="true"/); // Active choice stays visible even outside this period.
+  assert.match(limited,/value="200" selected/);
+  context.matchHistoryFilters.patch='before';
+  assert.deepEqual(context.matchHistoryMatches(a).map(m=>m.match_id),[4]);
+  Object.assign(context.matchHistoryFilters,{hero:'all',result:'all',patch:'all'});
+  context.matchPatchDays=null;context.heroMeta={};context.isWin=savedWin;
+});
+
+test('patch dates load once through the shared request path and retry on failure', async () => {
+  let calls=0,renders=0;
+  context.renderMain=()=>{renders++};
+  context.apiFetch=async(path,options)=>{
+    calls++;assert.equal(path,'/patches/big-days');assert.equal(options.priority,0);
+    if(calls===1)throw Error('temporarily unavailable');
+    return ['2026-09-29T20:25:11Z','2026-01-22T22:56:33Z'];
+  };
+  await context.loadMatchPatches();
+  assert.match(context.matchPatchError,/temporarily unavailable/);
+  assert.equal(context.matchPatchDays,null);
+  assert.match(context.matchHistoryFiltersHtml([]),/Retry patches/);
+  await context.loadMatchPatches(); // Failure isn't silently retried on every render.
+  assert.equal(calls,1);
+  context.matchPatchError='';
+  await context.loadMatchPatches();
+  assert.equal(calls,2);
+  assert.equal(context.matchPatchDays.length,2);
+  assert.ok(context.matchPatchDays[0]>context.matchPatchDays[1]);
+  await context.loadMatchPatches();assert.equal(calls,2);
+  assert.equal(renders,2);
+  context.matchPatchDays=null;context.matchPatchError='';
 });
 
 test('matches paginate independently by player, with bounded rows and controls', () => {
@@ -109,27 +258,28 @@ test('match list puts result near the front and displays objective and both heal
     _detail:{final_stats:{boss_damage:345,self_healing:123,teammate_healing:0}}};
   const rendered=context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]);
   const headings=[...rendered.matchAll(/<th class="[lr]"[^>]*>(.*?)<\/th>/g)].map(m=>m[1]);
-  assert.deepEqual(headings.slice(0,6),['Hero','Result','Date / Time','Mode','AVG RANK','Est. place']);
-  assert.deepEqual(headings.slice(0,8),['Hero','Result','Date / Time','Mode','AVG RANK','Est. place','Prestige','K']);
-  assert.deepEqual(headings.slice(12,15),['Objective damage','Self healing','Teammate healing']);
+  assert.deepEqual(headings.slice(0,7),['Hero','Result','Date / Time','YOUR RANK','RANK Δ','AVG RANK','Est. place']);
+  assert.deepEqual(headings.slice(0,9),['Hero','Result','Date / Time','YOUR RANK','RANK Δ','AVG RANK','Est. place','Prestige','K']);
+  assert.deepEqual(headings.slice(13,16),['Objective damage','Self healing','Teammate healing']);
+  assert.ok(!headings.includes('Mode'));
   assert.ok(!headings.some(h=>['Last Hits','Denies','Lvl'].includes(h)));
   assert.match(rendered, /<td class="r">345<\/td>\s*<td class="r">123<\/td>\s*<td class="r">0<\/td>/);
   context.openMatchIds.add(JSON.stringify(['1','42']));
-  assert.match(context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]), /<td colspan="18">/);
+  assert.match(context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]), /<td colspan="19">/);
   context.openMatchIds.clear();
   delete match._detail;
   assert.match(context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]), /<td class="r">—<\/td>\s*<td class="r">—<\/td>\s*<td class="r">—<\/td>/);
 });
 
-test('match list labels ranked by match_mode, not game_mode', () => {
+test('match list omits mode but only fills rank columns for ranked matches', () => {
   const matches=[
-    {match_id:1,hero_id:1,game_mode:1,match_mode:4},
+    {match_id:1,hero_id:1,game_mode:1,match_mode:4,ranked_display_badge:43,ranked_delta:120},
     {match_id:2,hero_id:1,game_mode:1,match_mode:1},
   ];
   const rendered=context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches}]);
-  const modes=[...rendered.matchAll(/<td class="l match-mode( match-mode-ranked)?">(Ranked|Normal)<\/td>\s*<td class="l">(<span class="api-rank">Avg 1<\/span>|—)<\/td>/g)];
-  assert.deepEqual(modes.map(match=>[match[1]||'',match[2],match[3]]),[[' match-mode-ranked','Ranked','<span class="api-rank">Avg 1</span>'],['','Normal','—']]);
-  assert.match(html, /\.matches-table \.match-entry>td\.match-mode-ranked\{color:var\(--acc3\);font-weight:700\}/);
+  const ranks=[...rendered.matchAll(/<td class="l">(.*?)<\/td>\s*<td class="r">(.*?)<\/td>\s*<td class="l">(<span class="api-rank">Avg 1<\/span>|—)<\/td>/g)];
+  assert.deepEqual(ranks.map(match=>[match[1],match[2],match[3]]),[['<span class="api-rank">Player 43</span>','<span class="match-rank-delta">120</span>','<span class="api-rank">Avg 1</span>'],['—','—','—']]);
+  assert.doesNotMatch(rendered,/match-mode|<th class="l">Mode<\/th>/);
 });
 
 test('mobile match cards keep all stats and expanded roster available without horizontal tables', () => {
@@ -139,7 +289,9 @@ test('mobile match cards keep all stats and expanded roster available without ho
   assert.match(rendered, /class="matches-scroll"[^]*?class="st matches-table"/);
   assert.match(rendered, /class="match-entry"[^]*?class="match-toggle"[^]*?class="match-hero-name"/);
   assert.match(rendered, /class="match-expanded" id="match-roster-1-42"/);
-  assert.match(html, /\.matches-table \.match-entry>td:nth-child\(18\)::before\{content:'Duration'\}/);
+  assert.match(html, /\.matches-table \.match-entry>td:nth-child\(4\)::before\{content:'YOUR RANK'\}/);
+  assert.match(html, /\.matches-table \.match-entry>td:nth-child\(5\)::before\{content:'RANK Δ'\}/);
+  assert.match(html, /\.matches-table \.match-entry>td:nth-child\(19\)::before\{content:'Duration'\}/);
   assert.match(html, /\.match-roster tbody tr>td:nth-child\(11\)::before\{content:'Healing'\}/);
   assert.match(html, /\.matches-scroll,\.match-roster-scroll\{overflow:visible\}/);
   context.openMatchIds.clear();
