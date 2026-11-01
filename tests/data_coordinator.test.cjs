@@ -72,6 +72,63 @@ test('metadata caches individual matches and fetches only missing IDs', async ()
   assert.equal(new URLSearchParams(paths[1]).get('match_ids'), '3');
 });
 
+test('overloaded metadata splits immediately without retrying the same large batch', async () => {
+  const sizes = [];
+  const notices = [];
+  const coordinator = new DataCoordinator({
+    spacingMs: 0,
+    fetchImpl: async url => {
+      const ids = new URL(url).searchParams.get('match_ids').split(',');
+      sizes.push(ids.length);
+      if (ids.length > 32) throw new TypeError('Failed to fetch');
+      return { ok: true, json: async () => ids.map(match_id => ({ match_id })) };
+    },
+  });
+  coordinator.onStatus = message => notices.push(message);
+  const ids = Array.from({ length: 64 }, (_, i) => String(i + 1));
+  assert.equal((await coordinator.metadata(ids, { include_info: 'true' })).length, 64);
+  assert.deepEqual(sizes, [64, 32, 32]);
+  assert.ok(!notices.some(message => message.includes('retrying in')));
+  assert.equal((await coordinator.metadata(ids, { include_info: 'true' })).length, 64);
+  assert.deepEqual(sizes, [64, 32, 32]);
+});
+
+test('large 504 honors Retry-After before splitting rather than retrying the same size', async () => {
+  const sizes = [], starts = [], notices = [];
+  const coordinator = new DataCoordinator({
+    spacingMs: 0,
+    fetchImpl: async url => {
+      const ids = new URL(url).searchParams.get('match_ids').split(',');
+      sizes.push(ids.length); starts.push(Date.now());
+      if (ids.length > 32) return {
+        ok: false, status: 504, headers: { get: () => '0.03' },
+      };
+      return { ok: true, json: async () => ids.map(match_id => ({ match_id })) };
+    },
+  });
+  coordinator.onStatus = message => notices.push(message);
+  const ids = Array.from({ length: 64 }, (_, i) => i + 1);
+  assert.equal((await coordinator.metadata(ids, {})).length, 64);
+  assert.deepEqual(sizes, [64, 32, 32]);
+  assert.ok(starts[1] - starts[0] >= 20);
+  assert.ok(notices.some(message => /HTTP 504.*reducing batch after/.test(message)));
+});
+
+test('429 on large metadata does not split or bypass Retry-After', async () => {
+  const sizes = [];
+  const coordinator = new DataCoordinator({
+    delay: () => new Promise(() => {}),
+    fetchImpl: async url => {
+      sizes.push(new URL(url).searchParams.get('match_ids').split(',').length);
+      return { ok: false, status: 429, headers: { get: () => '30' } };
+    },
+  });
+  void coordinator.metadata(Array.from({ length: 64 }, (_, i) => i + 1), {});
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(sizes, [64]);
+  assert.ok(coordinator.blockedUntil.metadata - coordinator.now() > 29000);
+});
+
 test('pruning keeps compact projected match rows longer than bulky responses', async () => {
   const coordinator = new DataCoordinator();
   const entries = [

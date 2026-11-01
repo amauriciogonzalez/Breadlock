@@ -202,6 +202,24 @@ test('rank progression is a line with rank symbols next to its y-axis labels', (
   assert.match(html, /\.progress-rank-section>\.slbl,\.progress-individual-section>\.slbl\{margin:0 0 14px\}/);
 });
 
+test('rank grid lines are only the VI subdivision of each visible rank', () => {
+  const fit = (values) => {
+    const raw = context.progressBounds([{ data: values.map(y => ({ x: 1, y })) }]);
+    return context.rankProgressBounds(raw).y;
+  };
+  assert.deepEqual({ ...fit([7, 19]) }, { min: 6, max: 24 });
+  assert.deepEqual({ ...fit([1]) }, { min: 1, max: 6 });
+  assert.deepEqual({ ...fit([66]) }, { min: 60, max: 66 });
+  const scale = { min: 6, max: 24, ticks: [{ value: 7 }, { value: 13 }] };
+  context.rankProgressTicks(scale);
+  assert.deepEqual(Array.from(scale.ticks, tick => tick.value), [6, 12, 18, 24]);
+  assert.deepEqual(Array.from(scale.ticks, tick => context.rankAxisLabel(tick.value)),
+    ['Initiate VI', 'Seeker VI', 'Acolyte VI', 'Sentinel VI']);
+  assert.match(html, /afterBuildTicks:rankProgressTicks/);
+  assert.match(html, /autoSkip:false/);
+  assert.match(html, /chart\.canvas\.id==='progress-rank'\?rankProgressBounds\(rawBounds\)/);
+});
+
 test('axes use the actual extremes across all players and ignore unavailable points', () => {
   const bounds = datasets => JSON.parse(JSON.stringify(context.progressBounds(datasets)));
   assert.deepEqual(bounds([

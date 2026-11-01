@@ -668,7 +668,6 @@ input[type=text]::placeholder{color:var(--sub)}
   <div class="row">
     <span class="lbl">ID:</span>
     <input type="text" id="inp-id" placeholder="Steam account ID" style="width:145px">
-    <input type="text" id="inp-nm" placeholder="Label" style="width:110px">
     <button class="btn btna" id="btn-add">+ ADD</button>
   </div>
   <div class="chips" id="chips"></div>
@@ -706,8 +705,10 @@ input[type=text]::placeholder{color:var(--sub)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="./backend/statlocker_placement_core.js"></script>
 <script src="./backend/data_coordinator.js"></script>
+<script src="./backend/snapshot_adapter.js"></script>
 <script>
 (function(){
+BreadlockSnapshot.install(BreadlockData);
 // Spread player hues and lightness across the dark UI; avoid near-duplicate blues and pinks.
 const COLS=['#ffd447','#20c4a4','#638cff','#ff70b0','#b999ff','#9ee04c','#ff914d','#e8e0d0','#ed6460','#68d6ef'];
 const DEFAULTS=[
@@ -728,12 +729,40 @@ let players=[], heroMeta={}, heroMetaPromise=null, rankAssets=[], rankAssetsProm
 let chemistryView='team',chemistryPair=null,chemistrySort='shared',chemistryTeam=[];
 let scopeMode='normal',scopeCount=0,scopeUnit='matches',loadGeneration=0;
 let bulkPlayersLoading=false,bulkPlayersRun=0;
+const STEAM64_BASE=76561197960265728n;
+function steamAccountId(id){
+  if(!/^\d+$/.test(String(id)))return null;
+  const value=BigInt(id),account=value>=STEAM64_BASE?value-STEAM64_BASE:value;
+  return account>0n&&account<=4294967295n?String(account):null;
+}
+async function loadSteamPlayerNames(selected){
+  const accounts=new Map();
+  for(const p of selected){
+    const id=steamAccountId(p.id);
+    if(id){if(!accounts.has(id))accounts.set(id,[]);accounts.get(id).push(p);}
+  }
+  if(!accounts.size)return;
+  const generation=loadGeneration;
+  try{
+    const q=new URLSearchParams({account_ids:[...accounts.keys()].join(',')});
+    const rows=await apiFetch('/players/steam?'+q,{ttl:6*60*60*1000,priority:1,staleOnError:true});
+    if(generation!==loadGeneration||!Array.isArray(rows))return;
+    for(const row of rows){
+      if(typeof row.personaname!=='string'||!row.personaname.trim())continue;
+      for(const p of accounts.get(String(row.account_id))||[])
+        if(players.includes(p))p.label=row.personaname.trim();
+    }
+    renderChips();renderMain();
+  }catch(e){if(generation===loadGeneration)dbg('Steam usernames unavailable: '+e,'wn');}
+}
 function addPlayersTogether(definitions){
   const missing=definitions.filter(d=>!players.some(p=>p.id===d.id));
   if(!missing.length)return;
   bulkPlayersLoading=true;
   const run=++bulkPlayersRun;
-  void Promise.all(missing.map(d=>addPlayer(d.id,d.label,d.color))).finally(()=>{
+  const loading=missing.map(d=>addPlayer(d.id,d.label,d.color,false));
+  void loadSteamPlayerNames(players.filter(p=>missing.some(d=>d.id===p.id)));
+  void Promise.all(loading).finally(()=>{
     if(run!==bulkPlayersRun)return;
     bulkPlayersLoading=false;
     // Build one union of match IDs after all histories settle, instead of
@@ -1237,13 +1266,14 @@ function loadTrackedRanks(){
   if(players.some(p=>p.loading))return;
   void loadRanks(players.filter(p=>!p.error).map(rankAccount));
 }
-async function addPlayer(id,label,colorOverride){
+async function addPlayer(id,label,colorOverride,resolveName=true){
   if(!id||players.find(p=>p.id===id))return;
   const color=colorOverride||COLS[players.length%COLS.length];
   const p={id,label:label||id,color,loading:true,detailsLoading:false,error:null,matches:null,mvp:{},phase:'Fetching match history',progressDone:0,progressTotal:null};
   const generation=loadGeneration;
   players.push(p);
   renderChips();renderMain();
+  if(resolveName)void loadSteamPlayerNames([p]);
   dbg('Loading '+p.label+' ('+id+')…');
   try{
     const mh=await apiFetch('/players/'+id+'/match-history?only_stored_history=true',
@@ -3152,12 +3182,26 @@ function progressBounds(datasets){
     y:bounds.yMin===bounds.yMax?{min:bounds.yMin-1,max:bounds.yMax+1}:{min:bounds.yMin,max:bounds.yMax}
   };
 }
+function rankProgressBounds(bounds){
+  if(!bounds)return null;
+  const max=Math.min(66,Math.ceil(bounds.y.max/6)*6);
+  let min=Math.max(1,Math.floor((bounds.y.min-1)/6)*6);
+  if(min>=max)min=Math.max(1,max-6);
+  return {x:bounds.x,y:{min,max}};
+}
+function rankProgressTicks(scale){
+  scale.ticks=[];
+  for(let value=6;value<=66;value+=6){
+    if(value>=scale.min&&value<=scale.max)scale.ticks.push({value});
+  }
+}
 function syncProgressChart(chart){
   const local=progressLocalHidden.get(chart.canvas.id.slice('progress-'.length));
   chart.data.datasets.forEach((dataset,i)=>chart.setDatasetVisibility(i,
     !progressHiddenIds.has(dataset.playerId)&&!local?.has(dataset.playerId)));
   const visible=chart.data.datasets.map((dataset,i)=>({...dataset,hidden:!chart.isDatasetVisible(i)}));
-  const bounds=progressBounds(visible)||progressBounds(chart.data.datasets.map(dataset=>({...dataset,hidden:false})));
+  const rawBounds=progressBounds(visible)||progressBounds(chart.data.datasets.map(dataset=>({...dataset,hidden:false})));
+  const bounds=chart.canvas.id==='progress-rank'?rankProgressBounds(rawBounds):rawBounds;
   if(bounds){
     Object.assign(chart.options.scales.x,bounds.x);
     Object.assign(chart.options.scales.y,bounds.y);
@@ -3251,7 +3295,8 @@ function mountCharts(arr){
         showLine:true,spanGaps:false,borderWidth:2,pointRadius:(stat.key==='rank'?rankProgressWindow:progressWindow)===0?2:3,pointHoverRadius:6,tension:0
       })).filter(d=>d.data.some(point=>point.y!=null));
       if(!datasets.length)continue;
-      const bounds=progressBounds(datasets)||progressBounds(datasets.map(d=>({...d,hidden:false})));
+      const rawBounds=progressBounds(datasets)||progressBounds(datasets.map(d=>({...d,hidden:false})));
+      const bounds=stat.key==='rank'?rankProgressBounds(rawBounds):rawBounds;
       mk('progress-'+stat.key,'scatter',{datasets},{
         plugins:{legend:{display:true,labels:{color:TICK,boxWidth:12,font:{size:11}},onClick:(_,item)=>{
           const id=datasets[item.datasetIndex]?.playerId;
@@ -3264,7 +3309,8 @@ function mountCharts(arr){
           tooltip:{callbacks:{title:items=>items.length?stat.key==='rank'?items[0].raw.start===items[0].parsed.x?`Ranked match #${items[0].parsed.x}`:`Ranked matches #${items[0].raw.start}–${items[0].parsed.x}`:items[0].raw.start===items[0].parsed.x?`Match #${items[0].parsed.x}`:`Matches #${items[0].raw.start}–${items[0].parsed.x}`:'',
             label:item=>`${item.dataset.label}: ${stat.key==='rank'?rankProgressWindow===0?rankAxisLabel(item.parsed.y):`${rankAxisLabel(Math.round(item.parsed.y))} (avg ${item.parsed.y.toFixed(1)} subdivisions)`:item.parsed.y.toFixed(1)+(stat.unit||'')}`}}},
         scales:{x:{type:'linear',...bounds.x,title:{display:true,text:stat.key==='rank'?'Ranked matches played':'Matches played',color:TICK},grid:{color:GRID},ticks:{color:TICK,maxTicksLimit:7,precision:0,callback:value=>Number.isInteger(value)?value:''}},
-          y:{...bounds.y,grid:{color:GRID},ticks:{color:TICK,maxTicksLimit:stat.key==='rank'?7:11,...(stat.key==='rank'?{precision:0,font:{size:11}}:{}),
+          y:{...bounds.y,grid:{color:GRID},...(stat.key==='rank'?{afterBuildTicks:rankProgressTicks}:{}),
+            ticks:{color:TICK,maxTicksLimit:11,...(stat.key==='rank'?{autoSkip:false,font:{size:11}}:{}),
             callback:value=>stat.key==='rank'?rankAxisLabel(value):value+(stat.unit||'')}}},
         ...(stat.key==='rank'?{layout:{padding:{left:22}}}:{})
       },stat.key==='rank'?[progressRankSymbols]:[]);
@@ -3362,7 +3408,6 @@ function init(){
   });
   document.getElementById('btn-add').addEventListener('click',()=>{
     const id=document.getElementById('inp-id').value.trim();
-    const nm=document.getElementById('inp-nm').value.trim();
     if(!id)return;
     if(!/^\d{1,20}$/.test(id)){
       dbg('Enter a numeric Steam account ID (up to 20 digits).','wn');
@@ -3372,8 +3417,7 @@ function init(){
     }
     document.getElementById('inp-id').setCustomValidity('');
     document.getElementById('inp-id').value='';
-    document.getElementById('inp-nm').value='';
-    loadHeroMeta();addPlayer(id,nm);syncDashboardUrl();
+    loadHeroMeta();addPlayer(id);syncDashboardUrl();
   });
   document.getElementById('inp-id').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-add').click();});
   document.getElementById('btn-def').addEventListener('click',()=>{

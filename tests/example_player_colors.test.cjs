@@ -11,7 +11,7 @@ test('example players retain their order but swap the fifth and sixth colors', (
   assert.equal(dat.id, '235976077');
   assert.equal(horse.color, defaults.COLS[5]);
   assert.equal(dat.color, defaults.COLS[4]);
-  assert.match(html, /addPlayer\(d\.id,d\.label,d\.color\)/);
+  assert.match(html, /addPlayer\(d\.id,d\.label,d\.color,false\)/);
   assert.match(html, /const color=colorOverride\|\|COLS\[players\.length%COLS\.length\]/);
 });
 

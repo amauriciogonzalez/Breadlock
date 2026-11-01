@@ -1,0 +1,64 @@
+# The repository's JSON snapshots are the durable store. GitHub Actions uses
+# an ignored, temporary SQLite index and commits only changed snapshot files.
+name: Refresh saved example matches
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 */6 * * *'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Use latest committed snapshot
+        run: git pull --ff-only origin main
+      - name: Refresh and validate
+        run: |
+          python match_db_update.py --max-metadata 128 --batch-size 32 --prune
+          python -m unittest discover -s tests -p test_snapshot.py
+          node --test tests/*.test.cjs
+          node --check backend/snapshot_adapter.js
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('snapshot')
+          m=json.loads((p/'manifest.json').read_text())
+          assert m['accounts'] and all((p/x['file']).is_file() for x in m['accounts'].values())
+          assert all((p/name).is_file() for name in m['matches'].values())
+          PY
+      - name: Commit saved JSON to main
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A snapshot
+          if git diff --cached --quiet; then
+            echo 'No snapshot changes to commit.'
+          else
+            git commit -m 'Update saved example match snapshots'
+            git push origin HEAD:main
+          fi
+      # A push made by GITHUB_TOKEN does not trigger the normal push workflow.
+      # Deploy this exact committed snapshot in the same run.
+      - uses: actions/configure-pages@v5
+      - name: Stage static dashboard
+        run: |
+          mkdir -p dist
+          cp index.html dist/
+          cp -R backend snapshot dist/
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+      - uses: actions/deploy-pages@v4
+        id: deployment

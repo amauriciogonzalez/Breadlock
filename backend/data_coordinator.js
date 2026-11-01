@@ -106,10 +106,10 @@ class DataCoordinator{
     this.pending.set(key,promise);
     try{return await promise;}finally{this.pending.delete(key);}
   }
-  schedule(path,{priority=1,signal}={}){
+  schedule(path,{priority=1,signal,batchSize=0}={}){
     return new Promise((resolve,reject)=>{
       const lane=path.startsWith('/matches/metadata?')?'metadata':'other';
-      this.enqueue(lane,{path,priority,signal,resolve,reject,attempt:0});
+      this.enqueue(lane,{path,priority,signal,batchSize,resolve,reject,attempt:0});
     });
   }
   enqueue(lane,job){
@@ -150,7 +150,16 @@ class DataCoordinator{
       const data=await response.json();
       this.onStatus('',true);job.resolve(data);
     }catch(e){
-      if(!job.signal?.aborted&&e.name!=='AbortError'&&job.attempt<2&&
+      // Large bulk requests often fail upstream because of their size/load.
+      // Let metadata() split them instead of repeating the same expensive URL.
+      const splitCandidate=lane==='metadata'&&job.batchSize>32&&e.status!==429&&
+        (e.status>=500||e instanceof TypeError);
+      if(splitCandidate&&e.retryMs){
+        this.blockedUntil[lane]=Math.max(this.blockedUntil[lane],this.now()+e.retryMs);
+        this.onStatus('API HTTP '+e.status+' at '+job.path.split('?')[0]+
+          '; reducing batch after '+Math.ceil(e.retryMs/1000)+'s',true);
+      }
+      if(!job.signal?.aborted&&e.name!=='AbortError'&&!splitCandidate&&job.attempt<2&&
         (e.status===429||e.status>=500||e instanceof TypeError)){
         const backoff=Math.max(e.retryMs||0,(e.status===429?15000:5000)*2**job.attempt++);
         if(e.status===429||e.status>=500)
@@ -191,12 +200,21 @@ class DataCoordinator{
     // Register all promises before the first network request: other callers can
     // attach to individual matches regardless of how their batches overlap.
     if(missing.length){
-      const q=new URLSearchParams(options);q.set('match_ids',missing.join(','));q.set('limit',String(missing.length));
-      const batch=this.schedule('/matches/metadata?'+q,{priority,signal});
-      const parsed=batch.then(data=>{
-        if(!Array.isArray(data))throw Error('Invalid bulk match response');
-        return new Map(data.map(row=>[String(row.match_id),row]));
-      });
+      const fetchBatch=async ids=>{
+        const q=new URLSearchParams(options);q.set('match_ids',ids.join(','));q.set('limit',String(ids.length));
+        try{
+          const data=await this.schedule('/matches/metadata?'+q,{priority,signal,batchSize:ids.length});
+          if(!Array.isArray(data))throw Error('Invalid bulk match response');
+          return data;
+        }catch(e){
+          if(ids.length<=32||signal?.aborted||e.status===429||
+            !([413,414,431].includes(e.status)||e.status>=500||e instanceof TypeError))throw e;
+          const half=Math.floor(ids.length/2);
+          // Sequential halves avoid adding load during upstream overload.
+          return [...await fetchBatch(ids.slice(0,half)),...await fetchBatch(ids.slice(half))];
+        }
+      };
+      const parsed=fetchBatch(missing).then(data=>new Map(data.map(row=>[String(row.match_id),row])));
       for(const id of missing){
         const key='match:'+shape+':'+id;
         const item=parsed.then(async found=>{

@@ -27,15 +27,27 @@ jobs:
         run: |
           node --check backend/statlocker_placement_core.js
           node --check backend/data_coordinator.js
+          node --check backend/snapshot_adapter.js
           node --test tests/*.test.cjs
+          python -m unittest discover -s tests -p test_snapshot.py
           node -e "const fs=require('node:fs'),vm=require('node:vm'); const html=fs.readFileSync('index.html','utf8'); const script=html.match(/<script>([\s\S]*?)<\/script>/); if(!script)throw Error('Inline script missing'); new vm.Script(script[1]);"
+      - name: Validate committed snapshot
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('snapshot')
+          m=json.loads((p/'manifest.json').read_text())
+          assert m['accounts'] and all((p/x['file']).is_file() for x in m['accounts'].values())
+          assert all((p/name).is_file() for name in m['matches'].values())
+          PY
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Prepare static site
         run: |
           mkdir dist
           cp index.html dist/
-          cp -R backend dist/
+          cp -R backend snapshot dist/
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
