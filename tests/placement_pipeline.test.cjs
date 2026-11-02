@@ -231,7 +231,7 @@ function setup(total){
   const calls=[],pending=[],timers=[],ids=Array.from({length:total},(_,i)=>String(i+1));
   const ranks=new Map(),failures=new Set();
   let renders=0;
-  const context={placementLoading:false,placementTargets:ids,placementRanks:ranks,
+  const context={savedPlacementsReady:Promise.resolve(),placementLoading:false,placementTargets:ids,placementRanks:ranks,
     placementFailures:failures,placementRun:0,PLACEMENT_BATCH_SIZE:512,PLACEMENT_WORKERS:2,
     PLACEMENT_METADATA_OPTIONS:{},placementProgress:{done:0,total:0},
     placementFailureAttempts:0,PLACEMENT_MAX_FAILURE_ATTEMPTS:3,

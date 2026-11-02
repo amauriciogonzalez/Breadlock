@@ -4,7 +4,7 @@ The repository's `snapshot/` JSON files are the **durable, shared store**. GitHu
 
 ## Data and incremental updates
 
-`snapshot/manifest.json` maps 11 example histories and match IDs to content-hashed JSON chunks. It also records pending failures and retry times. The current snapshot is a partial backfill; the manifest lists exact saved/unique counts. Scoring metadata is stored only when actually returned, never as a successful empty match. Optional filtered detail/stage projections are not yet part of the shared snapshot, so those may still load via API.
+`snapshot/manifest.json` maps 11 example histories and match IDs to content-hashed JSON chunks. It also records pending failures and retry times. The current snapshot is a partial backfill; the manifest lists exact saved/unique counts. Scoring metadata is stored only when actually returned, never as a successful empty match. The updater runs the same versioned JavaScript placement model used by the browser and publishes `placements-*.json`: compact per-match 1–12 estimated ranks plus precomputed average, modes, and coverage for each example account × mode × all-time/last 30/last 90 matches. The browser uses a summary only when the selected match IDs agree; otherwise it aggregates per-match ranks. Rolling day windows, hero subsets, custom players, and shared-match comparisons still require dynamic aggregation, and missing/invalid match metadata is excluded rather than counted as zero. A model-version mismatch falls back to browser scoring. Optional filtered detail/stage projections are not yet part of the shared snapshot, so those may still load via API.
 
 `match_db_update.py` builds a **temporary SQLite work index** from committed JSON, upserts refreshed histories, requests only missing metadata with 2.5-second start pacing and `Retry-After`, then exports JSON chunks and the manifest. SQLite is ignored by Git and can be deleted; a new runner reconstructs it from JSON. Missing/failed IDs remain eligible for later retries, including across CI runs. Commits prune superseded chunks from the working tree. Git history remains the backup, though frequent updates grow it over time.
 
@@ -15,7 +15,7 @@ python match_db_update.py --max-metadata 64 --batch-size 32 --prune
 python -m http.server 8000
 ```
 
-Open http://localhost:8000/. `--max-metadata 0` checks histories only; `--force-history` overrides the six-hour history refresh interval; `--offline` verifies/re-exports saved data without API requests. The ignored `data/matches.sqlite` on your machine may be ahead of committed JSON; commit the updated `snapshot/` files to make that data portable.
+Open http://localhost:8000/. `--max-metadata 0` checks histories only; `--force-history` overrides the six-hour history refresh interval; `--offline` verifies/re-exports saved data without API requests. The ignored `data/matches.sqlite` on your machine may be ahead **or behind** committed JSON; use a fresh `--db` path to rebuild from the published snapshot before re-exporting, or you risk replacing newer saved rows with stale local data. Commit the updated `snapshot/` files to make that data portable. The updater requires Node.js to run the shared placement model.
 
 ## Scheduled publishing (no external storage)
 

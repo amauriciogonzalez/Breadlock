@@ -10,7 +10,9 @@ import json
 import os
 import re
 import sqlite3
+import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.parse
@@ -201,6 +203,33 @@ def refresh_metadata(db, client, budget, batch_size):
                 break
 
 
+def placement_summaries(db, ranks):
+    """Materialize stable selection windows; day windows remain live (rolling clock)."""
+    summaries = {}
+    for account, in db.execute('SELECT account_id FROM accounts ORDER BY account_id'):
+        histories = [json.loads(row[0]) for row in db.execute(
+            'SELECT payload FROM histories WHERE account_id=?', (account,))]
+        per_mode = {}
+        for mode in ('normal', 'standard', 'ranked'):
+            selected = [row for row in histories if row.get('game_mode') == 1 and
+                        (mode == 'normal' or row.get('match_mode') == (1 if mode == 'standard' else 4))]
+            selected.sort(key=lambda row: (row.get('start_time') or 0), reverse=True)
+            for window in (0, 30, 90):
+                items = selected[:window] if window else selected
+                ids = [str(row['match_id']) for row in items]
+                values = [ranks.get(mid, {}).get(str(row.get('hero_id'))) for mid, row in
+                          zip(ids, items)]
+                values = [rank for rank in values if isinstance(rank, int) and 1 <= rank <= 12]
+                counts = {rank: values.count(rank) for rank in set(values)}
+                most = max(counts.values(), default=0)
+                per_mode[f'{mode}:{window}:matches'] = {
+                    'ids': ids, 'average': sum(values) / len(values) if values else None,
+                    'modes': sorted(rank for rank, count in counts.items() if count == most) if most else [],
+                    'count': len(values), 'selected': len(ids)}
+        summaries[account] = per_mode
+    return summaries
+
+
 def export(db, directory):
     directory.mkdir(parents=True, exist_ok=True)
     accounts = {}
@@ -228,6 +257,19 @@ def export(db, directory):
                    'SELECT match_id,attempts,next_try,last_error FROM pending ORDER BY match_id')}
     manifest = {'version': 1, 'accounts': accounts, 'matches': mapping,
                 'uniqueHistoryMatches': stats, 'savedMatches': len(mapping), 'pending': pending}
+    # Node runs the same scoring model as the browser; Python only materializes
+    # selection summaries. Fail publication if the derivation fails.
+    with tempfile.TemporaryDirectory() as temp:
+        derived_path = Path(temp) / 'placements.json'
+        # Write the mapping used by the builder without publishing an intermediate manifest.
+        input_path = Path(temp) / 'mapping.json'
+        input_path.write_text(json.dumps({'matches': mapping}), encoding='utf-8')
+        subprocess.run(['node', str(HERE / 'backend' / 'build_placements.cjs'),
+                        str(directory), str(input_path), str(derived_path)], check=True)
+        derived = json.loads(derived_path.read_text(encoding='utf-8'))
+    derived['summaries'] = placement_summaries(db, derived['ranks'])
+    manifest['placements'] = {'file': immutable_json(directory, 'placements', derived),
+                              'modelVersion': derived['modelVersion']}
     previous = directory / 'manifest.json'
     if previous.exists():
         old = json.loads(previous.read_text(encoding='utf-8'))
@@ -258,6 +300,8 @@ def restore_snapshot(db, directory):
     histories = {account: checked_file(record['file'])
                  for account, record in manifest['accounts'].items()}
     chunks = {name: checked_file(name) for name in set(manifest['matches'].values())}
+    if manifest.get('placements'):
+        checked_file(manifest['placements']['file'])
     if sum(len(rows) for rows in chunks.values()) != manifest['savedMatches']:
         raise ValueError('Snapshot match count mismatch')
     pending = manifest.get('pending', {})
@@ -286,7 +330,9 @@ def prune_snapshot(directory):
     manifest = json.loads((directory / 'manifest.json').read_text(encoding='utf-8'))
     keep = {record['file'] for record in manifest['accounts'].values()}
     keep.update(manifest['matches'].values())
-    for pattern in ('history-*.json', 'matches-*.json'):
+    if manifest.get('placements'):
+        keep.add(manifest['placements']['file'])
+    for pattern in ('history-*.json', 'matches-*.json', 'placements-*.json'):
         for path in directory.glob(pattern):
             if path.name not in keep:
                 path.unlink()

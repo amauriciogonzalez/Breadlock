@@ -493,11 +493,13 @@ input[type=text]::placeholder{color:var(--sub)}
 .match-timeline-chart{position:relative;height:350px;max-width:100%;margin:12px 0}
 .match-timeline-chart canvas{max-width:100%}
 .match-roster-scroll{overflow-x:auto;margin-top:10px}
-.match-roster{min-width:1100px}
+.match-roster{min-width:1200px}
 .api-rank{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:11px;color:var(--txt2);font-weight:600}
 .api-rank img{width:27px;height:27px;object-fit:contain;vertical-align:middle}
 .rank-player .api-rank{margin-left:7px}
 .match-roster .api-rank{margin-left:6px}
+.match-current-avg{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.match-current-avg small{color:var(--txt3);font-size:10px}
 .match-roster td{vertical-align:middle}
 .st.match-roster td.r.match-high{color:var(--acc3);font-weight:800}
 .match-roster .match-score{min-width:240px}
@@ -524,9 +526,11 @@ input[type=text]::placeholder{color:var(--sub)}
 .match-history-filters select{background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:5px 9px;color:var(--txt);font-size:12px;max-width:200px}
 .match-history-filters select:focus-visible,.match-history-filters button:focus-visible{outline:2px solid var(--acc)}
 .match-history-filters button{background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:5px 9px;color:var(--txt);cursor:pointer}
-.match-hero-picker{--ind-player:var(--acc);min-width:170px}
-.match-hero-picker .ind-menu button{border:0;background:transparent;padding:6px}
-.match-hero-picker .ind-menu button:hover,.match-hero-picker .ind-menu button:focus-visible,.match-hero-picker .ind-menu button[aria-current=true]{background:var(--bg3)}
+.match-hero-picker,.match-rank-picker{--ind-player:var(--acc);min-width:170px}
+.match-hero-picker .ind-menu button,.match-rank-picker .ind-menu button{border:0;background:transparent;padding:6px}
+.match-hero-picker .ind-menu button:hover,.match-hero-picker .ind-menu button:focus-visible,.match-hero-picker .ind-menu button[aria-current=true],.match-rank-picker .ind-menu button:hover,.match-rank-picker .ind-menu button:focus-visible,.match-rank-picker .ind-menu button[aria-current=true]{background:var(--bg3)}
+.match-rank-icon{width:25px;height:25px;object-fit:contain;flex:none}
+.match-rank-placeholder{width:25px;text-align:center;flex:none;color:var(--acc)}
 .match-pagination{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:12px 0;color:var(--txt2);font-size:12px}
 .match-pagination button{background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;color:var(--txt);padding:6px 10px;cursor:pointer;font:inherit}
 .match-pagination button:hover:not(:disabled),.match-pagination button:focus-visible{border-color:var(--acc);outline:none}
@@ -633,16 +637,18 @@ input[type=text]::placeholder{color:var(--sub)}
   .match-roster tbody tr>td:nth-child(2){grid-column:2;grid-row:1;justify-content:flex-end;align-items:center;border:0}
   .match-roster .hcell{min-width:0;max-width:100%;white-space:normal;justify-content:flex-end;text-align:right}
   .match-roster .match-username{min-width:0;white-space:normal;overflow-wrap:anywhere}
-  .match-roster tbody tr>td.match-score{grid-column:1 / -1;grid-row:2;display:block;min-width:0;padding:10px 0;border-top:1px solid var(--bdr2);text-align:left}
+  .match-roster tbody tr>td.match-roster-rank{grid-column:1 / -1;grid-row:2;align-items:center}
+  .match-roster .match-roster-rank::before{content:'Current rank'}
+  .match-roster tbody tr>td.match-score{grid-column:1 / -1;grid-row:3;display:block;min-width:0;padding:10px 0;border-top:1px solid var(--bdr2);text-align:left}
   .match-roster .match-score::before{content:'Estimated score';display:block;margin-bottom:6px}
-  .match-roster tbody tr>td:nth-child(4)::before{content:'Kills'}
-  .match-roster tbody tr>td:nth-child(5)::before{content:'Deaths'}
-  .match-roster tbody tr>td:nth-child(6)::before{content:'Assists'}
-  .match-roster tbody tr>td:nth-child(7)::before{content:'KDA'}
-  .match-roster tbody tr>td:nth-child(8)::before{content:'Damage'}
-  .match-roster tbody tr>td:nth-child(9)::before{content:'Souls'}
-  .match-roster tbody tr>td:nth-child(10)::before{content:'Objective'}
-  .match-roster tbody tr>td:nth-child(11)::before{content:'Healing'}
+  .match-roster tbody tr>td:nth-child(5)::before{content:'Kills'}
+  .match-roster tbody tr>td:nth-child(6)::before{content:'Deaths'}
+  .match-roster tbody tr>td:nth-child(7)::before{content:'Assists'}
+  .match-roster tbody tr>td:nth-child(8)::before{content:'KDA'}
+  .match-roster tbody tr>td:nth-child(9)::before{content:'Damage'}
+  .match-roster tbody tr>td:nth-child(10)::before{content:'Souls'}
+  .match-roster tbody tr>td:nth-child(11)::before{content:'Objective'}
+  .match-roster tbody tr>td:nth-child(12)::before{content:'Healing'}
   .match-pagination{justify-content:space-between}
   .match-page-status{order:-1;flex-basis:100%}
   .match-pagination button{min-height:40px;min-width:90px}
@@ -708,7 +714,7 @@ input[type=text]::placeholder{color:var(--sub)}
 <script src="./backend/snapshot_adapter.js"></script>
 <script>
 (function(){
-BreadlockSnapshot.install(BreadlockData);
+const savedSnapshot=BreadlockSnapshot.install(BreadlockData);
 // Spread player hues and lightness across the dark UI; avoid near-duplicate blues and pinks.
 const COLS=['#ffd447','#20c4a4','#638cff','#ff70b0','#b999ff','#9ee04c','#ff914d','#e8e0d0','#ed6460','#68d6ef'];
 const DEFAULTS=[
@@ -818,10 +824,11 @@ const PLACEMENT_METADATA_OPTIONS={
 const PLACEMENT_CACHE_LIMIT=10000;
 const PLACEMENT_CACHE_KEY='breadlock-estimated-placements-v'+(window.BreadlockPlacement?.VERSION||0)+'-teams1';
 const placementRanks=new Map(),placementFailures=new Set();
+let savedPlacementSummaries=null;
 // Full telemetry is held only in memory; the compact rank cache remains the persisted format.
 const matchBreakdowns=new Map(),openMatchIds=new Set(),matchBreakdownPending=new Set(),matchBreakdownErrors=new Map();
 const matchTimelineMetrics=new Map(),matchTimelineIncluded=new Map();
-const MATCH_TIMELINE_METRICS=[['player_damage','Hero damage'],['kills','Kills'],['deaths','Deaths'],['net_worth','Souls'],['boss_damage','Objective damage'],['assists','Assists'],['creep_kills','Creep kills'],['teammate_healing','Teammate healing'],['self_healing','Self healing'],['player_damage_taken','Damage taken']];
+const MATCH_TIMELINE_METRICS=[['player_damage','Hero damage'],['kills','Kills'],['deaths','Deaths'],['net_worth','Souls'],['boss_damage','Obj Damage'],['assists','Assists'],['creep_kills','Creep kills'],['teammate_healing','Teammate healing'],['self_healing','Self healing'],['player_damage_taken','Damage taken']];
 function rememberMatchBreakdown(id,value){
   matchBreakdowns.delete(id);matchBreakdowns.set(id,value);
   // Do not retain thousands of full rosters just to display compact tier ranks.
@@ -835,8 +842,10 @@ function rememberMatchBreakdown(id,value){
 const steamNames=new Map(),matchNamesLoaded=new Set(),matchNamesPending=new Set(),matchNamesErrors=new Map();
 const playerRanks=new Map(),rankPending=new Set();
 const matchAvgBadges=new Map(),matchAvgPending=new Set();
+const normalMatchRanks=new Map(),normalMatchRankPending=new Set();
+let matchRankFilterError='';
 const MATCHES_PAGE_SIZE=20,matchPages=new Map();
-const matchHistoryFilters={hero:'all',result:'all',patch:'all'};
+const matchHistoryFilters={hero:'all',result:'all',patch:'all',rank:'all'};
 let matchPatchDays=null,matchPatchPending=false,matchPatchError='';
 let placementLoading=false,placementProgress={done:0,total:0},placementRun=0;
 let placementTargets=[],placementRetryTimer=null,placementNextTimer=null;
@@ -862,6 +871,12 @@ try{
       placementRanks.set(String(id),ranks);
   }
 }catch(e){}
+const savedPlacementsReady=savedSnapshot.placements(window.BreadlockPlacement?.VERSION).then(data=>{
+  if(!data)return;
+  savedPlacementSummaries=data.summaries;
+  for(const [id,ranks] of Object.entries(data.ranks))placementRanks.set(id,ranks);
+  renderMain();
+}).catch(e=>dbg('Saved placement loading failed: '+e,'wn'));
 const visibleMatches=p=>{
   const filtered=(p.matches||[]).filter(m=>{
     const mode=gn(m,'game_mode'),kind=gn(m,'match_mode');
@@ -947,7 +962,18 @@ function placementForMatches(selected){
   const summary=window.BreadlockPlacement?BreadlockPlacement.placementSummary(ranks):{average:null,modes:[],count:0};
   return {...summary,selected:selected.length};
 }
-function placementForPlayer(p){return placementForMatches(visibleMatches(p));}
+function placementForPlayer(p){
+  const selected=visibleMatches(p);
+  if(scopeUnit==='matches'){
+    const account=steamAccountId(p.id),key=`${scopeMode}:${scopeCount}:matches`;
+    const saved=savedPlacementSummaries?.[account]?.[key];
+    const allIds=!scopeCount&&saved?new Set(saved.ids):null;
+    if(saved&&saved.ids.length===selected.length&&
+       selected.every((m,i)=>scopeCount?String(m.match_id)===saved.ids[i]:allIds.has(String(m.match_id))))
+      return {average:saved.average,modes:saved.modes,count:saved.count,selected:saved.selected};
+  }
+  return placementForMatches(selected);
+}
 function placementModes(summary){return summary.modes.length?summary.modes.map(placementOrdinal).join(', '):'—';}
 function placementOrdinal(n){return n+(n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th');}
 function savePlacementRanks(){
@@ -1056,6 +1082,7 @@ function applyBulkMatchDetails(row){
 }
 async function calculatePlacements(){
   if(placementLoading||!window.BreadlockPlacement)return;
+  await savedPlacementsReady;
   const ids=placementTargets.filter(id=>!placementRanks.has(id)&&!placementFailures.has(id));
   if(!ids.length)return;
   const run=++placementRun;
@@ -1206,7 +1233,15 @@ function matchRankDeltaHtml(match){
   return `<span class="match-rank-delta${delta>0?' positive':delta<0?' negative':''}" title="Ranked progress change after this match (not hidden MMR)">${delta>0?'+':''}${delta}</span>`;
 }
 function matchAvgBadgeHtml(match){
-  if(Number(match.match_mode)!==4)return '—';
+  if(Number(match.match_mode)!==4){
+    const id=String(match.match_id),value=normalMatchRanks.get(id);
+    if(!value)return `<span class="api-rank" title="${normalMatchRankPending.has(id)?'Loading current ranks of match players':'Current roster ranks unavailable'}">${normalMatchRankPending.has(id)?'…':'—'}</span>`;
+    if(!value.count){
+      if(value.unrankedCount===value.rosterSize)return `<span class="match-current-avg">${badgeHtml(0,'All match players currently unranked')} <small>(0/${value.rosterSize})</small></span>`;
+      return `<span class="api-rank" title="Current ranks unavailable for ${value.rosterSize-(value.unrankedCount||0)} match players">—</span>`;
+    }
+    return `<span class="match-current-avg" title="Approximate average of ${value.count}/${value.rosterSize} players' current displayed ranks; not their ranks when this match was played">${badgeHtml(value.badge,'Current-roster rank estimate')} <small>(${value.count}/${value.rosterSize})</small></span>`;
+  }
   const id=String(match.match_id),badge=matchAvgBadges.get(id);
   if(badge==null)return `<span class="api-rank" title="${matchAvgPending.has(id)?'Loading historical lobby average rank':'Historical lobby average rank unavailable'}">${matchAvgPending.has(id)?'…':'—'}</span>`;
   return badgeHtml(badge,'Average lobby rank when this match was played');
@@ -1239,12 +1274,63 @@ async function loadRanks(ids){
   }catch(e){if(generation===loadGeneration)dbg('Current ranks unavailable: '+e,'wn');}
   finally{if(generation===loadGeneration){accounts.forEach(id=>rankPending.delete(id));if(activeTab==='overview'||activeTab==='matches')renderMain();}}
 }
-async function refreshMatchAvgBadges(){
+async function refreshNormalMatchRanks(){
   if(activeTab!=='matches')return;
   const ids=[...new Set(players.filter(p=>!p.loading&&!p.error).flatMap(p=>{
-    const ms=visibleMatches(p),page=matchPageFor(p,ms.length);
-    return ms.slice(page*MATCHES_PAGE_SIZE,(page+1)*MATCHES_PAGE_SIZE)
-      .filter(m=>Number(m.match_mode)===4).map(m=>String(m.match_id));
+    const ms=matchHistoryBaseMatches(p),page=matchPageFor(p,ms.length);
+    const candidates=matchHistoryFilters.rank==='all'?ms.slice(page*MATCHES_PAGE_SIZE,(page+1)*MATCHES_PAGE_SIZE):ms;
+    return candidates.filter(m=>Number(m.match_mode)===1).map(m=>String(m.match_id));
+  }))].filter(id=>/^\d+$/.test(id)&&!normalMatchRanks.has(id)&&!normalMatchRankPending.has(id));
+  if(!ids.length)return;
+  const generation=loadGeneration;
+  ids.forEach(id=>normalMatchRankPending.add(id));renderMain();
+  try{
+    for(let i=0;i<ids.length;i+=100){
+      const rows=await BreadlockData.metadata(ids.slice(i,i+100),
+        {only_filtered_players:'false',include_info:'false',include_player_info:'true'}, {priority:1});
+      if(generation!==loadGeneration)return;
+      const rosters=new Map(rows.map(row=>[String(row.match_id),
+        (row.players||[]).map(x=>typeof x==='string'?JSON.parse(x):x)]));
+      const accounts=[...new Set([...rosters.values()].flatMap(roster=>roster.map(x=>String(x.account_id??'')))
+        .filter(validRankAccount))];
+      const missingRanks=accounts.filter(id=>!playerRanks.has(id));
+      for(let j=0;j<missingRanks.length;j+=100){
+        const batch=missingRanks.slice(j,j+100);
+        const results=await apiFetch('/players/rank?'+new URLSearchParams({account_ids:batch.join(',')}),
+          {ttl:5*60*1000,priority:1,staleOnError:true});
+        if(generation!==loadGeneration)return;
+        if(!Array.isArray(results))throw Error('Invalid current rank response');
+        for(const row of results){
+          if(!batch.includes(String(row.account_id))||!Number.isInteger(row.rank)||row.rank<0||row.rank>11||
+            !Number.isInteger(row.subrank)||row.subrank<0||row.subrank>6)continue;
+          playerRanks.set(String(row.account_id),{rank:row.rank,subrank:row.subrank});
+        }
+      }
+      for(const id of ids.slice(i,i+100)){
+        const roster=rosters.get(id);
+        if(!roster||roster.length!==12){normalMatchRanks.set(id,null);continue;}
+        const positions=roster.map(x=>playerRanks.get(String(x.account_id)))
+          .filter(rank=>rank?.rank>=1&&rank.subrank>=1)
+          .map(rank=>(rank.rank-1)*6+rank.subrank-1);
+        const unrankedCount=roster.filter(x=>{
+          const rank=playerRanks.get(String(x.account_id));return rank?.rank===0&&rank.subrank===0;
+        }).length;
+        const average=positions.length?Math.round(positions.reduce((a,b)=>a+b,0)/positions.length):null;
+        normalMatchRanks.set(id,{badge:average==null?null:(Math.floor(average/6)+1)*10+average%6+1,
+          count:positions.length,unrankedCount,rosterSize:roster.length});
+      }
+      if(activeTab==='matches'&&matchHistoryFilters.rank!=='all')renderMain();
+    }
+  }catch(e){if(generation===loadGeneration){matchRankFilterError=String(e);dbg('Current-roster ranks unavailable: '+e,'wn');}}
+  finally{if(generation===loadGeneration){ids.forEach(id=>normalMatchRankPending.delete(id));if(activeTab==='matches')renderMain();}}
+}
+async function refreshMatchAvgBadges(){
+  if(activeTab!=='matches')return;
+  void refreshNormalMatchRanks();
+  const ids=[...new Set(players.filter(p=>!p.loading&&!p.error).flatMap(p=>{
+    const ms=matchHistoryBaseMatches(p),page=matchPageFor(p,ms.length);
+    const candidates=matchHistoryFilters.rank==='all'?ms.slice(page*MATCHES_PAGE_SIZE,(page+1)*MATCHES_PAGE_SIZE):ms;
+    return candidates.filter(m=>Number(m.match_mode)===4).map(m=>String(m.match_id));
   }))].filter(id=>/^\d+$/.test(id)&&!matchAvgBadges.has(id)&&!matchAvgPending.has(id));
   if(!ids.length)return;
   const generation=loadGeneration;
@@ -1254,12 +1340,15 @@ async function refreshMatchAvgBadges(){
     for(let i=0;i<ids.length;i+=100){
       const rows=await BreadlockData.metadata(ids.slice(i,i+100),{include_info:'true',include_player_info:'false'},{priority:1});
       if(generation!==loadGeneration)return;
+      const batch=ids.slice(i,i+100);
+      for(const id of batch)matchAvgBadges.set(id,null);
       for(const row of rows){
         const badge=Number(row.average_badge),id=String(row.match_id);
-        if(ids.includes(id))matchAvgBadges.set(id,Number.isInteger(badge)&&badge>0&&badge<=116?badge:null);
+        if(batch.includes(id))matchAvgBadges.set(id,Number.isInteger(badge)&&badge>0&&badge<=116?badge:null);
       }
+      if(activeTab==='matches'&&matchHistoryFilters.rank!=='all')renderMain();
     }
-  }catch(e){if(generation===loadGeneration)dbg('Historical lobby ranks unavailable: '+e,'wn');}
+  }catch(e){if(generation===loadGeneration){matchRankFilterError=String(e);dbg('Historical lobby ranks unavailable: '+e,'wn');}}
   finally{if(generation===loadGeneration){ids.forEach(id=>matchAvgPending.delete(id));if(activeTab==='matches')renderMain();}}
 }
 function loadTrackedRanks(){
@@ -2300,6 +2389,7 @@ async function loadMatchBreakdown(id){
     const result=BreadlockPlacement.scoreMatch(match);
     rememberMatchBreakdown(id,{row,match,result});
     void loadMatchNames(id);
+    void loadRanks((row.players||[]).map(x=>typeof x==='string'?JSON.parse(x):x).map(x=>x.account_id));
     // An on-demand request can also finish before the background placement batch.
     placementRanks.set(id,Object.fromEntries(result.map(x=>[String(x.heroId),x.rank])));
     if(++placementUnsaved>=24)flushPlacementRanks();
@@ -2394,6 +2484,7 @@ function matchBreakdownHtml(id,selectedHero,playerId=''){
     const username=steamNames.get(account)||(!/^\d{1,10}$/.test(account)||account==='0'?'Anonymous player':matchNamesPending.has(id)?'Loading username…':'Username unavailable');
     return `<tr${String(entry.heroId)===String(selectedHero)?' class="match-selected"':''}>
       <td class="r">${placementOrdinal(entry.rank)}</td><td class="l"><div class="hcell"><span class="hico tico" title="${chemText(entry.hero)}">${heroImage(entry.heroId,hero,hero.name||entry.hero)}</span><span class="match-username" title="${chemText(username)}">${chemText(username)}</span></div></td>
+      <td class="l match-roster-rank">${validRankAccount(account)?rankBadgeHtml(account):'—'}</td>
       <td class="l match-score"><strong>${f1(entry.score)} pts</strong><div class="match-stack" role="img" aria-label="${chemText(entry.hero)}: estimated score ${f1(entry.score)} points; positive components ${f1(positive)} minus death penalty ${f1(-penalty)}">${components.filter(([,v])=>v>0).map(([name,points,color])=>`<span style="width:${points/maxScale*100}%;background:${color}" title="${chemText(name)}: +${f1(points)} points"></span>`).join('')}</div><div class="match-penalty"><div class="match-penalty-head"><span>Deaths ◀</span><span>−${f1(-penalty)} pts</span></div><div class="match-penalty-track" role="img" aria-label="Death penalty: ${f1(-penalty)} points, subtracted from positive points"><span class="match-penalty-fill" style="width:${Math.max(0,-penalty)/maxScale*100}%" title="Deaths: −${f1(-penalty)} points"></span></div></div></td>
       ${statCell(s.kills,'kills',String)}${statCell(s.deaths,'deaths',String)}${statCell(s.assists,'assists',String)}${statCell(s.kda,'kda',f1)}
       ${statCell(s.damage,'damage')}${statCell(s.souls,'souls')}${statCell(s.objective,'objective')}${statCell(s.healing,'healing')}
@@ -2402,7 +2493,7 @@ function matchBreakdownHtml(id,selectedHero,playerId=''){
   const legend=parts(result[0]).map(([name,,color])=>`<span><i style="background:${color}"></i>${chemText(name)}</span>`).join('');
   const missing=(row.players||[]).map(x=>typeof x==='string'?JSON.parse(x):x).some(x=>/^\d{1,10}$/.test(String(x.account_id??''))&&String(x.account_id)!=='0'&&!steamNames.has(String(x.account_id)));
   return `${missing&&!matchNamesPending.has(id)?`<button type="button" class="match-names-refresh" data-match-id="${chemText(id)}">Refresh missing Steam usernames</button>`:''}${matchNamesErrors.has(id)?`<div class="note" role="status">Steam names unavailable: ${chemText(matchNamesErrors.get(id))}</div>`:''}<div class="match-legend">${legend}<span><i style="background:#ed6b77"></i>Deaths (subtracted)</span></div>
-    <div class="match-roster-scroll"><table class="st match-roster"><thead><tr><th class="r">Est. place</th><th class="l">Steam username · hero icon</th><th class="l">Estimated score breakdown</th><th class="r">K</th><th class="r">D</th><th class="r">A</th><th class="r" title="(Kills + assists) / deaths; zero deaths use 1">KDA</th><th class="r" title="Hero damage">DMG</th><th class="r">Souls</th><th class="r" title="Boss/structure damage">OBJ</th><th class="r" title="Self healing + ally healing">HEAL</th></tr></thead><tbody class="match-team-group match-team-0" aria-label="First group of teammates">${rowsByTeam[0]}</tbody><tbody class="match-team-group match-team-1" aria-label="Second group of teammates">${rowsByTeam[1]}</tbody></table></div>${matchTimelineHtml(id,playerId,selectedHero)}`;
+    <div class="match-roster-scroll"><table class="st match-roster"><thead><tr><th class="r">Est. place</th><th class="l">Steam username · hero icon</th><th class="l" title="Current displayed rank from latest ranked match, not rank at match time">Current rank</th><th class="l">Estimated score breakdown</th><th class="r">K</th><th class="r">D</th><th class="r">A</th><th class="r" title="(Kills + assists) / deaths; zero deaths use 1">KDA</th><th class="r" title="Hero damage">DMG</th><th class="r">Souls</th><th class="r" title="Boss/structure damage">OBJ</th><th class="r" title="Self healing + ally healing">HEAL</th></tr></thead><tbody class="match-team-group match-team-0" aria-label="First group of teammates">${rowsByTeam[0]}</tbody><tbody class="match-team-group match-team-1" aria-label="Second group of teammates">${rowsByTeam[1]}</tbody></table></div>${matchTimelineHtml(id,playerId,selectedHero)}`;
 }
 function matchOpenKey(playerId,matchId){return JSON.stringify([String(playerId),String(matchId)]);}
 function matchPatchFor(m){
@@ -2423,11 +2514,35 @@ async function loadMatchPatches(){
   }catch(e){matchPatchError=String(e);}
   finally{matchPatchPending=false;if(activeTab==='matches')renderMain();}
 }
-function matchHistoryMatches(player){
+function matchHistoryBaseMatches(player){
   return visibleMatches(player).filter(m=>
     (matchHistoryFilters.hero==='all'||String(gn(m,'hero_id'))===matchHistoryFilters.hero)&&
     (matchHistoryFilters.result==='all'||(isWin(m)?'win':'loss')===matchHistoryFilters.result)&&
     (matchHistoryFilters.patch==='all'||matchPatchFor(m)===matchHistoryFilters.patch));
+}
+function matchAverageRankTier(match){
+  const id=String(match.match_id);
+  if(Number(match.match_mode)===4){
+    if(!matchAvgBadges.has(id))return null;
+    const badge=matchAvgBadges.get(id);
+    return badge==null?'unknown':String(Math.floor(badge/10));
+  }
+  if(!normalMatchRanks.has(id))return null;
+  const average=normalMatchRanks.get(id);
+  if(average?.count)return String(Math.floor(average.badge/10));
+  return average&&average.unrankedCount===average.rosterSize?'unranked':'unknown';
+}
+function matchHistoryMatches(player){
+  const ms=matchHistoryBaseMatches(player);
+  return matchHistoryFilters.rank==='all'?ms:ms.filter(m=>matchAverageRankTier(m)===matchHistoryFilters.rank);
+}
+function matchRankFilterIcon(value){
+  if(value==='all'||value==='unknown')return '<span class="match-rank-placeholder" aria-hidden="true">◆</span>';
+  const tier=value==='unranked'?0:Number(value);
+  const images=rankAssets.find(r=>r.tier===tier)?.images;
+  const url=images?.large||images?.small||images?.large_subrank1;
+  return url?`<img class="match-rank-icon" src="${chemText(url)}" alt="">`:
+    '<span class="match-rank-placeholder" aria-hidden="true">◆</span>';
 }
 function matchHistoryFiltersHtml(good){
   const matches=good.flatMap(p=>visibleMatches(p));
@@ -2439,9 +2554,17 @@ function matchHistoryFiltersHtml(good){
   patches.sort((a,b)=>a==='before'?1:b==='before'?-1:Number(b)-Number(a));
   const option=(value,label,selected)=>`<option value="${chemText(value)}"${selected===String(value)?' selected':''}>${chemText(label)}</option>`;
   const heroName=id=>id==='all'?'All heroes':heroMeta[id]?.name||`Hero ${id}`;
+  const rankLabel=value=>value==='all'?'All ranks':value==='unranked'?'Unranked':value==='unknown'?'Unavailable':rankAssets.find(r=>r.tier===Number(value))?.name||IND_RANKS[Number(value)];
+  const rankOption=(value,label)=>`<button type="button" data-match-filter-rank="${value}" aria-current="${matchHistoryFilters.rank===String(value)}">${matchRankFilterIcon(String(value))}<span>${chemText(label)}</span></button>`;
+  const rankMatches=good.flatMap(p=>matchHistoryBaseMatches(p));
+  const rankIds=new Map(rankMatches.map(m=>[String(m.match_id),m]));
+  const rankResolved=[...rankIds.values()].filter(m=>Number(m.match_mode)===4?
+    matchAvgBadges.has(String(m.match_id)):normalMatchRanks.has(String(m.match_id))).length;
   return `<div class="match-history-filters" role="group" aria-label="Match history filters">
     <span>Hero</span><details class="ind-picker match-hero-picker"><summary aria-label="Filter matches by hero: ${chemText(heroName(matchHistoryFilters.hero))}">${indHeroIcon(matchHistoryFilters.hero)}<span class="ind-name">${chemText(heroName(matchHistoryFilters.hero))}</span></summary><div class="ind-menu"><button type="button" data-match-filter-hero="all" aria-current="${matchHistoryFilters.hero==='all'}">${indHeroIcon('all')}<span class="ind-name">All heroes</span></button>${heroes.map(id=>`<button type="button" data-match-filter-hero="${chemText(id)}" aria-current="${String(id)===matchHistoryFilters.hero}">${indHeroIcon(id)}<span class="ind-name">${chemText(heroName(id))}</span></button>`).join('')}</div></details>
     <label>Result <select id="match-filter-result">${['all','win','loss'].map((value,i)=>option(value,['All results','Wins','Losses'][i],matchHistoryFilters.result)).join('')}</select></label>
+    <span class="lbl">Avg Rank</span><details class="ind-picker match-rank-picker"><summary aria-label="Filter matches by average rank: ${chemText(rankLabel(matchHistoryFilters.rank))}" title="Ranked: historical average rank. Normal: average of currently displayed player ranks.">${matchRankFilterIcon(matchHistoryFilters.rank)}<span class="ind-name">${chemText(rankLabel(matchHistoryFilters.rank))}</span></summary><div class="ind-menu">${rankOption('all','All ranks')}${IND_RANKS.slice(1).map((_,i)=>rankOption(i+1,rankLabel(String(i+1)))).join('')}${rankOption('unranked','Unranked')}${rankOption('unknown','Unavailable')}</div></details>
+    ${matchHistoryFilters.rank!=='all'&&rankResolved<rankIds.size?`<span class="note" role="status">${matchRankFilterError?'Some avg ranks could not load':'Checking avg ranks '+rankResolved+'/'+rankIds.size+'…'}</span>${matchRankFilterError?'<button type="button" class="match-rank-retry">Retry</button>':''}`:''}
     <label>Patch <select id="match-filter-patch"${matchPatchDays?'':' disabled'}>${option('all',matchPatchError?'Patch dates unavailable':matchPatchPending?'Loading patches…':'All major patches',matchHistoryFilters.patch)}${patches.map(day=>option(day,day==='before'?`Before ${new Date(matchPatchDays.at(-1)*1000).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'})}`:new Date(Number(day)*1000).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}),matchHistoryFilters.patch)).join('')}</select></label>
     ${matchPatchError?'<button type="button" class="match-patch-retry">Retry patches</button>':''}
   </div>`;
@@ -2464,14 +2587,18 @@ function tabMatches(good){
   if(!good.length)return'<div class="nd">No data yet</div>';
   return matchHistoryFiltersHtml(good)+good.map(p=>{
     const ms=matchHistoryMatches(p);
-    if(!ms.length)return`<div class="card"><div class="ct" style="color:${p.color}">${chemText(p.label)}</div><div class="nd">No matching matches.</div></div>`;
+    if(!ms.length){
+      const base=matchHistoryBaseMatches(p),checking=matchHistoryFilters.rank!=='all'&&base.some(m=>
+        Number(m.match_mode)===4?!matchAvgBadges.has(String(m.match_id)):!normalMatchRanks.has(String(m.match_id)));
+      return`<div class="card"><div class="ct" style="color:${p.color}">${chemText(p.label)}</div><div class="nd">${checking?(matchRankFilterError?'Some average ranks could not load.':'Checking average ranks…'):'No matching matches.'}</div></div>`;
+    }
     const page=matchPageFor(p,ms.length),pagination=matchPagination(p,page,ms.length);
     return`<div class="card matches-card">
       <div class="ct" style="color:${p.color}">${chemText(p.label)} — ${ms.length} matches loaded (most recent first)</div>
       ${pagination}
       <div class="matches-scroll">
       <table class="st matches-table"><thead><tr>
-        <th class="l">Hero</th><th class="r">Result</th><th class="l">Date / Time</th><th class="l" title="Your displayed rank after this ranked match">YOUR RANK</th><th class="r" title="Ranked progress change reported for this match, not hidden MMR">RANK Δ</th><th class="l">AVG RANK</th><th class="r">Est. place</th><th class="r" title="Based on estimated place within the team: winning team's first is MVP, second is Key Player; losing team's first is Key Player">Prestige</th><th class="r">K</th><th class="r">D</th><th class="r">A</th><th class="r">KDA</th><th class="r">Damage</th><th class="r">Objective damage</th><th class="r">Self healing</th><th class="r">Teammate healing</th><th class="r">Souls/min</th><th class="r">Net Worth</th><th class="r">Duration</th>
+        <th class="l">Hero</th><th class="r">Result</th><th class="l">Date / Time</th><th class="l" title="Your displayed rank after this ranked match">YOUR RANK</th><th class="r" title="Ranked progress change reported for this match, not hidden MMR">RANK Δ</th><th class="l" title="Ranked: historical lobby average. Normal: approximate average of players' current displayed ranks (coverage shown).">AVG RANK</th><th class="r">Est. place</th><th class="r" title="Based on estimated place within the team: winning team's first is MVP, second is Key Player; losing team's first is Key Player">Prestige</th><th class="r">K</th><th class="r">D</th><th class="r">A</th><th class="r">KDA</th><th class="r">Damage</th><th class="r">Obj Damage</th><th class="r">Self healing</th><th class="r">Teammate healing</th><th class="r">Souls/min</th><th class="r">Net Worth</th><th class="r">Duration</th>
       </tr></thead><tbody>
       ${ms.slice(page*MATCHES_PAGE_SIZE,(page+1)*MATCHES_PAGE_SIZE).map(m=>{
         const hid=gf(m,'hero_id');const hero=heroMeta[hid]||{};
@@ -2491,7 +2618,7 @@ function tabMatches(good){
           <td class="l" style="font-size:11px;color:var(--txt3);white-space:nowrap">${matchDate(m)}</td>
           <td class="l">${matchPlayerBadgeHtml(m)}</td>
           <td class="r">${matchRankDeltaHtml(m)}</td>
-          <td class="l">${ranked?matchAvgBadgeHtml(m):'—'}</td>
+          <td class="l">${matchAvgBadgeHtml(m)}</td>
           <td class="r" title="Experimental 1–12 lobby estimate, not a Valve award">${placementForMatch(m)==null?'—':placementOrdinal(placementForMatch(m))}</td>
           <td class="r" title="Prestige from estimated team placement, not a Valve MVP award">${prestigeForMatch(m)}</td>
           <td class="r">${k}</td><td class="r">${d}</td><td class="r">${a}</td>
@@ -2579,7 +2706,7 @@ function tabPerformance(arr){
   h+='<div class="slbl">Damage and contribution</div>';
   if(good.some(p=>p.teamSharePending===scopeKey()))h+='<div class="note">Loading full-team match data for hero-damage share; values may appear as requests finish.</div>';
   h+='<div class="g3">';
-  h+=statCard('Objective damage/min','objDpm',good.map(p=>({p,s:{objDpm:scopeStats(p)?.objDpm??null}})),fk);
+  h+=statCard('Obj Damage/min','objDpm',good.map(p=>({p,s:{objDpm:scopeStats(p)?.objDpm??null}})),fk);
   for(const [title,key,fmt] of [['Hero damage/min','dpm',fk],['Share of team hero damage','teamShare',v=>f1(v)+'%'],['Boss damage/game','boss',fk],['Damage mitigated/game','mitigated',fk],['Damage taken/game','taken',fk],['Teammate healing/game','allyHeal',fk],['Teammate barriers/game','allyBarrier',fk],['Healing prevented/game','healPrevented',fk]])h+=statCard(title,key,arr,fmt);
   h+='</div><div class="slbl">Aim and survivability</div><div class="g3">';
   h+=statCard('Weapon accuracy','accuracy',arr,v=>f1(v)+'%');h+=statCard('Hero-bullet headshot share','headshot',arr,v=>f1(v)+'%');
@@ -3381,21 +3508,26 @@ function mountCharts(arr){
 function setMatchHistoryFilter(field,value){
   matchHistoryFilters[field]=value;
   matchPages.clear();openMatchIds.clear();matchTimelineIncluded.clear();renderMain();
+  void refreshMatchAvgBadges();
 }
 function init(){
   document.addEventListener('click',e=>{
-    const picker=document.querySelector('.match-hero-picker[open]');
-    if(picker&&!picker.contains(e.target))picker.open=false;
+    document.querySelectorAll('.match-hero-picker[open],.match-rank-picker[open]').forEach(picker=>{
+      if(!picker.contains(e.target))picker.open=false;
+    });
   });
   document.getElementById('main').addEventListener('keydown',e=>{
-    const picker=e.target.closest('.match-hero-picker');
+    const picker=e.target.closest('.match-hero-picker,.match-rank-picker');
     if(e.key==='Escape'&&picker?.open){picker.open=false;picker.querySelector('summary')?.focus();}
   });
   document.getElementById('main').addEventListener('click',e=>{
-    const toggle=e.target.closest('.match-toggle'),heroFilter=e.target.closest('button[data-match-filter-hero]'),retry=e.target.closest('.match-retry'),patchRetry=e.target.closest('.match-patch-retry'),names=e.target.closest('.match-names-refresh'),pager=e.target.closest('button[data-match-page]');
+    const toggle=e.target.closest('.match-toggle'),heroFilter=e.target.closest('button[data-match-filter-hero]'),rankFilter=e.target.closest('button[data-match-filter-rank]'),retry=e.target.closest('.match-retry'),patchRetry=e.target.closest('.match-patch-retry'),names=e.target.closest('.match-names-refresh'),pager=e.target.closest('button[data-match-page]');
     if(heroFilter){
       setMatchHistoryFilter('hero',heroFilter.dataset.matchFilterHero);
       document.querySelector('.match-hero-picker summary')?.focus();
+    }else if(rankFilter){
+      setMatchHistoryFilter('rank',rankFilter.dataset.matchFilterRank);
+      document.querySelector('.match-rank-picker summary')?.focus();
     }else if(pager){
       const player=players.find(p=>p.id===pager.dataset.matchPlayer);
       if(!player||player.loading||player.error)return;
@@ -3411,6 +3543,7 @@ function init(){
       [...document.querySelectorAll('.match-toggle')].find(b=>b.dataset.matchId===id&&b.dataset.matchPlayer===playerId)?.focus();
     }else if(retry)loadMatchBreakdown(retry.dataset.matchId);
     else if(patchRetry){matchPatchError='';void loadMatchPatches();renderMain();}
+    else if(e.target.closest('.match-rank-retry')){matchRankFilterError='';renderMain();void refreshMatchAvgBadges();}
     else if(names)void loadMatchNames(names.dataset.matchId,true);
   });
   document.getElementById('main').addEventListener('change',e=>{
@@ -3445,7 +3578,7 @@ function init(){
   });
   document.getElementById('btn-clr').addEventListener('click',()=>{
     loadGeneration++;bulkPlayersRun++;bulkPlayersLoading=false;cancelPlacements();
-    placementRanks.clear();placementFailures.clear();playerRanks.clear();rankPending.clear();matchAvgBadges.clear();matchAvgPending.clear();matchBreakdowns.clear();openMatchIds.clear();matchTimelineIncluded.clear();matchTimelineMetrics.clear();Object.assign(matchHistoryFilters,{hero:'all',result:'all',patch:'all'});matchPages.clear();matchBreakdownErrors.clear();steamNames.clear();matchNamesLoaded.clear();matchNamesErrors.clear();placementUnsaved=0;dataNotice='';
+    placementRanks.clear();placementFailures.clear();playerRanks.clear();rankPending.clear();matchAvgBadges.clear();matchAvgPending.clear();normalMatchRanks.clear();normalMatchRankPending.clear();matchBreakdowns.clear();openMatchIds.clear();matchTimelineIncluded.clear();matchTimelineMetrics.clear();Object.assign(matchHistoryFilters,{hero:'all',result:'all',patch:'all',rank:'all'});matchRankFilterError='';matchPages.clear();matchBreakdownErrors.clear();steamNames.clear();matchNamesLoaded.clear();matchNamesErrors.clear();placementUnsaved=0;dataNotice='';
     try{localStorage.removeItem(PLACEMENT_CACHE_KEY);}catch(e){dbg('Placement cache could not be cleared: '+e,'wn');}
     players=[];progressHiddenIds.clear();progressLocalHidden.clear();Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});charts={};
     renderChips();renderMain();syncDashboardUrl();

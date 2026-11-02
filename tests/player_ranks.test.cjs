@@ -7,12 +7,14 @@ const source = html.slice(html.indexOf('function rankAccount('), html.indexOf('a
 const requests = [];
 const context = {
   playerRanks:new Map(), rankPending:new Set(), rankAssets:[], rankAssetsPromise:null,
-  matchAvgBadges:new Map(), matchAvgPending:new Set(), MATCHES_PAGE_SIZE:20,
-  loadGeneration:0,activeTab:'overview',players:[], renders:0,
+  matchAvgBadges:new Map(), matchAvgPending:new Set(), normalMatchRanks:new Map(), normalMatchRankPending:new Set(), MATCHES_PAGE_SIZE:20,
+  loadGeneration:0,activeTab:'overview',players:[],matchHistoryFilters:{rank:'all'},renders:0,
   renderMain(){this.renders++;}, dbg(){},
-  visibleMatches:p=>p.matches, matchPageFor:()=>0,
+  visibleMatches:p=>p.matches, matchHistoryBaseMatches:p=>p.matches, matchPageFor:()=>0,
   BreadlockData:{metadata:async(ids,options)=>{
-    requests.push({ids,options});return [{match_id:'1',average_badge:43},{match_id:'3',average_badge:null}];
+    requests.push({ids,options});
+    if(options.include_player_info==='true')return [{match_id:'2',players:Array.from({length:12},(_,i)=>({account_id:1000+i}))}];
+    return [{match_id:'1',average_badge:43},{match_id:'3',average_badge:null}];
   }},
   chemText: x => String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
   gn: (obj,key) => obj?.[key] == null || obj[key] === '' ? null : Number(obj[key]),
@@ -79,15 +81,95 @@ test('matches use historical lobby averages, not the current player rank',async(
   context.activeTab='matches';
   context.players=[{id:'123',matches:[{match_id:1,match_mode:4},{match_id:2,match_mode:1},{match_id:3,match_mode:4}]}];
   await context.refreshMatchAvgBadges();
-  const calls=requests.filter(p=>typeof p==='object');
+  const calls=requests.filter(p=>typeof p==='object'&&p.options.include_player_info==='false');
   assert.equal(calls.length,1);
   assert.deepEqual([...calls[0].ids],['1','3']);
   assert.equal(calls[0].options.include_info,'true');
   assert.equal(calls[0].options.include_player_info,'false');
   assert.match(context.matchAvgBadgeHtml({match_id:1,match_mode:4}),/Mystic|Rank 4/);
   assert.match(context.matchAvgBadgeHtml({match_id:1,match_mode:4}),/Average lobby rank when this match was played/);
-  assert.equal(context.matchAvgBadgeHtml({match_id:2,match_mode:1}),'—');
+  assert.match(context.matchAvgBadgeHtml({match_id:2,match_mode:1}),/Loading current ranks|No current displayed ranks/);
   assert.match(context.matchAvgBadgeHtml({match_id:3,match_mode:4}),/unavailable/);
   await context.refreshMatchAvgBadges();
-  assert.equal(requests.filter(p=>typeof p==='object').length,1);
+  assert.equal(requests.filter(p=>typeof p==='object'&&p.options.include_player_info==='false').length,1);
+});
+
+test('normal matches show a clearly labeled current-roster estimate with rank coverage',async()=>{
+  context.players=[{id:'123',matches:[{match_id:2,match_mode:1}]}];
+  await context.refreshNormalMatchRanks();
+  const calls=requests.filter(p=>typeof p==='object'&&p.options.include_player_info==='true');
+  assert.equal(calls.at(-1).options.only_filtered_players,'false');
+  assert.equal(calls.at(-1).options.include_info,'false');
+  assert.deepEqual([...calls.at(-1).ids],['2']);
+  assert.match(context.matchAvgBadgeHtml({match_id:2,match_mode:1}),/Current ranks unavailable for 12 match players/);
+  assert.match(context.matchAvgBadgeHtml({match_id:2,match_mode:4}),/Historical lobby average rank unavailable/);
+  context.normalMatchRanks.set('2',{badge:43,count:8,rosterSize:12});
+  const estimate=context.matchAvgBadgeHtml({match_id:2,match_mode:1});
+  assert.doesNotMatch(estimate,/≈/);
+  assert.match(estimate,/Mystic III<\/span> <small>\(8\/12\)<\/small>/);
+  assert.match(estimate,/not their ranks when this match was played/);
+  assert.match(estimate,/Mystic III|Rank 4 III/);
+});
+
+test('avg-rank filtering loads all matching matches, not just the currently visible page',async()=>{
+  context.matchHistoryFilters.rank='4';
+  context.normalMatchRanks.clear();context.matchAvgBadges.clear();
+  const normalIds=Array.from({length:23},(_,i)=>i+2).filter(id=>id!==3);
+  context.players=[{id:'123',matches:[{match_id:1,match_mode:4},{match_id:3,match_mode:4},
+    ...normalIds.map(match_id=>({match_id,match_mode:1}))]}];
+  const before=requests.length;
+  await context.refreshMatchAvgBadges();
+  assert.deepEqual([...requests.slice(before).filter(x=>typeof x==='object'&&x.options.include_player_info==='false')[0].ids],['1','3']);
+  assert.deepEqual([...requests.slice(before).filter(x=>typeof x==='object'&&x.options.include_player_info==='true')[0].ids],normalIds.map(String));
+  context.players=[{id:'123',matches:[{match_id:2,match_mode:1}]}];
+  context.matchHistoryFilters.rank='all';
+});
+
+test('normal lobby averages valid rank subdivisions and excludes unranked players',async()=>{
+  context.normalMatchRanks.clear();
+  const fetch=context.apiFetch;
+  context.apiFetch=async path=>{
+    if(!path.startsWith('/players/rank?'))return fetch(path);
+    return Array.from({length:12},(_,i)=>({account_id:1000+i,rank:i>=10?0:i<5?1:2,
+      subrank:i<5?6:1}));
+  };
+  try{
+    await context.refreshNormalMatchRanks();
+    const rank=context.normalMatchRanks.get('2');
+    assert.equal(rank.count,10);
+    assert.equal(rank.rosterSize,12);
+    assert.equal(rank.badge,21); // 5 × Initiate VI + 5 × Seeker I rounds to Seeker I.
+    assert.match(context.matchAvgBadgeHtml({match_id:2,match_mode:1}),/\(10\/12\)/);
+    assert.match(context.rankBadgeHtml('1000'),/Initiate VI|Rank 1 VI/);
+    assert.match(context.rankBadgeHtml('1010'),/Unranked/);
+  }finally{context.apiFetch=fetch;}
+});
+
+test('all twelve explicitly unranked players show Unranked, not a missing average',async()=>{
+  context.normalMatchRanks.clear();context.playerRanks.clear();
+  const fetch=context.apiFetch;
+  context.apiFetch=async path=>path.startsWith('/players/rank?')
+    ?Array.from({length:12},(_,i)=>({account_id:1000+i,rank:0,subrank:0}))
+    :fetch(path);
+  try{
+    await context.refreshNormalMatchRanks();
+    assert.equal(context.normalMatchRanks.get('2').unrankedCount,12);
+    const html=context.matchAvgBadgeHtml({match_id:2,match_mode:1});
+    assert.match(html,/Unranked/);
+    assert.match(html,/All match players currently unranked/);
+    assert.match(html,/Unranked<\/span> <small>\(0\/12\)<\/small>/);
+    assert.doesNotMatch(html,/—/);
+  }finally{context.apiFetch=fetch;}
+});
+
+test('missing rank responses are not mistaken for unranked players',async()=>{
+  context.normalMatchRanks.clear();context.playerRanks.clear();
+  const fetch=context.apiFetch;
+  context.apiFetch=async path=>path.startsWith('/players/rank?')
+    ?[{account_id:1000,rank:0,subrank:0}]:fetch(path);
+  try{
+    await context.refreshNormalMatchRanks();
+    assert.equal(context.normalMatchRanks.get('2').unrankedCount,1);
+    assert.match(context.matchAvgBadgeHtml({match_id:2,match_mode:1}),/Current ranks unavailable for 11 match players/);
+  }finally{context.apiFetch=fetch;}
 });

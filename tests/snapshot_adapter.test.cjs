@@ -23,6 +23,9 @@ test('snapshot serves saved history and projected metadata without an API call',
   assert.deepEqual(await coordinator.metadata(['7'], {
     only_filtered_players: 'false', include_player_death_details: 'true',
   }), [{ match_id: 7, players: [] }]);
+  assert.deepEqual(await coordinator.metadata(['7'], {
+    only_filtered_players: 'false', include_info: 'false', include_player_info: 'true',
+  }), [{ match_id: 7, players: [] }]);
   assert.deepEqual(live, []);
   assert.equal(calls.length, 3);
   assert.deepEqual(await coordinator.request('/players/99/match-history?only_stored_history=true'),

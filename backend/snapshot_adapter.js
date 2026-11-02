@@ -23,6 +23,15 @@ function install(coordinator,{fetchImpl=root.fetch.bind(root),base='./snapshot/'
       .catch(e=>{files.delete(name);throw e;}));
     return files.get(name);
   }
+  async function placements(modelVersion){
+    await ready;
+    const record=manifest?.placements;
+    if(!record||record.modelVersion!==modelVersion)return null;
+    try{
+      const data=await file(record.file);
+      return data.modelVersion===modelVersion&&data.ranks&&data.summaries?data:null;
+    }catch(e){status('Saved placements unavailable; calculating from metadata: '+e.message);return null;}
+  }
   coordinator.request=async function(path,options){
     await ready;
     const history=/^\/players\/(\d+)\/match-history\?only_stored_history=true$/.exec(path);
@@ -48,11 +57,13 @@ function install(coordinator,{fetchImpl=root.fetch.bind(root),base='./snapshot/'
       if(result.status==='fulfilled')for(const row of result.value)available.set(String(row.match_id),row);
       else status('Snapshot chunk unavailable: '+names[i]+'; saved coverage incomplete');
     });
-    // Full-roster scoring projection is safe to reuse for placement and the
-    // basic match-info view. Filtered detail/stage projections are different shapes.
+    // Full-roster scoring projection is safe to reuse for placement,
+    // match info, and account-ID-only roster requests. Filtered detail/stage
+    // projections are different shapes.
     const scoring=options?.only_filtered_players==='false'&&options?.include_player_death_details==='true';
     const infoOnly=options?.include_player_info==='false'&&options?.include_info==='true';
-    const saved=(scoring||infoOnly)?unique.map(id=>available.get(id)).filter(Boolean):[];
+    const rosterOnly=options?.only_filtered_players==='false'&&options?.include_player_info==='true'&&options?.include_info==='false';
+    const saved=(scoring||infoOnly||rosterOnly)?unique.map(id=>available.get(id)).filter(Boolean):[];
     const savedIds=new Set(saved.map(row=>String(row.match_id)));
     const missing=unique.filter(id=>!savedIds.has(id));
     if(!missing.length)return saved;
@@ -60,7 +71,7 @@ function install(coordinator,{fetchImpl=root.fetch.bind(root),base='./snapshot/'
     // The scheduled updater, not the static site, writes shared SQLite.
     return saved.concat(await originalMetadata(missing,options,controls));
   };
-  return {ready,get manifest(){return manifest;}};
+  return {ready,placements,get manifest(){return manifest;}};
 }
 root.BreadlockSnapshot={install};
 if(typeof module==='object'&&module.exports)module.exports={install};

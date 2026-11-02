@@ -9,7 +9,7 @@ const context = {
   matchBreakdowns: new Map(), matchBreakdownErrors: new Map(), matchBreakdownPending: new Set(),
   steamNames: new Map(), matchNamesPending: new Set(), matchNamesErrors: new Map(),
   BreadlockPlacement: model, heroMeta: {}, openMatchIds: new Set(), matchTimelineMetrics: new Map(),
-  MATCH_TIMELINE_METRICS: [['player_damage','Hero damage'],['kills','Kills'],['deaths','Deaths'],['net_worth','Souls'],['boss_damage','Objective damage'],['assists','Assists'],['creep_kills','Creep kills'],['teammate_healing','Teammate healing'],['self_healing','Self healing'],['player_damage_taken','Damage taken']],
+  MATCH_TIMELINE_METRICS: [['player_damage','Hero damage'],['kills','Kills'],['deaths','Deaths'],['net_worth','Souls'],['boss_damage','Obj Damage'],['assists','Assists'],['creep_kills','Creep kills'],['teammate_healing','Teammate healing'],['self_healing','Self healing'],['player_damage_taken','Damage taken']],
   placementFinalStats: p => p.final_stats || p.stats?.at(-1) || null,
   chemText: value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
   f1: n => Number(n).toFixed(1), fk: n => String(n),
@@ -22,9 +22,13 @@ const context = {
   isWin: () => true, matchDate: () => 'Today', placementForMatch: () => 1,
   prestigeForMatch: () => '-',
   players: [], matchPages: new Map(), MATCHES_PAGE_SIZE: 20,
-  matchHistoryFilters:{hero:'all',result:'all',patch:'all'}, matchPatchDays:null,matchPatchPending:false,matchPatchError:'',
+  matchAvgBadges:new Map(), normalMatchRanks:new Map(),matchRankFilterError:'',rankAssets:[],
+  IND_RANKS:['Obscurus','Initiate','Seeker','Acolyte','Sentinel','Mystic','Ritualist','Emissary','Oracle','Phantom','Ascendant','Eternus'],
+  matchHistoryFilters:{hero:'all',result:'all',patch:'all',rank:'all'}, matchPatchDays:null,matchPatchPending:false,matchPatchError:'',
   activeTab:'matches',apiFetch:async()=>[],renderMain:()=>{},
-  matchAvgBadgeHtml: m => `<span class="api-rank">Avg ${m.match_id}</span>`,
+  validRankAccount: id => /^\d+$/.test(id) && id !== '0',
+  rankBadgeHtml: id => `<span class="api-rank">Rank ${id}</span>`,
+  matchAvgBadgeHtml: m => m.match_mode===4 ? `<span class="api-rank">Avg ${m.match_id}</span>` : '<span class="api-rank">Current (8/12)</span>',
   matchPlayerBadgeHtml: m => m.ranked_display_badge ? `<span class="api-rank">Player ${m.ranked_display_badge}</span>` : '—',
   matchRankDeltaHtml: m => m.ranked_delta == null ? '—' : `<span class="match-rank-delta">${m.ranked_delta}</span>`,
 };
@@ -46,6 +50,9 @@ test('expanded roster shows all 12, scored component stacks and death deduction'
   result[6].score = 3000; // Team 1 leader stays after every Team 0 player.
   const rendered = context.matchBreakdownHtml('42', 1);
   assert.equal((rendered.match(/class="l match-score"/g) || []).length, 12);
+  assert.equal((rendered.match(/class="l match-roster-rank"/g) || []).length, 12);
+  assert.match(rendered, /Current rank<\/th>/);
+  assert.match(rendered, /Rank 1<\/span>/);
   assert.match(rendered, /&lt;Player&gt;/);
   assert.equal((rendered.match(/class="match-penalty-track" role="img"/g) || []).length, 12);
   assert.match(rendered, /aria-label="Death penalty: 270\.0 points, subtracted from positive points"/);
@@ -56,7 +63,7 @@ test('expanded roster shows all 12, scored component stacks and death deduction'
   assert.match(rendered, /match-selected/);
   assert.doesNotMatch(rendered, /Experimental 1–12 estimate|Hover for point values/);
   assert.match(rendered, /class="match-username" title="Username unavailable">Username unavailable<\/span>/);
-  assert.match(rendered, /<th class="l">Steam username · hero icon<\/th><th class="l">Estimated score breakdown<\/th><th class="r">K<\/th>/);
+  assert.match(rendered, /<th class="l">Steam username · hero icon<\/th><th class="l" title="Current displayed rank from latest ranked match, not rank at match time">Current rank<\/th><th class="l">Estimated score breakdown<\/th><th class="r">K<\/th>/);
   assert.match(rendered, /<th class="r">A<\/th><th class="r" title="\(Kills \+ assists\) \/ deaths; zero deaths use 1">KDA<\/th>/);
   assert.match(rendered, /<th class="r" title="Hero damage">DMG<\/th><th class="r">Souls<\/th><th class="r" title="Boss\/structure damage">OBJ<\/th><th class="r" title="Self healing \+ ally healing">HEAL<\/th>/);
   // Must outrank the generic .st td.r text color, not just add a class to the cells.
@@ -213,6 +220,39 @@ test('match history filters apply hero, result, and major patch after shared sco
   context.matchPatchDays=null;context.heroMeta={};context.isWin=savedWin;
 });
 
+test('avg rank filter applies named tiers to ranked and normal averages, with separate unranked and unavailable options',()=>{
+  const player={id:'1',label:'Alice',color:'#fff',matches:[
+    {match_id:10,match_mode:4}, {match_id:11,match_mode:1},
+    {match_id:12,match_mode:1}, {match_id:13,match_mode:4}, {match_id:14,match_mode:1},
+    {match_id:15,match_mode:1}]};
+  Object.assign(context.matchHistoryFilters,{rank:'all',hero:'all',result:'all',patch:'all'});
+  context.matchAvgBadges.set('10',43);
+  context.matchAvgBadges.set('13',null);
+  context.normalMatchRanks.set('11',{badge:46,count:8,rosterSize:12});
+  context.normalMatchRanks.set('12',{badge:null,count:0,unrankedCount:12,rosterSize:12});
+  context.normalMatchRanks.set('14',null);
+  context.rankAssets=[{tier:4,name:'Mystic',images:{large:'https://example.com/mystic.png'}},
+    {tier:5,name:'Ritualist',images:{large_subrank1:'https://example.com/ritualist-i.png'}},
+    {tier:0,images:{small:'https://example.com/unranked.png'}}];
+  const controls=context.matchHistoryFiltersHtml([player]);
+  assert.match(controls,/class="ind-picker match-rank-picker"/);
+  assert.match(controls,/data-match-filter-rank="4"[^>]*><img class="match-rank-icon" src="https:\/\/example.com\/mystic.png" alt=""><span>Mystic<\/span>/);
+  assert.match(controls,/data-match-filter-rank="unranked"[^>]*><img class="match-rank-icon" src="https:\/\/example.com\/unranked.png" alt=""><span>Unranked<\/span>/);
+  assert.match(controls,/data-match-filter-rank="5"[^>]*><img class="match-rank-icon" src="https:\/\/example.com\/ritualist-i.png" alt=""><span>Ritualist<\/span>/);
+  assert.match(controls,/Unavailable/);
+  context.matchHistoryFilters.rank='4';
+  assert.match(context.matchHistoryFiltersHtml([player]),/aria-label="Filter matches by average rank: Mystic"[^>]*><img class="match-rank-icon" src="https:\/\/example.com\/mystic.png"/);
+  assert.deepEqual(context.matchHistoryMatches(player).map(m=>m.match_id),[10,11]);
+  assert.match(context.tabMatches([player]),/Alice — 2 matches loaded/);
+  context.matchHistoryFilters.rank='unranked';
+  assert.deepEqual(context.matchHistoryMatches(player).map(m=>m.match_id),[12]);
+  context.matchHistoryFilters.rank='unknown';
+  assert.deepEqual(context.matchHistoryMatches(player).map(m=>m.match_id),[13,14]);
+  assert.match(context.matchHistoryFiltersHtml([player]),/Checking avg ranks 5\/6/);
+  context.matchHistoryFilters.rank='all';
+  context.matchAvgBadges.clear();context.normalMatchRanks.clear();context.rankAssets=[];
+});
+
 test('patch dates load once through the shared request path and retry on failure', async () => {
   let calls=0,renders=0;
   context.renderMain=()=>{renders++};
@@ -260,7 +300,7 @@ test('match list puts result near the front and displays objective and both heal
   const headings=[...rendered.matchAll(/<th class="[lr]"[^>]*>(.*?)<\/th>/g)].map(m=>m[1]);
   assert.deepEqual(headings.slice(0,7),['Hero','Result','Date / Time','YOUR RANK','RANK Δ','AVG RANK','Est. place']);
   assert.deepEqual(headings.slice(0,9),['Hero','Result','Date / Time','YOUR RANK','RANK Δ','AVG RANK','Est. place','Prestige','K']);
-  assert.deepEqual(headings.slice(13,16),['Objective damage','Self healing','Teammate healing']);
+  assert.deepEqual(headings.slice(13,16),['Obj Damage','Self healing','Teammate healing']);
   assert.ok(!headings.includes('Mode'));
   assert.ok(!headings.some(h=>['Last Hits','Denies','Lvl'].includes(h)));
   assert.match(rendered, /<td class="r">345<\/td>\s*<td class="r">123<\/td>\s*<td class="r">0<\/td>/);
@@ -271,14 +311,14 @@ test('match list puts result near the front and displays objective and both heal
   assert.match(context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches:[match]}]), /<td class="r">—<\/td>\s*<td class="r">—<\/td>\s*<td class="r">—<\/td>/);
 });
 
-test('match list omits mode but only fills rank columns for ranked matches', () => {
+test('match list distinguishes historical ranked averages from current-roster normal estimates', () => {
   const matches=[
     {match_id:1,hero_id:1,game_mode:1,match_mode:4,ranked_display_badge:43,ranked_delta:120},
     {match_id:2,hero_id:1,game_mode:1,match_mode:1},
   ];
   const rendered=context.tabMatches([{id:'1',label:'Alice',color:'#fff',matches}]);
-  const ranks=[...rendered.matchAll(/<td class="l">(.*?)<\/td>\s*<td class="r">(.*?)<\/td>\s*<td class="l">(<span class="api-rank">Avg 1<\/span>|—)<\/td>/g)];
-  assert.deepEqual(ranks.map(match=>[match[1],match[2],match[3]]),[['<span class="api-rank">Player 43</span>','<span class="match-rank-delta">120</span>','<span class="api-rank">Avg 1</span>'],['—','—','—']]);
+  const ranks=[...rendered.matchAll(/<td class="l">(.*?)<\/td>\s*<td class="r">(.*?)<\/td>\s*<td class="l">(<span class="api-rank">Avg 1<\/span>|<span class="api-rank">Current \(8\/12\)<\/span>)<\/td>/g)];
+  assert.deepEqual(ranks.map(match=>[match[1],match[2],match[3]]),[['<span class="api-rank">Player 43</span>','<span class="match-rank-delta">120</span>','<span class="api-rank">Avg 1</span>'],['—','—','<span class="api-rank">Current (8/12)</span>']]);
   assert.doesNotMatch(rendered,/match-mode|<th class="l">Mode<\/th>/);
 });
 
@@ -292,7 +332,8 @@ test('mobile match cards keep all stats and expanded roster available without ho
   assert.match(html, /\.matches-table \.match-entry>td:nth-child\(4\)::before\{content:'YOUR RANK'\}/);
   assert.match(html, /\.matches-table \.match-entry>td:nth-child\(5\)::before\{content:'RANK Δ'\}/);
   assert.match(html, /\.matches-table \.match-entry>td:nth-child\(19\)::before\{content:'Duration'\}/);
-  assert.match(html, /\.match-roster tbody tr>td:nth-child\(11\)::before\{content:'Healing'\}/);
+  assert.match(html, /\.match-roster tbody tr>td:nth-child\(12\)::before\{content:'Healing'\}/);
+  assert.match(html, /\.match-roster \.match-roster-rank::before\{content:'Current rank'\}/);
   assert.match(html, /\.matches-scroll,\.match-roster-scroll\{overflow:visible\}/);
   context.openMatchIds.clear();
 });

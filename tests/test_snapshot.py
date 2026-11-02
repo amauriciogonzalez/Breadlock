@@ -56,7 +56,11 @@ class SnapshotTests(unittest.TestCase):
                 files = {p.name for p in (Path(root) / 'snapshot').glob('*.json')}
                 self.assertEqual(files, {'manifest.json'} |
                                  {a['file'] for a in manifest['accounts'].values()} |
-                                 set(manifest['matches'].values()))
+                                 set(manifest['matches'].values()) |
+                                 {manifest['placements']['file']})
+                derived = json.loads((Path(root) / 'snapshot' / manifest['placements']['file']).read_text())
+                self.assertEqual(derived['ranks'], {})  # Fake metadata cannot score a roster.
+                self.assertEqual(derived['summaries']['1']['normal:0:matches']['count'], 0)
             # Scheduled CI starts with no SQLite file; committed JSON is enough.
             with closing(sqlite3.connect(Path(root) / 'restored.sqlite')) as db:
                 update.setup(db)
