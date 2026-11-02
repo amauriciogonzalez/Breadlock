@@ -2108,29 +2108,26 @@ function assignRankingTiers(rows){
   // Relative groups, not absolute grades: F is only used if six distinct
   // groups are justified, never merely because somebody came last.
   const n=graded.length,maxGroups=Math.min(6,n),letters='SABCDF';
-  const maxSingletons=n>=12?2:1;
   const comfortableSize=Math.max(3,Math.ceil(n/maxGroups));
   // Reward real score gaps, but charge for extra boundaries and crowded groups.
-  // Singleton groups require a >=3-point gap on each side that has a neighbor.
+  // Singleton groups require a >=4-point gap on each side that has a neighbor.
   // Give an eligible singleton a small preference over a nearly equal split.
   const gapAt=index=>graded[index-1].score-graded[index].score;
   const crowded=size=>Math.max(0,size-comfortableSize)**2*.6;
-  const states=Array.from({length:maxGroups+1},()=>Array.from({length:n+1},()=>Array(maxSingletons+1).fill(null)));
-  states[0][0][0]={value:0,cuts:[]};
+  const states=Array.from({length:maxGroups+1},()=>Array(n+1).fill(null));
+  states[0][0]={value:0,cuts:[]};
   for(let groups=1;groups<=maxGroups;groups++){
     for(let end=groups;end<=n;end++){
       for(let start=groups-1;start<end;start++){
         const gap=start?gapAt(start):0;
         if(start&&gap<1.5)continue;
         const singleton=end-start===1;
-        if(singleton&&((start&&gap<3)||(end<n&&gapAt(end)<3)))continue;
-        for(let count=singleton?1:0;count<=maxSingletons;count++){
-          const prev=states[groups-1][start][count-(singleton?1:0)];
-          if(!prev)continue;
-          const value=prev.value+(start?gap-2:0)-crowded(end-start)+(singleton?1:0);
-          const best=states[groups][end][count];
-          if(!best||value>best.value)states[groups][end][count]={value,cuts:start?[...prev.cuts,start]:prev.cuts};
-        }
+        if(singleton&&((start&&gap<4)||(end<n&&gapAt(end)<4)))continue;
+        const prev=states[groups-1][start];
+        if(!prev)continue;
+        const value=prev.value+(start?gap-2:0)-crowded(end-start)+(singleton?1:0);
+        const best=states[groups][end];
+        if(!best||value>best.value)states[groups][end]={value,cuts:start?[...prev.cuts,start]:prev.cuts};
       }
     }
   }
@@ -2138,9 +2135,8 @@ function assignRankingTiers(rows){
   // identical scores merely to fill the available letters.
   let chosen={value:0,cuts:[]};
   for(let groups=2;groups<=maxGroups;groups++){
-    for(const candidate of states[groups][n]){
-      if(candidate&&candidate.value>chosen.value)chosen=candidate;
-    }
+    const candidate=states[groups][n];
+    if(candidate&&candidate.value>chosen.value)chosen=candidate;
   }
   const cuts=new Set(chosen.cuts);
   let group=0;
