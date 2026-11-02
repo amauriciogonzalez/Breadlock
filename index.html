@@ -2103,24 +2103,47 @@ function rankingTrendExplanation(trend,index=0){
 }
 function assignRankingTiers(rows){
   const graded=rows.filter(r=>r.score!=null);
-  const gaps=graded.slice(1).map((r,i)=>({index:i+1,size:graded[i].score-r.score}));
-  const positive=gaps.map(g=>g.size).filter(g=>g>0).sort((a,b)=>a-b);
-  const mid=Math.floor(positive.length/2);
-  const typical=positive.length?(positive.length%2?positive[mid]:(positive[mid-1]+positive[mid])/2):0;
-  // Scores cluster near 50 after sample shrinkage. Split at meaningful *relative*
-  // gaps rather than requiring an absolute 8-point jump (which left seven of nine in S).
-  // Never split ties, and bound the number of tiers for small leaderboards.
-  const minGap=Math.max(1.5,typical);
-  const maxCuts=Math.min(5,Math.floor(graded.length/2));
-  const cuts=new Set(gaps.filter(g=>g.size>=minGap)
-    .sort((a,b)=>b.size-a.size||a.index-b.index).slice(0,maxCuts).map(g=>g.index));
-  const letters='SABCDF';
+  rows.forEach(r=>{r.tier=null;});
+  if(!graded.length)return rows;
+  // Relative groups, not absolute grades: F is only used if six distinct
+  // groups are justified, never merely because somebody came last.
+  const n=graded.length,maxGroups=Math.min(6,n),letters='SABCDF';
+  const maxSingletons=n>=12?2:1;
+  const comfortableSize=Math.max(3,Math.ceil(n/maxGroups));
+  // Reward real score gaps, but charge for extra boundaries and crowded groups.
+  // Singleton groups require a giant gap on each side that has a neighbor.
+  const gapAt=index=>graded[index-1].score-graded[index].score;
+  const crowded=size=>Math.max(0,size-comfortableSize)**2*.6;
+  const states=Array.from({length:maxGroups+1},()=>Array.from({length:n+1},()=>Array(maxSingletons+1).fill(null)));
+  states[0][0][0]={value:0,cuts:[]};
+  for(let groups=1;groups<=maxGroups;groups++){
+    for(let end=groups;end<=n;end++){
+      for(let start=groups-1;start<end;start++){
+        const gap=start?gapAt(start):0;
+        if(start&&gap<1.5)continue;
+        const singleton=end-start===1;
+        if(singleton&&((start&&gap<5)||(end<n&&gapAt(end)<5)))continue;
+        for(let count=singleton?1:0;count<=maxSingletons;count++){
+          const prev=states[groups-1][start][count-(singleton?1:0)];
+          if(!prev)continue;
+          const value=prev.value+(start?gap-2:0)-crowded(end-start);
+          const best=states[groups][end][count];
+          if(!best||value>best.value)states[groups][end][count]={value,cuts:start?[...prev.cuts,start]:prev.cuts};
+        }
+      }
+    }
+  }
+  // A single tier has no crowding penalty: don't invent tiers for nearly
+  // identical scores merely to fill the available letters.
+  let chosen={value:0,cuts:[]};
+  for(let groups=2;groups<=maxGroups;groups++){
+    for(const candidate of states[groups][n]){
+      if(candidate&&candidate.value>chosen.value)chosen=candidate;
+    }
+  }
+  const cuts=new Set(chosen.cuts);
   let group=0;
-  rows.forEach((r,i)=>{
-    if(r.score==null){r.tier=null;return;}
-    if(cuts.has(i))group++;
-    r.tier=letters[group];
-  });
+  graded.forEach((r,i)=>{if(cuts.has(i))group++;r.tier=letters[group];});
   return rows;
 }
 function tabCombat(arr){
