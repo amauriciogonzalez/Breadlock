@@ -2111,7 +2111,8 @@ function assignRankingTiers(rows){
   const maxSingletons=n>=12?2:1;
   const comfortableSize=Math.max(3,Math.ceil(n/maxGroups));
   // Reward real score gaps, but charge for extra boundaries and crowded groups.
-  // Singleton groups require a giant gap on each side that has a neighbor.
+  // Singleton groups require a >=3-point gap on each side that has a neighbor.
+  // Give an eligible singleton a small preference over a nearly equal split.
   const gapAt=index=>graded[index-1].score-graded[index].score;
   const crowded=size=>Math.max(0,size-comfortableSize)**2*.6;
   const states=Array.from({length:maxGroups+1},()=>Array.from({length:n+1},()=>Array(maxSingletons+1).fill(null)));
@@ -2122,11 +2123,11 @@ function assignRankingTiers(rows){
         const gap=start?gapAt(start):0;
         if(start&&gap<1.5)continue;
         const singleton=end-start===1;
-        if(singleton&&((start&&gap<5)||(end<n&&gapAt(end)<5)))continue;
+        if(singleton&&((start&&gap<3)||(end<n&&gapAt(end)<3)))continue;
         for(let count=singleton?1:0;count<=maxSingletons;count++){
           const prev=states[groups-1][start][count-(singleton?1:0)];
           if(!prev)continue;
-          const value=prev.value+(start?gap-2:0)-crowded(end-start);
+          const value=prev.value+(start?gap-2:0)-crowded(end-start)+(singleton?1:0);
           const best=states[groups][end][count];
           if(!best||value>best.value)states[groups][end][count]={value,cuts:start?[...prev.cuts,start]:prev.cuts};
         }
